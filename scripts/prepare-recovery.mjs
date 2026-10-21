@@ -1,0 +1,22 @@
+import { mkdir, copyFile, readFile, writeFile, access } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const dest = path.join(root, 'workshop2', 'recovery-practice');
+try { await access(dest); console.error('recovery-practice already exists. Keep your work; use a fresh clone for a new exercise.'); process.exit(1); } catch (e) { if(e.code !== 'ENOENT') throw e; }
+execFileSync('git', ['--version'], {stdio:'ignore'});
+await mkdir(dest, {recursive:true});
+for(const name of ['index.html','styles.css','app.js']) await copyFile(path.join(root,'workshop2','complete',name), path.join(dest,name));
+const git = (...args) => execFileSync('git', args, {cwd:dest, stdio:'pipe'}).toString().trim();
+const commit = message => git('-c','user.name=Workshop Example','-c','user.email=example@workshop.invalid','commit','-m',message);
+git('init','-b','main');
+git('add','index.html','styles.css','app.js');
+commit('good: working favorites buttons');
+const app=await readFile(path.join(dest,'app.js'),'utf8');
+await writeFile(path.join(dest,'app.js'),app.replace('const FAVORITES_ENABLED = true;','const FAVORITES_ENABLED = false;'));
+git('add','app.js');
+commit('practice: accidentally disable favorites');
+console.log('Recovery exercise ready: workshop2/recovery-practice');
+console.log(git('log','--oneline','-2'));
+console.log('The newest commit intentionally disables the buttons. Read docs/RECOVERY.md before reverting.');

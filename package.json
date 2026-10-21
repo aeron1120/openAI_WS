@@ -1,0 +1,13 @@
+{
+  "name": "openai-ws",
+  "private": true,
+  "version": "1.0.0",
+  "description": "SNU workshop practice examples",
+  "scripts": {
+    "dev": "node server.mjs",
+    "prepare:recovery": "node scripts/prepare-recovery.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
