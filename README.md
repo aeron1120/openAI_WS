@@ -20,6 +20,12 @@ npm run dev
 
 ## 자료 구성
 
+- [Workshop 2 Google Slides](https://docs.google.com/presentation/d/1rUCvsJvfaKOH13tPIRh-ZlsAGvh3S_zWljE84p_BakQ/edit)
+- [한·영 brief Google Docs](https://docs.google.com/document/d/1qw9G5jIdp7gbnz9r6KrBX2BeBnK-RHl6AfTuNgbPF2E/edit)
+- [슬라이드 PDF](materials/Workshop02_Slides.pdf) · [brief PDF](materials/Workshop02_Brief.pdf)
+
+PDF는 2026-10-21 기준 검토본입니다. 행사 정보 확정 후 원본 문서와 PDF를 함께 갱신하세요. Google 문서의 접근 권한은 GitHub와 별개입니다.
+
 | 경로 | 용도 |
 | --- | --- |
 | `workshop2/starter/` | 참가자가 수정할 시작본 |
