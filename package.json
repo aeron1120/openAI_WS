@@ -5,6 +5,8 @@
   "description": "SNU workshop practice examples",
   "scripts": {
     "dev": "node server.mjs",
+    "build": "node scripts/build-site.mjs",
+    "deploy": "npm run build && npx --yes wrangler@4.152.0 deploy",
     "prepare:recovery": "node scripts/prepare-recovery.mjs"
   },
   "engines": {

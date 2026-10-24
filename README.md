@@ -2,11 +2,18 @@
 
 서울대학교 Workshop 02 — **내 앱을 고치고 기록하기 (Fix & Track)** 실습 자료.
 
-현재 저장소는 비공개입니다. 참가자 배포 전에 접근 권한 또는 공개 여부를 확정하세요.
+**[웹에서 바로 실행하기](https://openai-ws.a01085519047.workers.dev/)** — 설치나 GitHub 로그인 없이 시작본과 완성본을 열 수 있습니다.
+
+- [시작본](https://openai-ws.a01085519047.workers.dev/workshop2/starter/)
+- [완성본](https://openai-ws.a01085519047.workers.dev/workshop2/complete/)
+
+Cloudflare의 공개 예제와 GitHub 소스 저장소의 접근 권한은 별개입니다. 현재 소스 저장소는 비공개이며, Fork·Clone 실습 전에 참가자 접근 권한 또는 공개 여부를 확정하세요.
 
 일시·장소·협력단체는 미정입니다. 이 저장소의 모임 이름·시간·장소는 모두 가상 예시입니다.
 
-## 시작하기
+## 직접 코드를 수정하기
+
+위 공개 링크는 시연과 비교용입니다. 본인 코드의 변경은 본인 실행 환경에서 확인하며, 운영진의 공개 사이트에 자동 반영되지 않습니다.
 
 1. Node.js 20 이상, Git, VS Code와 사용할 Codex 환경을 미리 준비합니다.
 2. 이 저장소를 **본인 계정으로 Fork**한 뒤, 본인 Fork를 Clone합니다. 다운로드 ZIP도 화면 실습은 가능하지만 Git 이력과 remote는 포함되지 않습니다.
@@ -24,7 +31,7 @@ npm run dev
 - [한·영 brief Google Docs](https://docs.google.com/document/d/1qw9G5jIdp7gbnz9r6KrBX2BeBnK-RHl6AfTuNgbPF2E/edit)
 - [슬라이드 PDF](materials/Workshop02_Slides.pdf) · [brief PDF](materials/Workshop02_Brief.pdf)
 
-PDF는 2026-10-21 기준 검토본입니다. 행사 정보 확정 후 원본 문서와 PDF를 함께 갱신하세요. Google 문서의 접근 권한은 GitHub와 별개입니다.
+슬라이드 PDF는 2026-10-24 Cloudflare 링크 반영본이며, brief PDF는 2026-10-21 기준 검토본입니다. 행사 정보 확정 후 원본 문서와 PDF를 함께 갱신하세요. Google 문서의 접근 권한은 GitHub와 별개입니다.
 
 | 경로 | 용도 |
 | --- | --- |
@@ -45,6 +52,8 @@ PDF는 2026-10-21 기준 검토본입니다. 행사 정보 확정 후 원본 문
 - 별도 연습 저장소에서 revert 후 버튼과 이력 복구를 확인한다.
 
 ## 참고
+
+- [Cloudflare 배포 및 갱신 안내](docs/DEPLOYMENT.md)
 
 - [Codex IDE extension](https://learn.chatgpt.com/docs/codex/ide)
 - [Git revert 공식 설명](https://git-scm.com/docs/git-revert)
