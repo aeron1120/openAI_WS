@@ -1,5 +1,22 @@
 # openAI_WS
 
+## Workshop 01 — 틈, 화면에서 서비스로
+
+**[발표용 버전 모아보기](https://openai-ws-workshop1.a01085519047.workers.dev/versions/)**
+
+| 순서 | 추가되는 기능 | 시연 |
+| --- | --- | --- |
+| v0 | 모임 기본 화면 | [열기](https://v0-openai-ws-workshop1.a01085519047.workers.dev/) |
+| v1 | 기상청 기온·강수확률 | [열기](https://v1-openai-ws-workshop1.a01085519047.workers.dev/) |
+| v2 | Google 로그인·세션 | [열기](https://v2-openai-ws-workshop1.a01085519047.workers.dev/) |
+| v3 | Google 지도·장소 선택 | [열기](https://v3-openai-ws-workshop1.a01085519047.workers.dev/) |
+
+지도는 Google Maps 키 설정 후 실제 지도가 표시됩니다. [배포 기록과 검증 상태](docs/WORKSHOP1-DEPLOYMENTS.md), [날씨 설정](docs/WEATHER.md), [로그인 설정](docs/AUTH.md), [지도 설정](docs/MAPS.md).
+
+로컬: `npm run dev:workshop1` · 자동 검사: `npm run test:workshop1` · 배포 파일: `npm run build:workshop1`.
+
+## Workshop 02 — Fix & Track
+
 서울대학교 Workshop 02 — **내 앱을 고치고 기록하기 (Fix & Track)** 실습 자료.
 
 **[웹에서 바로 실행하기](https://openai-ws.a01085519047.workers.dev/)** — 설치나 GitHub 로그인 없이 시작본과 완성본을 열 수 있습니다.
