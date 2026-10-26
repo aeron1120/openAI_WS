@@ -1,0 +1,82 @@
+/* 색상은 여기서, 배치는 .intro와 .workspace에서 바꾸세요. */
+:root {
+  --paper: #f7f7f2;
+  --surface: #fffefb;
+  --ink: #203b32;
+  --muted: #58675f;
+  --line: #cbd1c6;
+  --soft: #eeefe7;
+  --accent: #d5e3bd;
+  --radius: 18px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", sans-serif; line-height: 1.65; word-break: keep-all; }
+a { color: inherit; text-underline-offset: 4px; }
+button, textarea { font: inherit; }
+a, button, summary { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid #48733e; outline-offset: 5px; }
+.skip-link { position: absolute; top: -100px; left: 20px; padding: 12px; background: white; z-index: 2; }
+.skip-link:focus { top: 12px; }
+.page { max-width: 1160px; margin: auto; padding: 0 40px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 27px 0; border-bottom: 1px solid var(--line); }
+.wordmark { display: flex; align-items: center; gap: 16px; font-size: 20px; font-weight: 750; text-decoration: none; }
+.wordmark span { color: var(--muted); font-size: 10px; letter-spacing: 1.7px; font-weight: 600; }
+.guide-link { color: var(--muted); font-size: 13px; }
+.intro { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 64px; align-items: start; padding: 56px 0 42px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 1px; margin: 0 0 17px; }
+h1 { font-size: clamp(30px, 4vw, 44px); font-weight: 650; line-height: 1.3; letter-spacing: -1.8px; margin: 0 0 20px; }
+.intro-description { color: var(--muted); font-size: 15px; margin: 0; }
+.section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 16px 0; }
+.section-heading h2 { font-size: 16px; margin: 0; }
+.section-heading p { font-size: 12px; color: var(--muted); margin: 0; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; }
+.feature { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius); padding: 25px; background: var(--surface); }
+.feature-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+.number { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 1px; color: var(--muted); }
+.state { font-size: 11px; color: var(--muted); }
+.state::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: #9aab8d; }
+.feature h2 { margin: 0 0 5px; font-size: 21px; letter-spacing: -.5px; line-height: 1.4; }
+.feature > p, .custom-copy p { margin: 0 0 20px; font-size: 13px; color: var(--muted); }
+.login { padding: 22px; }
+.login h2 { font-size: 19px; }
+.login-placeholder { border: 1px dashed #a8b4a0; background: var(--soft); border-radius: 9px; text-align: center; padding: 14px 8px; color: var(--muted); font-size: 13px; }
+.empty-surface { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 190px; gap: 7px; border: 1px dashed #b6c1aa; border-radius: 10px; background: #f5f6ef; text-align: center; padding: 20px; }
+.placeholder-mark { font-size: 27px; font-weight: 300; line-height: 1; color: #718365; margin-bottom: 9px; }
+.empty-surface strong { font-size: 14px; font-weight: 550; }
+.empty-surface > span:last-child { font-size: 12px; color: var(--muted); }
+.weather-placeholder { background: #f7f3e9; border-color: #cec5ae; }
+.instruction { margin-top: 18px; font-size: 12px; }
+.instruction summary { cursor: pointer; min-height: 32px; padding: 4px 0; font-weight: 600; }
+.instruction[open] summary { margin-bottom: 10px; }
+.instruction label { display: block; margin: 8px 0 6px; color: var(--muted); }
+.instruction textarea { display: block; width: 100%; min-height: 125px; padding: 12px; color: var(--ink); background: #f6f7f2; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; line-height: 1.7; resize: vertical; word-break: normal; }
+.copy-button { padding: 8px 12px; margin: 10px 0 5px; min-height: 40px; border: 1px solid #a7b897; border-radius: 7px; background: var(--accent); color: var(--ink); font-size: 12px; font-weight: 650; cursor: pointer; }
+.copy-button:hover { background: #c6d8a8; }
+.copy-status { display: block; color: var(--muted); font-size: 12px; }
+.instruction > a { display: inline-block; margin-top: 10px; color: var(--muted); }
+.custom { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; border-style: dashed; background: transparent; padding: 28px; }
+.custom-copy .number { display: block; margin-bottom: 12px; }
+.custom-copy p { margin-top: 10px; margin-bottom: 0; }
+.custom-placeholder { text-align: center; font-size: 31px; color: #8e9c82; padding: 12px 0 4px; }
+.custom-action .instruction { margin-top: 8px; }
+footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; border-top: 1px solid var(--line); margin-top: 42px; padding: 25px 0 36px; font-size: 11px; color: var(--muted); }
+footer p { margin: 0; }
+footer strong { font-weight: 650; }
+footer div { display: flex; flex-wrap: wrap; gap: 18px; }
+@media (max-width: 760px) {
+  .page { padding: 0 22px; }
+  .topbar { gap: 12px; padding: 21px 0; align-items: start; }
+  .wordmark { display: block; font-size: 18px; }
+  .wordmark span { display: block; margin-top: 3px; font-size: 9px; }
+  .guide-link { font-size: 11px; padding-top: 5px; }
+  .intro { grid-template-columns: 1fr; gap: 28px; padding: 35px 0 22px; }
+  h1 { font-size: 34px; }
+  .section-heading { display: block; }
+  .section-heading p { margin-top: 4px; }
+  .workspace, .custom { grid-template-columns: 1fr; gap: 18px; }
+  .feature { padding: 22px; }
+  .custom { gap: 12px; }
+  .custom-placeholder { display: none; }
+  footer { flex-direction: column; align-items: start; gap: 14px; }
+}
+@media (prefers-reduced-motion: no-preference) { .copy-button { transition: background .15s; } }

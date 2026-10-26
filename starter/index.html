@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>내 아이디어 · Workshop 1 기초 틀</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 이동</a>
+  <div class="page">
+    <nav class="topbar" aria-label="실습 자료">
+      <a class="wordmark" href="index.html">내 아이디어<span>WORKSHOP 01</span></a>
+      <a class="guide-link" href="https://github.com/aeron1120/openAI_WS/blob/main/guides/START-HERE.md" target="_blank" rel="noopener">처음이라면, 시작 안내 ↗</a>
+    </nav>
+
+    <header class="intro">
+      <!-- 소개: 사이트 이름, 대상, 설명을 내 아이디어에 맞게 바꾸세요. -->
+      <div class="intro-copy">
+        <p class="eyebrow">나의 웹사이트, 여기서 시작</p>
+        <h1>이곳에 나의<br>아이디어를 담아보세요.</h1>
+        <p class="intro-description">누구를 위한 서비스인가요?<br>어떤 일을 도와주는지 한두 문장으로 소개해주세요.</p>
+      </div>
+
+      <!-- 로그인: 이 section 전체를 이동하거나 삭제해도 됩니다. -->
+      <section class="feature login" id="login" aria-labelledby="login-title">
+        <div class="feature-heading"><span class="number">01</span><span class="state">아직 연결 전</span></div>
+        <h2 id="login-title">로그인</h2>
+        <p>사용자가 누구인지 확인하는 자리예요.</p>
+        <div class="login-placeholder" aria-label="로그인 기능이 들어갈 자리">로그인 기능을 넣을 자리</div>
+        <details class="instruction">
+          <summary>Codex에 이렇게 요청해보세요</summary>
+          <label for="prompt-login">기본 요청문</label>
+          <textarea id="prompt-login" readonly rows="6">starter의 로그인 영역에 Google 로그인 기능을 구현해줘. 로그인하면 이름과 프로필 사진을 보여주고, 새로고침해도 로그인 상태를 유지하게 해줘. 로그아웃도 가능하게 해줘. 필요한 계정·서버 설정과 내가 직접 해야 할 일을 먼저 알려줘.</textarea>
+          <button class="copy-button" type="button" data-copy="prompt-login">요청문 복사</button>
+          <span class="copy-status" role="status" aria-live="polite"></span>
+          <a href="https://github.com/aeron1120/openAI_WS/blob/main/guides/LOGIN.md" target="_blank" rel="noopener">준비 사항과 확인 방법 ↗</a>
+        </details>
+      </section>
+    </header>
+
+    <main id="main">
+      <div class="section-heading"><h2>내 서비스에 필요한 기능</h2><p>필요한 자리는 채우고, 필요 없는 자리는 지워도 좋아요.</p></div>
+      <div class="workspace">
+        <!-- 지도·위치정보: 모양은 styles.css의 .map에서 바꿉니다. -->
+        <section class="feature map" id="map" aria-labelledby="map-title">
+          <div class="feature-heading"><span class="number">02</span><span class="state">아직 연결 전</span></div>
+          <h2 id="map-title">지도·위치정보</h2>
+          <p>내 서비스에 필요한 장소를 보여줄 자리예요.</p>
+          <div class="empty-surface map-placeholder">
+            <span class="placeholder-mark" aria-hidden="true">＋</span>
+            <strong>어떤 장소를 보여줄까요?</strong>
+            <span>지도와 위치 표시가 들어갈 공간</span>
+          </div>
+          <details class="instruction">
+            <summary>Codex에 이렇게 요청해보세요</summary>
+            <label for="prompt-map">기본 요청문</label>
+            <textarea id="prompt-map" readonly rows="5">starter의 지도·위치정보 영역에 Google 지도를 넣어줘. 서울대학교 정문에 마커를 표시하고, 마커를 누르면 장소 이름이 보이게 해줘. 필요한 API 설정과 비용이 생길 수 있는 부분을 먼저 알려줘.</textarea>
+            <button class="copy-button" type="button" data-copy="prompt-map">요청문 복사</button>
+            <span class="copy-status" role="status" aria-live="polite"></span>
+            <a href="https://github.com/aeron1120/openAI_WS/blob/main/guides/MAP.md" target="_blank" rel="noopener">준비 사항과 확인 방법 ↗</a>
+          </details>
+        </section>
+
+        <!-- 날씨: 실제 값이 없는 자리입니다. 숫자를 임의로 채우지 않습니다. -->
+        <section class="feature weather" id="weather" aria-labelledby="weather-title">
+          <div class="feature-heading"><span class="number">03</span><span class="state">아직 연결 전</span></div>
+          <h2 id="weather-title">날씨</h2>
+          <p>사용자에게 필요한 날씨를 보여줄 자리예요.</p>
+          <div class="empty-surface weather-placeholder">
+            <span class="placeholder-mark" aria-hidden="true">＋</span>
+            <strong>어느 지역, 언제의 날씨인가요?</strong>
+            <span>기온과 강수확률이 들어갈 공간</span>
+          </div>
+          <details class="instruction">
+            <summary>Codex에 이렇게 요청해보세요</summary>
+            <label for="prompt-weather">기본 요청문</label>
+            <textarea id="prompt-weather" readonly rows="6">starter의 날씨 영역에 기상청 단기예보 API를 연결해줘. 관악구 대학동의 내일 오후 6시 기온과 강수확률을 보여줘. 인증키는 서버의 KMA_SERVICE_KEY로 보관하고, 설정 위치를 안내해줘. 로딩·실패·예보 없음 상태도 구분해줘.</textarea>
+            <button class="copy-button" type="button" data-copy="prompt-weather">요청문 복사</button>
+            <span class="copy-status" role="status" aria-live="polite"></span>
+            <a href="https://github.com/aeron1120/openAI_WS/blob/main/guides/WEATHER.md" target="_blank" rel="noopener">준비 사항과 확인 방법 ↗</a>
+          </details>
+        </section>
+
+        <!-- 자유 공간: 새 기능을 추가하거나 이 section을 복제해 사용하세요. -->
+        <section class="feature custom" id="custom" aria-labelledby="custom-title">
+          <div class="custom-copy">
+            <span class="number">04</span>
+            <h2 id="custom-title">나만의 기능</h2>
+            <p>내 아이디어에 필요한 것은 무엇인가요?<br>검색, 추천, 일정, 게시판… 이 공간을 자유롭게 바꿔보세요.</p>
+          </div>
+          <div class="custom-action">
+            <div class="custom-placeholder" aria-hidden="true">＋</div>
+            <details class="instruction">
+              <summary>내 아이디어로 요청해보기</summary>
+              <label for="prompt-custom">대괄호 안을 바꿔 요청하세요</label>
+              <textarea id="prompt-custom" readonly rows="5">내 서비스는 [누구]가 [어떤 일]을 하는 웹사이트야. starter의 나만의 기능 영역에 [필요한 기능]을 추가해줘. 사용자가 [어떤 행동]을 하면 [어떤 결과]를 볼 수 있게 해줘. 필요한 준비와 동작 확인 방법도 알려줘.</textarea>
+              <button class="copy-button" type="button" data-copy="prompt-custom">요청문 복사</button>
+              <span class="copy-status" role="status" aria-live="polite"></span>
+              <a href="https://github.com/aeron1120/openAI_WS/blob/main/guides/CUSTOMIZE.md" target="_blank" rel="noopener">배치 바꾸기와 기능 추가 ↗</a>
+            </details>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <p><strong>하나씩 만들어보세요.</strong> 이 화면은 기능을 직접 채우는 기초 틀입니다.</p>
+      <div><a href="https://github.com/aeron1120/openAI_WS/blob/main/guides/README.md" target="_blank" rel="noopener">실습 안내</a><a href="https://github.com/aeron1120/openAI_WS/blob/main/guides/EXAMPLES.md" target="_blank" rel="noopener">예제 참고</a><a href="https://github.com/aeron1120/openAI_WS/blob/main/guides/TROUBLESHOOTING.md" target="_blank" rel="noopener">막혔을 때</a></div>
+    </footer>
+  </div>
+</body>
+</html>

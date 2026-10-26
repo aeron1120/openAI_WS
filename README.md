@@ -1,78 +1,81 @@
-# openAI_WS
+# 내 아이디어로 만드는 웹사이트 · Workshop Kit
 
-## Workshop 01 — 틈, 화면에서 서비스로
+**화면의 자리를 보고, Codex에 요청하며 필요한 기능을 하나씩 채워보세요.**
 
-**[발표용 버전 모아보기](https://openai-ws-workshop1.a01085519047.workers.dev/versions/)**
+로그인 · 지도/위치정보 · 날씨 · 나만의 기능 공간이 준비되어 있습니다. 필요 없는 박스는 지우고, 위치를 옮기거나 새로운 기능을 추가해도 됩니다. 처음부터 세 기능을 모두 구현할 필요는 없습니다.
 
-| 순서 | 추가되는 기능 | 시연 |
-| --- | --- | --- |
-| v0 | 모임 기본 화면 | [열기](https://v0-openai-ws-workshop1.a01085519047.workers.dev/) |
-| v1 | 기상청 기온·강수확률 | [열기](https://v1-openai-ws-workshop1.a01085519047.workers.dev/) |
-| v2 | Google 로그인·세션 | [열기](https://v2-openai-ws-workshop1.a01085519047.workers.dev/) |
-| v3 | Google 지도·장소 선택 | [열기](https://v3-openai-ws-workshop1.a01085519047.workers.dev/) |
+## 여기서 시작하세요
 
-지도는 Google Maps 키 설정 후 실제 지도가 표시됩니다. [배포 기록과 검증 상태](docs/WORKSHOP1-DEPLOYMENTS.md), [날씨 설정](docs/WEATHER.md), [로그인 설정](docs/AUTH.md), [지도 설정](docs/MAPS.md).
+| 지금 하려는 일 | 열 곳 |
+| --- | --- |
+| 처음 참여해서 준비하기 | **[시작 안내](guides/START-HERE.md)** — repo 받기, Codex 데스크톱 / VS Code, 실행 |
+| 내 웹사이트 수정하기 | **[starter/](starter/)** — 학생이 직접 바꾸는 기초 틀 |
+| 기능 하나 구현하기 | [로그인](guides/LOGIN.md) · [지도·위치정보](guides/MAP.md) · [날씨](guides/WEATHER.md) |
+| 내 아이디어에 맞게 바꾸기 | [배치·문구 변경, 삭제, 기능 추가](guides/CUSTOMIZE.md) |
+| 막힌 부분 해결하기 | [문제 해결](guides/TROUBLESHOOTING.md) · [발표용 예제 참고](guides/EXAMPLES.md) |
 
-로컬: `npm run dev:workshop1` · 자동 검사: `npm run test:workshop1` · 배포 파일: `npm run build:workshop1`.
+## 가장 빠르게 화면 열기
 
-## Workshop 02 — Fix & Track
+1. 상단 **Code → Download ZIP**으로 받고, **압축을 모두 풀어주세요.**
+2. `starter` 폴더 안의 **`index.html`을 브라우저로 열면** 기초 틀이 보입니다. 설치와 API 키가 필요하지 않습니다.
+3. 수정할 때는 받은 **저장소 전체 폴더**를 Codex 데스크톱 또는 VS Code에서 열고 아래처럼 요청하세요.
 
-서울대학교 Workshop 02 — **내 앱을 고치고 기록하기 (Fix & Track)** 실습 자료.
+> 이 저장소의 starter를 수정할 거야. 먼저 기초 틀을 실행해줘. 로그인 박스를 왼쪽으로 옮기고, 사이트 소개를 ‘대학생이 함께 공부할 사람을 찾는 서비스’로 바꿔줘.
 
-**[웹에서 바로 실행하기](https://openai-ws.a01085519047.workers.dev/)** — 설치나 GitHub 로그인 없이 시작본과 완성본을 열 수 있습니다.
-
-- [시작본](https://openai-ws.a01085519047.workers.dev/workshop2/starter/)
-- [완성본](https://openai-ws.a01085519047.workers.dev/workshop2/complete/)
-
-Cloudflare의 공개 예제와 GitHub 소스 저장소의 접근 권한은 별개입니다. 현재 소스 저장소는 비공개이며, Fork·Clone 실습 전에 참가자 접근 권한 또는 공개 여부를 확정하세요.
-
-일시·장소·협력단체는 미정입니다. 이 저장소의 모임 이름·시간·장소는 모두 가상 예시입니다.
-
-## 직접 코드를 수정하기
-
-위 공개 링크는 시연과 비교용입니다. 본인 코드의 변경은 본인 실행 환경에서 확인하며, 운영진의 공개 사이트에 자동 반영되지 않습니다.
-
-1. Node.js 20 이상, Git, VS Code와 사용할 Codex 환경을 미리 준비합니다.
-2. 이 저장소를 **본인 계정으로 Fork**한 뒤, 본인 Fork를 Clone합니다. 다운로드 ZIP도 화면 실습은 가능하지만 Git 이력과 remote는 포함되지 않습니다.
-3. 복제한 `openAI_WS` 폴더를 VS Code에서 열고 터미널에서 실행합니다.
+로컬 서버로 실행하려면 **Node.js 20 이상**을 준비하고, 저장소 폴더에서 실행합니다.
 
 ```sh
 npm run dev
 ```
 
-`http://localhost:5173`을 열어 시작본 또는 완성본을 선택합니다. 외부 패키지가 없으므로 `npm install`은 필요하지 않습니다. 서버는 실행한 컴퓨터에서만 접속됩니다. 변경 후 브라우저를 새로고침하세요. 중지는 `Ctrl+C`입니다.
+**http://localhost:5173/starter/** 를 여세요. 외부 패키지가 없어 `npm install`은 필요하지 않습니다. 수정 후 브라우저를 새로고침하고, 서버를 멈추려면 터미널에서 `Ctrl+C`를 누릅니다. 자세한 준비는 [시작 안내](guides/START-HERE.md)를 보세요.
 
-## 자료 구성
+## 기초 틀은 어디까지 준비되어 있나요?
 
-- [Workshop 2 Google Slides](https://docs.google.com/presentation/d/1rUCvsJvfaKOH13tPIRh-ZlsAGvh3S_zWljE84p_BakQ/edit)
-- [한·영 brief Google Docs](https://docs.google.com/document/d/1qw9G5jIdp7gbnz9r6KrBX2BeBnK-RHl6AfTuNgbPF2E/edit)
-- [슬라이드 PDF](materials/Workshop02_Slides.pdf) · [brief PDF](materials/Workshop02_Brief.pdf)
+| 영역 | 현재 상태 | 직접 해볼 일 |
+| --- | --- | --- |
+| 로그인 | 기능 자리와 요청문 | Google 로그인, 사용자 표시, 로그아웃 |
+| 지도·위치정보 | 빈 지도 영역과 요청문 | 지도 연결, 장소 마커, 장소 선택 |
+| 날씨 | 빈 날씨 영역과 요청문 | 실제 API 데이터 연결 |
+| 나만의 기능 | 자유 공간과 요청문 틀 | 내 아이디어에 필요한 기능 추가 |
 
-슬라이드 PDF는 2026-10-24 Cloudflare 링크 반영본이며, brief PDF는 2026-10-21 기준 검토본입니다. 행사 정보 확정 후 원본 문서와 PDF를 함께 갱신하세요. Google 문서의 접근 권한은 GitHub와 별개입니다.
+**실제 로그인·지도·날씨는 아직 연결되어 있지 않습니다.** 숫자나 계정 정보를 가짜로 표시하지 않으며, 초기 화면은 외부 API를 호출하지 않습니다. 요청문 복사와 안내 펼치기만 동작합니다.
 
-| 경로 | 용도 |
-| --- | --- |
-| `workshop2/starter/` | 참가자가 수정할 시작본 |
-| `workshop2/complete/` | 선택·해제 기능이 있는 완성본 |
-| `docs/PARTICIPANT.md` | 사전 준비부터 commit·push까지 |
-| `docs/RECOVERY.md` | 독립된 연습 저장소에서 revert |
-| `docs/FACILITATOR.md` | 60분 운영 순서와 대체 진행 |
-| `docs/BRIEF_KR.md`, `docs/BRIEF_EN.md` | 제출용 brief 초안 |
+## 파일 찾기
 
-## 오늘의 완료 기준
+```text
+openAI_WS/
+├─ README.md              ← 지금 읽는 시작점
+├─ starter/               ← 내가 수정할 웹사이트
+│  ├─ index.html          ← 문구, 기능 박스, 화면 구조
+│  ├─ styles.css          ← 배치, 색상, 크기, 모바일 화면
+│  └─ app.js              ← 요청문 복사와 앞으로 추가할 동작
+├─ guides/                ← 준비, 기능별 요청문, 확인 방법
+├─ workshop1/             ← 기존 발표용 모임 앱 예제
+├─ workshop2/             ← 기존 Workshop 2 자료
+├─ materials/             ← 기존 발표 자료 파일
+├─ docs/                  ← 기존 예제 설정·운영 문서
+├─ server/                ← 기존 예제의 API·로그인 처리
+├─ scripts/               ← 실행·배포 준비 도구
+└─ tests/                 ← 운영진용 자동 검사
+```
 
-- 카드 A의 즐겨찾기를 선택하고 다시 누르면 해제된다.
-- 카드 B의 선택 상태는 카드 A를 눌러도 유지된다.
-- 모임 정보와 기존 화면이 유지된다.
-- 새로고침하면 선택이 초기화된다. 이번 실습에서는 DB·브라우저 저장소를 사용하지 않는다.
-- 변경을 commit하고, 본인 GitHub Fork에서 같은 commit을 확인한다.
-- 별도 연습 저장소에서 revert 후 버튼과 이력 복구를 확인한다.
+학생은 **`starter/`와 `guides/`부터** 보면 됩니다. 각 폴더의 README에 파일 역할과 다음으로 볼 곳이 적혀 있습니다. `AGENTS.md`는 Codex가 이 구성을 이해하도록 돕는 안내입니다.
 
-## 참고
+## 자료와 버전
 
-- [Cloudflare 배포 및 갱신 안내](docs/DEPLOYMENT.md)
+- **기초 틀:** [starter](starter/README.md) — 빈 기능 자리에서 직접 구현합니다.
+- **기존 발표용 예제:** [Workshop 1 예제 안내](workshop1/README.md) — 모임 앱의 단계별 코드와 시연 링크입니다. 새 기초 틀과 화면 구조는 다릅니다. 지도 등 각 기능의 설정·확인 상태는 안내에서 확인하세요.
+- **발표 슬라이드:** [Workshop 1 Google Slides](https://docs.google.com/presentation/d/1OYbhNdlJFerD-LumLyBXP3SUZKata9K1m_avNXCvUvM/edit) — 기존 발표본입니다. 이 저장소의 Codex 시작 안내는 `guides/`를 기준으로 보세요.
+- **기존 자료:** [Workshop 2 안내](workshop2/README.md)
 
-- [Codex IDE extension](https://learn.chatgpt.com/docs/codex/ide)
-- [Git revert 공식 설명](https://git-scm.com/docs/git-revert)
+집과 studio session에서 같은 자료로 실습할 수 있습니다. 완료 목표는 **내 서비스에 필요한 실제 연결 하나 + 내가 바꾼 문구나 배치 하나**입니다.
 
-Workshop 1의 캠퍼스 모임 플래너 흐름을 이어가는 독립 예제입니다. 실제 로그인·API 키·외부 데이터 연결은 포함하지 않습니다.
+## 운영진용 확인
+
+```sh
+npm test
+npm run build
+```
+
+`npm run build`는 기초 틀과 기존 Workshop 2의 공개 화면 파일만 `dist/`에 모읍니다. 기존 Workshop 1 서버 예제는 `npm run test:workshop1`, `npm run build:workshop1`과 [별도 배포 안내](docs/WORKSHOP1-DEPLOYMENTS.md)를 사용합니다.
