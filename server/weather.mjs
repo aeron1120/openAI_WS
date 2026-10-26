@@ -42,6 +42,19 @@ function unavailable() {
   return json({ code: 'FORECAST_NOT_AVAILABLE', message: '이 날짜와 시간의 예보가 아직 없어요. 가까운 날짜를 선택해 주세요.' }, 404);
 }
 
+function safeUpstreamCode(value) {
+  const code = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  return /^[0-9]{1,3}$/.test(code) ? code : undefined;
+}
+
+function upstreamFailure(reason, status, code) {
+  const diagnostic = { reason };
+  if (Number.isInteger(status) && status >= 100 && status <= 599) diagnostic.upstreamStatus = status;
+  const safeCode = safeUpstreamCode(code);
+  if (safeCode !== undefined) diagnostic.upstreamCode = safeCode;
+  return json({ code: 'WEATHER_UPSTREAM_ERROR', message: '기상청 예보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.', diagnostic }, 502);
+}
+
 export async function handleWeather(request, env, { fetchImpl = fetch, now = new Date() } = {}) {
   if (request.method !== 'GET') return json({ code: 'METHOD_NOT_ALLOWED', message: '지원하지 않는 요청이에요.' }, 405, { Allow: 'GET' });
   const params = new URL(request.url).searchParams;
@@ -64,27 +77,41 @@ export async function handleWeather(request, env, { fetchImpl = fetch, now = new
   const issued = latestBaseTime(now);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
+  let upstreamStatus;
+  let decodingKey = true;
   try {
     // Accept either portal encoding variant; URLSearchParams performs the final encoding.
     const suppliedKey = env.KMA_SERVICE_KEY.trim();
     const serviceKey = suppliedKey.includes('%') ? decodeURIComponent(suppliedKey) : suppliedKey;
+    decodingKey = false;
     const url = new URL(KMA_ENDPOINT);
     url.search = new URLSearchParams({ serviceKey, pageNo: '1', numOfRows: '2000', dataType: 'JSON',
       base_date: issued.baseDate, base_time: issued.baseTime, nx: String(GRID.nx), ny: String(GRID.ny) }).toString();
     const response = await fetchImpl(url.toString(), { signal: controller.signal, redirect: 'error', headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error('Weather upstream failed');
-    const result = await response.json();
-    const code = String(result?.response?.header?.resultCode ?? '');
+    upstreamStatus = response.status;
+    const rawBody = await response.text();
+    let result;
+    let validJson = true;
+    try { result = JSON.parse(rawBody); } catch { validJson = false; }
+    // The portal sometimes returns an XML error despite dataType=JSON. Extract
+    // only its bounded numeric code; never return text, URLs or XML messages.
+    const xmlCode = !validJson ? /<(returnReasonCode|resultCode)>\s*([0-9]{1,3})\s*<\/\1>/.exec(rawBody)?.[2] : undefined;
+    const code = safeUpstreamCode(result?.response?.header?.resultCode ?? xmlCode);
+    if (!response.ok) return upstreamFailure('UPSTREAM_HTTP_ERROR', upstreamStatus, code);
+    if (!validJson) return upstreamFailure(xmlCode ? 'UPSTREAM_API_ERROR' : 'UPSTREAM_INVALID_JSON', upstreamStatus, xmlCode);
     if (code === '03') return unavailable();
-    if (code !== '00') throw new Error('Weather upstream rejected request');
+    if (code !== '00') return upstreamFailure('UPSTREAM_API_ERROR', upstreamStatus, code);
     const forecast = selectForecast(result?.response?.body?.items?.item, date.replaceAll('-', ''), time.replace(':', ''), issued);
     if (!forecast) return unavailable();
     return json({ ...forecast, forecastDate: date, forecastTime: time, timeZone: 'Asia/Seoul',
       nx: GRID.nx, ny: GRID.ny, baseDate: issued.baseDate, baseTime: issued.baseTime,
       source: '기상청 단기예보', fetchedAt: now.toISOString() });
-  } catch {
+  } catch (error) {
     // Never serialize upstream errors, URLs, raw bodies or the service key.
-    return json({ code: 'WEATHER_UPSTREAM_ERROR', message: '기상청 예보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.' }, 502);
+    const reason = decodingKey ? 'SERVICE_KEY_ENCODING_ERROR'
+      : controller.signal.aborted || error?.name === 'AbortError' || error?.name === 'TimeoutError' ? 'UPSTREAM_TIMEOUT'
+      : 'UPSTREAM_NETWORK_ERROR';
+    return upstreamFailure(reason, upstreamStatus);
   } finally {
     clearTimeout(timeout);
   }
