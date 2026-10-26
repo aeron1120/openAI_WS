@@ -1,0 +1,6 @@
+{
+  // 포털 전용 Cloudflare Pages 설정. 기존 Workshop Worker 설정(../wrangler*.jsonc)과 별개입니다.
+  "name": "snu-student-collective",
+  "compatibility_date": "2026-10-24",
+  "pages_build_output_dir": "./dist"
+}

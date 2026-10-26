@@ -12,7 +12,13 @@
     "deploy:workshop1": "npm run build:workshop1 && npx --yes wrangler@4.152.0 deploy --config wrangler.workshop1.jsonc --keep-vars",
     "build": "node scripts/build-site.mjs",
     "deploy": "npm run build && npx --yes wrangler@4.152.0 deploy",
-    "prepare:recovery": "node scripts/prepare-recovery.mjs"
+    "prepare:recovery": "node scripts/prepare-recovery.mjs",
+    "build:portal": "node portal/scripts/build.mjs",
+    "dev:portal": "node portal/scripts/serve.mjs",
+    "test:portal": "node --test portal/tests/*.test.mjs",
+    "check:portal-links": "node portal/scripts/check-links.mjs",
+    "og:portal": "node portal/scripts/screenshot.mjs portal/scripts/og-image.html portal/public/og.png 1200,630",
+    "deploy:portal": "npm run test:portal && npm run build:portal && cd portal && npx --yes wrangler@4.152.0 pages deploy --branch main"
   },
   "engines": {
     "node": ">=20"
