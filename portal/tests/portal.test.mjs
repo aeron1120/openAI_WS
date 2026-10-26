@@ -72,11 +72,14 @@ test('planning workshops show only topic and status, no missions or downloads', 
 
 test('presenter slides are labelled separately from student materials', async t => {
   const { read } = await build(t);
-  const html = await read('/workshops/01/');
-  const student = html.indexOf('<h3>학생용 자료</h3>');
-  const presenter = html.indexOf('<h3>발표 자료</h3>');
-  assert.ok(student > -1 && presenter > student);
-  assert.ok(html.indexOf('docs.google.com/presentation') > presenter, 'slides must sit under 발표 자료');
+  for (const page of ['/workshops/01/', '/workshops/02/']) {
+    const html = await read(page);
+    const rows = html.match(/<li>\s*<a class="res-link"[\s\S]*?<\/li>/g) ?? [];
+    const slides = rows.filter(row => row.includes('docs.google.com/presentation'));
+    assert.equal(slides.length, 1, `${page} lists the slides once`);
+    assert.match(slides[0], /badge-presenter">발표 자료/);
+    for (const row of rows.filter(row => !row.includes('docs.google.com/presentation'))) assert.doesNotMatch(row, /발표 자료/);
+  }
 });
 
 test('open chat and contact buttons appear only when their links are set', async t => {

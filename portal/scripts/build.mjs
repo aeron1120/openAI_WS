@@ -83,10 +83,10 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
     const body = String(route.render(content));
     const file = path.join(out, route.path, 'index.html');
     await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, layout({ site: content.site, path: route.path, title: route.title, description: route.description, body, assets }));
+    await writeFile(file, layout({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets }));
     written.push(route.path);
   }
-  await writeFile(path.join(out, '404.html'), layout({ site: content.site, path: '/404', title: '페이지를 찾을 수 없어요', description: content.site.description, body: String(pages.notFoundPage()), assets }));
+  await writeFile(path.join(out, '404.html'), layout({ site: content.site, content, path: '/404', title: '페이지를 찾을 수 없어요', description: content.site.description, body: String(pages.notFoundPage()), assets }));
 
   // Workshop 2 공개 예제: 저장소의 정적 화면 파일만 복사합니다.
   for (const version of ['starter', 'complete']) {

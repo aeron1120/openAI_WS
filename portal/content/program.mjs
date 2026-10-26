@@ -5,7 +5,7 @@ export const studio = {
   title: 'Studio Session',
   korean: '함께 만드는 시간',
   message: '워크숍 사이사이, 막힌 곳을 풀고 내 프로젝트를 이어서 만들어요.',
-  description: 'Studio Session은 한 번 열리는 행사가 아니라 워크숍 사이마다 이어지는 작업 시간이에요. 워크숍에서 끝내지 못한 실습, 내 아이디어에 적용하다 막힌 부분, 다음 기능에 대한 질문을 가져오면 운영진과 함께 풀어요.',
+  description: '한 번 하는 행사가 아니라 워크숍 사이마다 이어지는 작업 시간이에요. 막힌 부분이나 다음 기능 질문을 가져오면 함께 풀어요.',
   event: { status: 'tbd', start: null, end: null, place: null },
   sessions: [], // 확정된 회차를 { start, end, place } 형식으로 추가하면 일정 목록이 나타납니다.
   bring: [
@@ -24,7 +24,8 @@ export const showcase = {
   korean: '만든 것을 소개하는 날',
   message: '내가 만든 것을 사람들에게 보여준다',
   outcome: '프로젝트 시연과 소개 경험',
-  description: '학기 동안 만든 서비스를 직접 시연하고, 어떤 문제를 풀려고 했는지 사람들 앞에서 소개하는 자리예요. 완성도보다 “무엇을 만들었고, 무엇을 배웠는지”를 나누는 데 집중해요.',
+  color: 'rose',
+  description: '학기 동안 만든 서비스를 사람들 앞에서 시연하고 소개해요.',
   event: { status: 'tbd', start: null, end: null, place: null },
   timingNote: '학기 말 개최를 검토하고 있어요. 일정은 확정되면 안내합니다.'
 };

@@ -13,9 +13,12 @@ export const workshops = [
     number: 1,
     slug: '01',
     title: '틈, 화면에서 서비스로',
+    shortTitle: '화면에서 서비스로',
+    color: 'green',
+    highlights: ['기초 틀을 내 컴퓨터에서 실행', 'Codex로 문구·배치 바꾸기', '로그인·지도·날씨 중 하나 연결'],
     message: '내 아이디어가 실제로 움직인다',
     outcome: '첫 기능이 작동하는 웹앱',
-    summary: '빈 기능 자리가 있는 기초 틀을 내 컴퓨터에서 열고, Codex에게 요청해 로그인·지도·날씨 중 내 서비스에 필요한 기능 하나를 연결합니다.',
+    summary: '기초 틀을 열고, Codex와 함께 내 서비스에 필요한 기능 하나를 연결해요.',
     doing: 'Codex로 기초 틀을 실행하고, 필요한 기능 하나를 실제 서비스에 연결해요.',
     event: {
       status: 'done',
@@ -25,33 +28,32 @@ export const workshops = [
     },
     recruitment: { open: false, url: null },
     materials: 'open',
-    duration: '현장 60분 · 혼자 복습할 때는 기능 하나에 30~60분',
-    audience: '전공 무관 서울대학교 학생, 코딩 경험이 없어도 참여할 수 있어요.',
-    joinNote: '워크숍에 오지 못했어도 이 페이지만으로 처음부터 따라 할 수 있어요.',
+    duration: '60분',
+    audience: '전공 무관 · 코딩 경험 없어도 OK',
+    joinNote: '워크숍에 오지 못했어도 이 페이지만으로 따라 할 수 있어요.',
     prepare: [
-      '개인 노트북과 충전기',
-      'Codex를 사용할 수 있는 ChatGPT 계정 (Codex 데스크톱 앱 또는 VS Code의 Codex 확장)',
-      '만들고 싶은 서비스 한 문장 — 예: “신입생이 학교 주변의 공부할 장소를 찾는 웹사이트”',
-      '내 컴퓨터에서 서버로 실행할 때만: Node.js 20 이상 (화면만 볼 때는 필요 없어요)'
+      '노트북과 충전기',
+      'Codex를 쓸 수 있는 ChatGPT 계정',
+      '만들고 싶은 서비스 한 문장',
+      'Node.js 20 이상 (서버로 실행할 때만)'
     ],
     preview: {
       image: '/images/examples/ws1-starter.png',
       alt: '기초 틀 화면. 로그인, 지도·위치정보, 날씨 박스가 “아직 연결 전” 상태로 비어 있다.',
-      caption: '학생이 직접 고치는 기초 틀. 기능 자리만 있고, 실제 연결은 내가 Codex와 함께 채워요.'
+      caption: '내가 직접 고치는 기초 틀. 기능 자리만 비어 있어요.'
     },
     video: null,
     resources: [
-      { label: '기초 틀 받기 (GitHub)', kind: 'starter', audience: 'student', url: repo, checked: '2026-10-27', note: 'Code → Download ZIP으로 받고 압축을 모두 풀어주세요.' },
-      { label: '시작 안내 문서', kind: 'guide', audience: 'student', url: file('guides/START-HERE.md'), checked: '2026-10-27' },
-      { label: '기능별 실습 안내 (로그인·지도·날씨)', kind: 'guide', audience: 'student', url: file('guides/README.md'), checked: '2026-10-27' },
-      { label: '운영진 예제 ‘틈’ 단계별 화면', kind: 'demo', audience: 'student', url: 'https://openai-ws-workshop1.a01085519047.workers.dev/versions/', checked: '2026-10-27', note: '발표에서 쓴 모임 앱이에요. 열어봐도 내 프로젝트가 만들어지지는 않아요. 2026-10-26 배포 기록 기준으로 날씨는 실제 응답을 확인했고, 로그인 전체 과정과 지도 표시는 아직 확인 중이에요.' },
-      { label: 'Workshop 1 발표 자료 (Google Slides)', kind: 'slides', audience: 'presenter', url: 'https://docs.google.com/presentation/d/1OYbhNdlJFerD-LumLyBXP3SUZKata9K1m_avNXCvUvM/edit', checked: '2026-10-27', note: '발표자가 설명하며 쓴 자료예요. 혼자 실습할 때는 이 페이지의 단계를 따라가세요.' }
+      { label: '기초 틀 받기', kind: 'starter', audience: 'student', url: repo, checked: '2026-10-27', note: 'GitHub → Code → Download ZIP' },
+      { label: '시작 안내', kind: 'guide', audience: 'student', url: file('guides/START-HERE.md'), checked: '2026-10-27' },
+      { label: '기능별 안내', kind: 'guide', audience: 'student', url: file('guides/README.md'), checked: '2026-10-27', note: '로그인 · 지도 · 날씨' },
+      { label: '운영진 예제 ‘틈’', kind: 'demo', audience: 'student', url: 'https://openai-ws-workshop1.a01085519047.workers.dev/versions/', checked: '2026-10-27', note: '발표용 예제예요. 열어도 내 프로젝트가 생기지는 않아요. 2026-10-26 기록 기준으로 로그인·지도는 아직 확인 중이에요.' },
+      { label: '발표 슬라이드', kind: 'slides', audience: 'presenter', url: 'https://docs.google.com/presentation/d/1OYbhNdlJFerD-LumLyBXP3SUZKata9K1m_avNXCvUvM/edit', checked: '2026-10-27' }
     ],
     checks: [
-      '압축을 푼 폴더에 README.md, package.json, starter 폴더가 함께 보인다.',
-      'starter/index.html을 브라우저로 열면 로그인·지도·날씨·나만의 기능 박스가 보인다.',
-      'Codex 데스크톱 또는 VS Code의 Codex 확장에 로그인되어 있다.',
-      '서버로 실행하려면 터미널에서 node --version 결과가 v20 이상이다.'
+      '압축 푼 폴더에 starter 폴더가 보인다',
+      'starter/index.html이 브라우저에서 열린다',
+      'Codex에 로그인되어 있다'
     ],
     missions: [
       {
@@ -154,47 +156,50 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     number: 2,
     slug: '02',
     title: '내 앱을 고치고 기록하기 — Fix & Track',
+    shortTitle: '고치고 기록하기',
+    color: 'blue',
+    highlights: ['카드에 즐겨찾기 기능 추가', 'Git·GitHub로 변경 기록', '실수한 변경 되돌리기'],
     message: '원하는 기능을 넣고, 실수해도 되돌린다',
     outcome: '직접 수정하고 변경을 기록하는 프로젝트',
-    summary: '캠퍼스 모임 앱의 카드에 즐겨찾기 선택·해제를 Codex로 추가하고, 직접 눌러 확인한 뒤 Git·GitHub에 변경을 기록합니다. 별도 연습 저장소에서 실수를 되돌리는 방법도 연습해요.',
+    summary: '기능 하나를 Codex로 추가하고, Git·GitHub로 기록하고, 실수를 되돌려 봐요.',
     doing: '기능 하나를 직접 추가해 확인하고, Git·GitHub로 기록하고 되돌리는 법을 익혀요.',
     event: { status: 'tbd', start: null, end: null, place: null },
     recruitment: { open: false, url: null },
     materials: 'open',
     duration: '60분 예정',
-    audience: '전공 무관 서울대학교 학생. Workshop 1에 참여하지 않았어도 괜찮아요.',
-    joinNote: 'Workshop 1에 오지 않았어도 참여할 수 있어요. 아래 ‘시작 전 확인’만 미리 끝내 오세요.',
+    audience: '전공 무관 · Workshop 1 안 들어도 OK',
+    joinNote: 'Workshop 1에 오지 않았어도 참여할 수 있어요. ‘시작 전 확인’만 미리 끝내 오세요.',
     prepare: [
-      '개인 노트북과 충전기',
-      '로그인 가능한 ChatGPT(Codex) 계정과 GitHub 계정',
-      'VS Code, Git, Node.js 20 이상 설치',
-      '원본 저장소를 내 계정으로 Fork하고, 내 Fork를 Clone해서 실행까지 해 오기'
+      '노트북과 충전기',
+      'ChatGPT(Codex) 계정, GitHub 계정',
+      'VS Code · Git · Node.js 20 이상',
+      '원본 저장소를 Fork → Clone해서 실행해 오기'
     ],
     preview: {
       image: '/images/examples/ws2-complete.png',
       alt: '모임 카드 세 개에 각각 즐겨찾기 버튼이 있는 Workshop 2 완성본 화면.',
-      caption: '운영진 예제 완성본. 즐겨찾기는 이 화면에서만 유지되고 새로고침하면 초기화돼요.'
+      caption: '완성본 예제. 새로고침하면 즐겨찾기가 초기화돼요.'
     },
     video: null,
     resources: [
-      { label: '완성본 예제 열기', kind: 'demo', audience: 'student', url: '/examples/workshop2/complete/', checked: '2026-10-27', note: '설치 없이 브라우저에서 바로 열려요. 카드 두 개를 선택하고 하나만 해제해 보세요.' },
-      { label: '시작본 예제 열기', kind: 'demo', audience: 'student', url: '/examples/workshop2/starter/', checked: '2026-10-27' },
-      { label: '실습 소스 (GitHub workshop2 폴더)', kind: 'starter', audience: 'student', url: folder('workshop2'), checked: '2026-10-27', note: '직접 수정은 저장소를 Fork·Clone해서 진행해요.' },
-      { label: '참가자 준비·Git 실습 문서', kind: 'guide', audience: 'student', url: file('docs/PARTICIPANT.md'), checked: '2026-10-27' },
-      { label: '5분 복구 연습 문서', kind: 'guide', audience: 'student', url: file('docs/RECOVERY.md'), checked: '2026-10-27' },
-      { label: 'Workshop 2 발표 자료 (Google Slides)', kind: 'slides', audience: 'presenter', url: 'https://docs.google.com/presentation/d/1rUCvsJvfaKOH13tPIRh-ZlsAGvh3S_zWljE84p_BakQ/edit', checked: '2026-10-27', note: '발표자가 설명하며 쓰는 자료예요. 혼자 실습할 때는 이 페이지의 단계를 따라가세요.' }
+      { label: '완성본 예제', kind: 'demo', audience: 'student', url: '/examples/workshop2/complete/', checked: '2026-10-27', note: '설치 없이 바로 열려요' },
+      { label: '시작본 예제', kind: 'demo', audience: 'student', url: '/examples/workshop2/starter/', checked: '2026-10-27' },
+      { label: '실습 소스 (GitHub)', kind: 'starter', audience: 'student', url: folder('workshop2'), checked: '2026-10-27', note: 'Fork · Clone해서 수정해요' },
+      { label: '참가자 준비 안내', kind: 'guide', audience: 'student', url: file('docs/PARTICIPANT.md'), checked: '2026-10-27' },
+      { label: '5분 복구 연습', kind: 'guide', audience: 'student', url: file('docs/RECOVERY.md'), checked: '2026-10-27' },
+      { label: '발표 슬라이드', kind: 'slides', audience: 'presenter', url: 'https://docs.google.com/presentation/d/1rUCvsJvfaKOH13tPIRh-ZlsAGvh3S_zWljE84p_BakQ/edit', checked: '2026-10-27' }
     ],
     checks: [
-      '터미널에서 node --version(v20 이상), npm --version, git --version이 모두 나온다.',
-      'GitHub에서 원본 저장소를 내 계정으로 Fork했고, git remote -v의 origin이 내 Fork다.',
-      '저장소 폴더에서 npm run dev 후 http://localhost:5173/workshop2/starter/ 에 모임 카드 3개가 보인다.',
-      'Git 작성자 이름·이메일이 설정되어 있다. 없다면 저장소 안에서 git config user.name, git config user.email로 설정한다.'
+      'node · npm · git --version이 모두 나온다 (Node 20 이상)',
+      'git remote -v의 origin이 내 Fork다',
+      'npm run dev 후 localhost:5173/workshop2/starter/ 에 카드 3개가 보인다',
+      'git config user.name · user.email이 설정되어 있다'
     ],
     missions: [
       {
         id: 'compare',
         title: '완성본 먼저 눌러보기',
-        todo: '위 ‘완성본 예제 열기’에서 카드 두 개를 선택한 뒤 하나만 해제하고, 새로고침해 봅니다.',
+        todo: '위 ‘완성본 예제’에서 카드 두 개를 선택한 뒤 하나만 해제하고, 새로고침해 봅니다.',
         expected: '카드마다 따로 선택·해제되고, 새로고침하면 모두 초기화돼요. 이번 실습의 즐겨찾기는 저장되지 않는 게 정상이에요.',
         verify: ['두 카드를 선택하면 둘 다 선택 상태다.', '하나를 해제해도 다른 하나는 그대로다.'],
         stuck: []
@@ -255,9 +260,12 @@ git log --oneline -3`,
     number: 3,
     slug: '03',
     title: '친구가 쓸 수 있게 공개하기',
+    shortTitle: '친구에게 공개하기',
+    color: 'purple',
+    highlights: [],
     message: '친구가 내 서비스를 사용할 수 있다',
     outcome: '저장과 배포가 가능한 서비스',
-    summary: '데이터를 저장하고, 친구가 주소로 접속해 쓸 수 있도록 내 서비스를 배포하는 회차를 준비하고 있어요.',
+    summary: '데이터를 저장하고, 친구가 주소로 접속해 쓸 수 있게 배포해요.',
     doing: '데이터를 저장하고, 친구가 접속할 수 있게 배포하는 방법을 다룰 예정이에요.',
     event: { status: 'planning', start: null, end: null, place: null },
     recruitment: { open: false, url: null },
@@ -279,9 +287,12 @@ git log --oneline -3`,
     number: 4,
     slug: '04',
     title: '피드백으로 더 좋게 만들기',
+    shortTitle: '피드백으로 개선하기',
+    color: 'orange',
+    highlights: [],
     message: '다른 사람이 써보면 더 좋아진다',
     outcome: '사용자 피드백을 반영한 서비스',
-    summary: '다른 사람이 내 서비스를 직접 써 보고 남긴 피드백을 반영해 개선하는 회차를 준비하고 있어요.',
+    summary: '다른 사람이 써 보고 남긴 피드백으로 서비스를 개선해요.',
     doing: '다른 사람이 써 보고 남긴 피드백으로 서비스를 개선할 예정이에요.',
     event: { status: 'planning', start: null, end: null, place: null },
     recruitment: { open: false, url: null },

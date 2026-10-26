@@ -5,6 +5,9 @@
 - 공개 주소: https://snu-student-collective.pages.dev/
 - 배포: Cloudflare Pages 프로젝트 `snu-student-collective` (직접 업로드, Git 연결 없음)
 - 외부 패키지 없음. Node.js 20 이상만 있으면 됩니다. `npm install`이 필요하지 않습니다.
+- 글꼴은 Pretendard를 jsDelivr에서 불러오고, 불러오지 못하면 기기 기본 글꼴로 보입니다.
+
+화면은 짧게 유지합니다. 홈 카드에는 제목·한 줄 설명·체크 3개·버튼만 두고, 자세한 설명은 회차 페이지의 접히는 미션 안에 넣습니다.
 
 이 폴더는 **운영진이 관리하는 안내 사이트**입니다. 학생이 고치는 기초 틀은 `../starter/`, 기존 워크숍 예제는 `../workshop1/`, `../workshop2/`입니다. 포털 빌드와 배포는 기존 Workshop Worker(`openai-ws-workshop1`)나 다른 Pages 프로젝트를 건드리지 않습니다.
 
@@ -32,6 +35,7 @@ Windows PowerShell에서 `npm.ps1` 실행이 막히면 `npm.cmd run dev:portal`�
 | 바꾸려는 것 | 파일 · 위치 |
 | --- | --- |
 | 오픈채팅·협력 문의 링크, 운영진, 공개 주소 | `content/site.mjs`의 `links`, `operators`, `url` |
+| 홈 카드의 짧은 제목·체크 3개·색 | `content/workshops.mjs`의 `shortTitle`, `highlights`, `color` (`green`/`blue`/`purple`/`orange`) |
 | 회차 일정·장소·모집 상태 | `content/workshops.mjs`의 `event`, `recruitment` |
 | 회차 자료 링크 | `content/workshops.mjs`의 `resources` |
 | 단계별 미션·요청문 | `content/workshops.mjs`의 `missions` |
