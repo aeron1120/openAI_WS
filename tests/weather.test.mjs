@@ -83,3 +83,34 @@ test('upstream failure never exposes key, raw response or exception', async () =
     assert.ok(!(await response.text()).includes('SECRET_VALUE'));
   }
 });
+
+test('failure diagnostics distinguish HTTP, portal codes, invalid JSON, network and timeout without raw details', async () => {
+  const cases = [
+    { fetchImpl: async () => new Response('SECRET_VALUE', { status: 403 }), diagnostic: { reason: 'UPSTREAM_HTTP_ERROR', upstreamStatus: 403 } },
+    { fetchImpl: async () => Response.json(payload([], '30')), diagnostic: { reason: 'UPSTREAM_API_ERROR', upstreamStatus: 200, upstreamCode: '30' } },
+    { fetchImpl: async () => new Response('<OpenAPI_ServiceResponse><cmmMsgHeader><returnAuthMsg>SECRET_VALUE</returnAuthMsg><returnReasonCode>30</returnReasonCode></cmmMsgHeader></OpenAPI_ServiceResponse>'), diagnostic: { reason: 'UPSTREAM_API_ERROR', upstreamStatus: 200, upstreamCode: '30' } },
+    { fetchImpl: async () => new Response('<html>SECRET_VALUE</html>'), diagnostic: { reason: 'UPSTREAM_INVALID_JSON', upstreamStatus: 200 } },
+    { fetchImpl: async () => { throw new Error('SECRET_VALUE URL'); }, diagnostic: { reason: 'UPSTREAM_NETWORK_ERROR' } },
+    { fetchImpl: async () => { throw new DOMException('SECRET_VALUE URL', 'AbortError'); }, diagnostic: { reason: 'UPSTREAM_TIMEOUT' } },
+  ];
+  for (const { fetchImpl, diagnostic } of cases) {
+    const response = await handleWeather(request(), { KMA_SERVICE_KEY: 'SECRET_VALUE' }, { now, fetchImpl });
+    assert.equal(response.status, 502);
+    const text = await response.text();
+    assert.ok(!text.includes('SECRET_VALUE'));
+    const body = JSON.parse(text);
+    assert.equal(body.code, 'WEATHER_UPSTREAM_ERROR');
+    assert.deepEqual(body.diagnostic, diagnostic);
+  }
+});
+
+test('only one to three ASCII digits can be exposed as upstreamCode', async () => {
+  for (const value of ['SECRET_VALUE', '30 SECRET_VALUE', '1234', { private: 'SECRET_VALUE' }, null]) {
+    const response = await handleWeather(request(), { KMA_SERVICE_KEY: 'SECRET_VALUE' }, { now, fetchImpl: async () => Response.json(payload([], value)) });
+    const text = await response.text();
+    assert.ok(!text.includes('SECRET_VALUE'));
+    assert.deepEqual(JSON.parse(text).diagnostic, { reason: 'UPSTREAM_API_ERROR', upstreamStatus: 200 });
+  }
+  const xml = await handleWeather(request(), { KMA_SERVICE_KEY: 'SECRET_VALUE' }, { now, fetchImpl: async () => new Response('<returnReasonCode>30 SECRET_VALUE</returnReasonCode>') });
+  assert.deepEqual((await xml.json()).diagnostic, { reason: 'UPSTREAM_INVALID_JSON', upstreamStatus: 200 });
+});
