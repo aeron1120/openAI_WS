@@ -1,6 +1,7 @@
 import { meetings } from './meetings.mjs';
 import { version } from './version.mjs';
 import { initWeather } from './weather.mjs';
+import { initAuth } from './auth.mjs';
 
 const dateInput = document.querySelector('#meeting-date');
 const tomorrow = new Date(Date.now() + 9 * 3600000 + 86400000).toISOString().slice(0, 10);
@@ -58,8 +59,9 @@ dateInput.addEventListener('change', () => {
   document.querySelectorAll('[data-date-label]').forEach(label => { label.textContent = dateLabel(); });
 });
 document.querySelector('#version-pill').textContent = `${version.id} · ${version.label}`;
-document.querySelector('#version-description').textContent = '모임 시간에 맞는 기온과 강수확률을 기상청에서 가져옵니다.';
+document.querySelector('#version-description').textContent = '실제 날씨에 Google 로그인과 새로고침 후 로그인 유지를 더했습니다.';
 renderCards();
+initAuth({ container: document.querySelector('#auth') });
 const weather = initWeather({ meetings, getDate: () => dateInput.value });
 dateInput.addEventListener('change', () => { if (dateInput.validity.valid) weather.refresh(); });
 document.querySelector('#refresh-weather').addEventListener('click', async event => {
