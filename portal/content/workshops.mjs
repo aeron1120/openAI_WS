@@ -167,7 +167,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     outcome: '직접 수정하고 변경을 기록하는 프로젝트',
     summary: '기능 하나를 Codex로 추가하고, Git·GitHub로 기록하고, 실수를 되돌려 봐요.',
     doing: '기능 하나를 직접 추가해 확인하고, Git·GitHub로 기록하고 되돌리는 법을 익혀요.',
-    event: { status: 'scheduled', start: '2026-11-02T18:00:00+09:00', end: '2026-11-02T19:00:00+09:00', place: null },
+    event: { status: 'scheduled', start: '2026-11-02T18:00:00+09:00', end: '2026-11-02T19:00:00+09:00', place: '서울대학교 관악캠퍼스 56동(자연과학관10) 105호' },
     recruitment: { open: false, url: null },
     materials: 'open',
     materialsOpenAt: '2026-11-02T18:00:00+09:00',
