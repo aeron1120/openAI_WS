@@ -1,1 +1,1 @@
-export const version = { id: 'v2', label: 'Google 로그인', step: 2 };
+export const version = { id: 'v3', label: '모임 장소 지도', step: 3 };

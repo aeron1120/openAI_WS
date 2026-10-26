@@ -19,5 +19,7 @@ for (const file of files) {
   await copyFile(path.join(root, file), target);
 }
 await copyFile(path.join(root, 'workshop1/index.html'), path.join(output, 'index.html'));
+await mkdir(path.join(output, 'versions'), { recursive: true });
+await copyFile(path.join(root, 'workshop1/versions.html'), path.join(output, 'versions/index.html'));
 await writeFile(path.join(output, '404.html'), '<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>페이지를 찾을 수 없습니다</title><h1>페이지를 찾을 수 없습니다.</h1><a href="/">틈으로 돌아가기</a></html>');
-console.log(`Workshop 01: built ${files.length + 2} public files.`);
+console.log(`Workshop 01: built ${files.length + 3} public files.`);
