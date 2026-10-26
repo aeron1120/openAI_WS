@@ -54,7 +54,7 @@ small { color: var(--muted); }
 .topbar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; }
 .sidebar { display: none; }
 .content { padding: 0 12px 24px; min-width: 0; }
-.panel { background: var(--surface); border-radius: 22px; padding: 24px 18px; box-shadow: 0 10px 40px rgba(27, 61, 143, .08); max-width: 1080px; }
+.panel { background: var(--surface); border-radius: 22px; padding: 24px 18px; box-shadow: 0 10px 40px rgba(27, 61, 143, .08); max-width: 1440px; margin-inline: auto; }
 
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; min-height: 44px; }
 .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--navy); color: #fff; font-weight: 800; font-size: .8rem; }
@@ -108,6 +108,9 @@ small { color: var(--muted); }
 
 /* Hero */
 .hero { padding: 4px 0 8px; }
+.hero-shot { display: none; margin: 0; }
+.hero-shot figcaption { margin-top: 8px; font-size: .82rem; color: var(--muted); }
+.hero-shot .shot-frame { box-shadow: 0 16px 40px rgba(27, 61, 143, .12); }
 .hero-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: var(--navy-soft); color: var(--navy); font-size: .8rem; font-weight: 700; margin-bottom: 18px; }
 .dots { display: inline-flex; gap: 3px; }
 .dots i { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; }
@@ -183,6 +186,7 @@ small { color: var(--muted); }
 .more .mission-no { background: var(--c-soft); color: var(--c-btn); }
 .mission-title { min-width: 0; }
 .mission-body { padding: 0 16px 16px; }
+.mission-body > p, .result, .stuck, .option { max-width: 78ch; }
 .result { display: grid; gap: 10px; margin-top: 14px; padding: 14px; border-radius: 12px; background: #f6f8fc; font-size: .94rem; }
 .result p { margin: 0; }
 .result strong { display: block; font-size: .78rem; color: var(--muted); margin-bottom: 2px; }
@@ -249,7 +253,7 @@ small { color: var(--muted); }
 .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); }
 .pager a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
 
-.site-footer { max-width: 1080px; padding: 18px 8px 8px; font-size: .82rem; color: var(--muted); }
+.site-footer { max-width: 1440px; margin-inline: auto; padding: 18px 8px 8px; font-size: .82rem; color: var(--muted); }
 .site-footer p { margin: 0 0 4px; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 0 16px; margin-top: 6px !important; }
 .footer-links a { display: inline-flex; min-height: 40px; align-items: center; }
@@ -271,6 +275,24 @@ small { color: var(--muted); }
   .sidebar .brand { padding: 0 6px 14px; margin-bottom: 8px; border-bottom: 1px solid var(--line); width: 100%; }
   .content { padding: 28px 32px 32px; }
   .panel { padding: 44px 48px; }
+}
+@media (min-width: 1200px) {
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 48px; align-items: center; }
+  .hero-shot { display: block; grid-column: 2; grid-row: 1; }
+  .hero-copy { grid-column: 1; grid-row: 1; }
+}
+/* 넓은 화면: 워크숍 카드를 한 줄에, 글자는 조금 크게 */
+@media (min-width: 1400px) {
+  .tracks { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .track-actions { flex-wrap: wrap; }
+  .content { padding: 32px 40px 40px; }
+  .panel { padding: 52px 56px; }
+}
+@media (min-width: 1700px) {
+  :root { font-size: 17px; }
+  .shell { grid-template-columns: 288px minmax(0, 1fr); }
+  .panel { max-width: 1560px; }
+  .site-footer { max-width: 1560px; }
 }
 @media (max-width: 380px) {
   .track-actions { flex-wrap: wrap; }

@@ -71,9 +71,15 @@ ${studioStrip(content.studio)}`;
 }
 
 export function homePage(content) {
-  const { site, workshops } = content;
+  const { site, workshops, projects } = content;
   const primary = primaryAction(workshops);
+  const featured = projects.find(p => p.kind === 'student' && p.published) ?? projects.find(p => p.kind === 'operator' && p.published);
   return h`<section class="hero">
+  ${featured ? h`<figure class="hero-shot">
+    <div class="shot-frame"><img src="${featured.image}" alt="${featured.alt}" width="1280" height="800" loading="lazy" decoding="async"></div>
+    <figcaption>${featured.kind === 'operator' ? h`<span class="tag-operator">운영진 예제</span> ` : ''}${featured.title}</figcaption>
+  </figure>` : ''}
+  <div class="hero-copy">
   <p class="hero-pill"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${site.operators.role} · ${site.semester}</p>
   <h1>아이디어를 만들고 공유하고,<br><em>사람들 앞에서 소개해요.</em></h1>
   <p class="hero-lead">ChatGPT·Codex로 한 학기 동안 내 서비스를 만들어요.</p>
@@ -81,6 +87,7 @@ export function homePage(content) {
   <div class="actions">
     ${link(primary.url, `${primary.label} →`, 'btn btn-primary')}
     <a class="btn btn-ghost" href="/roadmap/">학기 과정 한눈에 보기</a>
+  </div>
   </div>
 </section>
 <section aria-label="학기 과정">
