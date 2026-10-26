@@ -13,9 +13,12 @@ async function isFile(file) {
   try { return (await stat(file)).isFile(); } catch { return false; }
 }
 
-await buildSite();
+// PORTAL_NOW=2026-11-02T18:00:00+09:00 처럼 지정하면 그 시각의 화면을 미리 볼 수 있습니다.
+const now = process.env.PORTAL_NOW ? Date.parse(process.env.PORTAL_NOW) : Date.now();
+await buildSite({ now });
 const server = createServer(async (req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost');
+  if (pathname.startsWith('/_v/')) { res.writeHead(404); res.end(); return; }
   const file = path.join(dist, decodeURIComponent(pathname));
   if (!file.startsWith(dist)) { res.writeHead(400); res.end(); return; }
   if (!pathname.endsWith('/') && !path.extname(pathname) && await isFile(path.join(file, 'index.html'))) {
@@ -28,5 +31,5 @@ const server = createServer(async (req, res) => {
   res.end(body);
 });
 const port = Number(process.env.PORT ?? 5174);
-server.listen(port, '127.0.0.1', () => console.log(`포털 미리보기: http://localhost:${server.address().port}/  (콘텐츠를 바꾼 뒤에는 서버를 다시 시작하세요)`));
+server.listen(port, '127.0.0.1', () => console.log(`포털 미리보기: http://localhost:${server.address().port}/  기준 시각 ${new Date(now).toISOString()} (콘텐츠를 바꾼 뒤에는 서버를 다시 시작하세요)`));
 server.on('error', err => { console.error(err.code === 'EADDRINUSE' ? `${port} 포트가 이미 사용 중입니다. 먼저 켠 서버를 Ctrl+C로 종료하세요.` : err.message); process.exitCode = 1; });

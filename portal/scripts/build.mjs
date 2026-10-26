@@ -9,6 +9,7 @@ import { studio, showcase, projects, collaboration } from '../content/program.mj
 import { layout } from '../src/layout.mjs';
 import { isUsableUrl } from '../src/render.mjs';
 import * as pages from '../src/pages.mjs';
+import { resolveContent, boundaries } from '../src/schedule.mjs';
 
 const portal = fileURLToPath(new URL('../', import.meta.url));
 const repoRoot = path.resolve(portal, '..');
@@ -36,6 +37,8 @@ export function validateContent(content) {
       if (w.event[key] && Number.isNaN(Date.parse(w.event[key]))) problems.push(`${where}: event.${key} 날짜 형식 확인 (예: 2026-11-30T18:00:00+09:00)`);
       if (w.event[key] && !/[+-]\d\d:\d\d$|Z$/.test(w.event[key])) problems.push(`${where}: event.${key}에 시간대(+09:00)를 붙여 주세요.`);
     }
+    if (w.materialsOpenAt && (Number.isNaN(Date.parse(w.materialsOpenAt)) || !/[+-]\d\d:\d\d$|Z$/.test(w.materialsOpenAt))) problems.push(`${where}: materialsOpenAt 형식 확인 (예: 2026-11-02T18:00:00+09:00)`);
+    for (const dir of w.exampleDirs ?? []) if (!/^workshop\d+\/[a-z0-9-]+$/.test(dir)) problems.push(`${where}: exampleDirs 값 확인 "${dir}"`);
     if (w.recruitment.open && !isUsableUrl(w.recruitment.url)) problems.push(`${where}: 모집 중이면 recruitment.url이 필요합니다.`);
     w.resources.forEach((r, i) => checkUrl(r.url, `${where} resources[${i}]`));
     if (w.video) checkUrl(w.video.src, `${where} video.src`);
@@ -64,7 +67,32 @@ export function routes(content) {
 
 const hash = text => createHash('sha256').update(text).digest('hex').slice(0, 10);
 
-export async function buildSite({ outDir = path.join(portal, 'dist'), content = defaultContent } = {}) {
+// 한 시점의 페이지 묶음(HTML·404·예제)을 dir에 씁니다.
+async function writePages(dir, content, assets) {
+  const written = [];
+  for (const route of routes(content)) {
+    const body = String(route.render(content));
+    const file = path.join(dir, route.path, 'index.html');
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, layout({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets }));
+    written.push(route.path);
+  }
+  await writeFile(path.join(dir, '404.html'), layout({ site: content.site, content, path: '/404', title: '페이지를 찾을 수 없어요', description: content.site.description, body: String(pages.notFoundPage()), assets }));
+  // 자료가 열린 회차의 예제 화면만 복사합니다(저장소의 정적 화면 파일만).
+  for (const w of content.workshops.filter(w => w.materials === 'open')) {
+    for (const source of w.exampleDirs ?? []) {
+      for (const name of ['index.html', 'app.js', 'styles.css']) {
+        const target = path.join(dir, 'examples', source, name);
+        await mkdir(path.dirname(target), { recursive: true });
+        await copyFile(path.join(repoRoot, source, name), target);
+      }
+    }
+  }
+  return written;
+}
+
+// now: 미리보기 기준 시각(기본 지금). 배포 사이트는 functions/_middleware.js가 요청 시각에 맞는 묶음을 고릅니다.
+export async function buildSite({ outDir = path.join(portal, 'dist'), content = defaultContent, now = Date.now() } = {}) {
   validateContent(content);
   const out = path.resolve(outDir);
   if (out === path.resolve(portal) || out === repoRoot || !path.basename(out)) throw new Error('빌드 폴더 경로를 확인하세요.');
@@ -78,32 +106,31 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
   await writeFile(path.join(out, 'main.js'), js);
   await cp(path.join(portal, 'public'), out, { recursive: true });
 
-  const written = [];
-  for (const route of routes(content)) {
-    const body = String(route.render(content));
-    const file = path.join(out, route.path, 'index.html');
-    await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, layout({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets }));
-    written.push(route.path);
-  }
-  await writeFile(path.join(out, '404.html'), layout({ site: content.site, content, path: '/404', title: '페이지를 찾을 수 없어요', description: content.site.description, body: String(pages.notFoundPage()), assets }));
+  // 루트: 빌드 시각 기준 화면(미리보기, 그리고 함수가 실패했을 때의 안전한 기본값)
+  const written = await writePages(out, resolveContent(content, now), assets);
 
-  // Workshop 2 공개 예제: 저장소의 정적 화면 파일만 복사합니다.
-  for (const version of ['starter', 'complete']) {
-    for (const name of ['index.html', 'app.js', 'styles.css']) {
-      const target = path.join(out, 'examples/workshop2', version, name);
-      await mkdir(path.dirname(target), { recursive: true });
-      await copyFile(path.join(repoRoot, 'workshop2', version, name), target);
-    }
+  // _v/<n>/: 화면이 바뀌는 시각마다 한 묶음. 공개 경로로는 열리지 않고 함수만 꺼내 씁니다.
+  const times = boundaries(content);
+  for (let i = 0; i <= times.length; i++) {
+    const time = i === 0 ? (times[0] ?? now) - 1 : times[i - 1];
+    await writePages(path.join(out, '_v', String(i)), resolveContent(content, time), assets);
   }
+  await writeFile(path.join(out, '_v', 'schedule.json'), JSON.stringify({ boundaries: times.map(t => new Date(t).toISOString()) }));
+  await writeFile(path.join(out, '_routes.json'), JSON.stringify({
+    version: 1,
+    include: ['/*'],
+    exclude: ['/styles.css', '/main.js', '/favicon.svg', '/og.png', '/images/*', '/sitemap.xml', '/robots.txt']
+  }));
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${written.map(p => `  <url><loc>${content.site.url}${p}</loc></url>`).join('\n')}\n</urlset>\n`;
   await writeFile(path.join(out, 'sitemap.xml'), sitemap);
   await writeFile(path.join(out, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${content.site.url}/sitemap.xml\n`);
-  return { outDir: out, pages: written };
+  return { outDir: out, pages: written, variants: times.length + 1 };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const result = await buildSite();
-  console.log(`포털 ${result.pages.length}개 페이지를 ${path.relative(process.cwd(), result.outDir)}에 만들었습니다.`);
+  const now = process.env.PORTAL_NOW ? Date.parse(process.env.PORTAL_NOW) : Date.now();
+  if (Number.isNaN(now)) throw new Error('PORTAL_NOW 형식 예: 2026-11-02T18:00:00+09:00');
+  const result = await buildSite({ now });
+  console.log(`포털 ${result.pages.length}개 페이지 (시간대별 ${result.variants}묶음)를 ${path.relative(process.cwd(), result.outDir)}에 만들었습니다.${process.env.PORTAL_NOW ? ` 미리보기 기준 시각: ${process.env.PORTAL_NOW}` : ''}`);
 }

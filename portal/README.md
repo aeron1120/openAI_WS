@@ -18,6 +18,7 @@
 | 하려는 일 | 명령 |
 | --- | --- |
 | 미리보기 (빌드 후 http://localhost:5174/) | `npm run dev:portal` |
+| 특정 시각의 화면 미리보기 (PowerShell) | `$env:PORTAL_NOW='2026-11-02T18:00:00+09:00'; npm.cmd run dev:portal` |
 | 빌드만 (`portal/dist/`) | `npm run build:portal` |
 | 자동 검사 | `npm run test:portal` |
 | 외부 링크를 로그아웃 상태로 확인 | `npm run check:portal-links` |
@@ -47,13 +48,24 @@ Windows PowerShell에서 `npm.ps1` 실행이 막히면 `npm.cmd run dev:portal`�
 
 ### 상태 값
 
-행사 상태와 자료 상태는 따로 관리합니다. “행사는 끝났지만 자료는 열림”, “일정은 미정이지만 자료는 열림”을 그대로 표현할 수 있습니다.
+행사 상태와 자료 상태는 따로 관리합니다. “행사는 끝났지만 자료는 열림”을 그대로 표현할 수 있습니다. 화면에는 ‘미정’ 대신 ‘준비 중’이라고 표시합니다.
 
 | 필드 | 값 | 화면 표시 |
 | --- | --- | --- |
-| `event.status` | `done` / `scheduled` / `tbd` / `planning` | 진행 완료 / 일정 확정 / 일정 미정 / 기획 중 |
+| `event.status` | `done` / `scheduled` / `tbd`·`planning` | 진행 완료 / 날짜(예: 11/2 (월) 18:00) / 준비 중 |
+| `event.start`, `event.end` | 시각(`+09:00`) | 있으면 상태가 시각에 맞춰 자동으로 바뀜: 시작 전 날짜 → 진행 중 → 진행 완료 |
 | `recruitment` | `{ open: true, url: 'https://...' }` | ‘모집 중’ 표시와 ‘신청하기’ 버튼. 홈의 주 버튼도 신청으로 바뀜 |
-| `materials` | `open` / `planning` | 자료 열림 / 자료 준비 중. `planning`이면 미션·자료 영역을 그리지 않고 주제·상태만 보여줌 |
+| `materials` | `open` / `planning` | 자료 열림 / 준비 중. `planning`이면 미션·자료 영역을 그리지 않고 주제·상태만 보여줌 |
+| `materialsOpenAt` | 시각(`+09:00`) | 이 시각 전에는 미션·슬라이드·예제를 숨기고 준비물만 보여줌. 시각이 되면 자동 공개 |
+
+### 시간에 맞춰 자동으로 열리는 방식
+
+빌드할 때 화면이 바뀌는 시각(`materialsOpenAt`, 행사 시작·종료)마다 페이지 묶음을 `dist/_v/0/`, `dist/_v/1/` …로 따로 만듭니다. 배포된 사이트에서는 `functions/_middleware.js`(Cloudflare Pages 함수)가 요청마다 현재 시각을 보고 맞는 묶음을 보여줍니다. 그래서 공개 시각에 다시 배포할 필요가 없습니다.
+
+- `/_v/…` 경로는 직접 열 수 없어 404가 나옵니다. 아직 열리지 않은 회차의 미션·슬라이드 주소·예제는 공개 시각 전에는 받을 수 없습니다.
+- 단, 원본 GitHub 저장소와 Google Slides 자체는 링크를 아는 사람이면 이 사이트와 상관없이 열 수 있습니다. 완전히 막으려면 그쪽 공유 설정을 따로 바꾸세요.
+- 함수에 문제가 생기면 루트(`dist/`)의 빌드 시각 기준 화면을 보여줍니다. 공개 시각이 지난 뒤 다시 배포하면 루트도 최신 상태가 됩니다.
+- 함수는 페이지 요청에만 실행되고, CSS·이미지 같은 공용 파일은 바로 내려갑니다(`dist/_routes.json`).
 
 ### 자주 하는 수정 예시
 
@@ -71,7 +83,15 @@ event: { status: 'scheduled', start: '2026-11-16T18:00:00+09:00', end: '2026-11-
 recruitment: { open: true, url: 'https://forms.gle/새-폼-주소' },
 ```
 
-모집이 끝나면 `open: false`로 바꿉니다. 행사가 끝나면 `event.status: 'done'`으로 바꿉니다.
+모집이 끝나면 `open: false`로 바꿉니다. `event.end`가 있으면 행사가 끝난 뒤 ‘진행 완료’로 자동 표시됩니다.
+
+**자료를 행사 시작에 맞춰 열 때:** `materials: 'open'`과 함께 `materialsOpenAt`에 시작 시각을 넣습니다. 그 회차의 예제 화면을 함께 공개하려면 `exampleDirs`에 저장소 폴더를 적습니다. 그 회차와 관련된 운영진 예제 카드에는 `workshop: 번호`를 붙이면 같은 시각에 공개됩니다.
+
+```js
+materials: 'open',
+materialsOpenAt: '2026-11-02T18:00:00+09:00',
+exampleDirs: ['workshop2/starter', 'workshop2/complete'],
+```
 
 **오픈채팅 주소가 생겼을 때** (`content/site.mjs`): `openChat: 'https://open.kakao.com/o/...'`. 값이 `null`이면 버튼이 나타나지 않습니다.
 
@@ -102,6 +122,7 @@ portal/
 │  ├─ pages.mjs       ← 페이지별 화면 구성
 │  ├─ layout.mjs      ← 공통 머리말·메뉴·바닥글·공유 메타데이터
 │  ├─ render.mjs      ← 상태 표시, 링크 검사, 요청문 복사 블록 등 공통 조각
+│  ├─ schedule.mjs    ← 시각에 따른 행사·자료 상태 계산
 │  ├─ styles.css      ← 디자인
 │  └─ main.js         ← 요청문 복사 (클립보드 실패 시 글 선택 + 안내)
 ├─ public/            ← 그대로 복사되는 파일 (이미지, og.png, favicon, _headers)
@@ -112,6 +133,8 @@ portal/
 │  ├─ screenshot.mjs  ← 예제 화면·공유 이미지 캡처 (운영진용)
 │  └─ og-image.html   ← 공유 이미지 원본
 ├─ tests/             ← 상태별 버튼 노출, 내부 링크, 누락 처리 검사
+├─ functions/
+│  └─ _middleware.js  ← 요청 시각에 맞는 페이지 묶음을 보여주는 Pages 함수
 └─ wrangler.jsonc     ← 포털 전용 Pages 설정
 ```
 
@@ -119,4 +142,4 @@ portal/
 
 ## 워크숍 2 예제 화면
 
-빌드할 때 `../workshop2/starter`와 `../workshop2/complete`의 `index.html`·`app.js`·`styles.css`만 `/examples/workshop2/`로 복사합니다. 기존 Workshop 2 공개 Worker(`openai-ws`)는 2026-10-27 확인 시 삭제된 상태여서, 포털이 이 예제의 공개 위치를 맡습니다.
+자료가 열린 시점의 페이지 묶음에만 `../workshop2/starter`와 `../workshop2/complete`의 `index.html`·`app.js`·`styles.css`를 `/examples/workshop2/`로 복사합니다(Workshop 2는 2026-11-02 18:00부터). 기존 Workshop 2 공개 Worker(`openai-ws`)는 2026-10-27 확인 시 삭제된 상태여서, 포털이 이 예제의 공개 위치를 맡습니다.

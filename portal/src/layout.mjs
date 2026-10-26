@@ -8,7 +8,12 @@ function navGroups(content) {
     {
       title: '학기 과정',
       items: [
-        ...workshops.map(w => ({ path: `/workshops/${w.slug}/`, label: `Workshop ${w.number}`, sub: w.materials === 'open' ? w.shortTitle : '준비 중', color: w.materials === 'open' ? w.color : 'muted' })),
+        ...workshops.map(w => ({
+          path: `/workshops/${w.slug}/`,
+          label: `Workshop ${w.number}`,
+          sub: w.materials === 'open' ? w.shortTitle : w.materials === 'locked' ? w.event.badge ?? w.shortTitle : '준비 중',
+          color: w.materials === 'planning' ? 'muted' : w.color
+        })),
         { path: '/studio/', label: studio.title, sub: '워크숍 사이마다', color: 'navy' },
         { path: '/showcase/', label: showcase.title, sub: '학기 마무리', color: showcase.color }
       ]

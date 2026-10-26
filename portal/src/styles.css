@@ -147,6 +147,9 @@ small { color: var(--muted); }
 .track-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 14px; }
 .btn, .badge, .track-kicker { white-space: nowrap; }
 .track-actions .btn-fill { flex: 1; }
+.opens { margin: 0 0 4px; padding: 8px 12px; border-radius: 10px; background: var(--c-soft); color: var(--c-btn); font-size: .86rem; font-weight: 700; }
+.pending.locked { border-style: solid; border-color: var(--c); background: var(--c-soft); }
+.pending.locked h2 { color: var(--c-btn); }
 .track.is-planning { background: #fbfcfe; }
 .track.is-planning .track-desc { margin-bottom: 0; }
 

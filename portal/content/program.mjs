@@ -48,6 +48,7 @@ export const projects = [
   {
     title: '틈 — 즐겨찾기 추가',
     kind: 'operator',
+    workshop: 2, // 이 회차 자료가 열릴 때 함께 공개
     published: true,
     problem: '관심 있는 모임을 다시 찾기 어려운 문제',
     stage: 'Workshop 2 비교용 완성본 · 새로고침하면 초기화',

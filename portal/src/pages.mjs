@@ -7,15 +7,17 @@ const slidesOf = w => w.resources.find(r => r.audience === 'presenter' && isUsab
 const demoOf = w => w.resources.find(r => r.kind === 'demo' && isUsableUrl(r.url));
 
 function scheduleText(item, timeZone) {
-  return formatSchedule(item.event, timeZone) ?? '일정 안내 예정';
+  return formatSchedule(item.event, timeZone) ?? '일정 준비 중';
 }
+const placeText = item => item.event?.place ?? (item.event?.start ? '장소 추후 안내' : '장소 준비 중');
 
-// 카드에는 상태 칩 하나만: 모집 중 > 준비 중(자료 없음) > 행사 상태
+// 카드에는 상태 칩 하나만: 모집 중 > 준비 중(자료 없음) > 행사 상태(날짜·진행 완료)
 function cardStatus(w) {
   if (isRecruiting(w)) return eventBadge(w);
-  if (w.materials && w.materials !== 'open') return h`<span class="badge badge-planning">준비 중</span>`;
+  if (w.materials === 'planning') return h`<span class="badge badge-planning">준비 중</span>`;
   return eventBadge(w);
 }
+const lockNote = w => h`<p class="opens"><span aria-hidden="true">🔒</span> 실습·슬라이드는 ${w.opensLabel}에 열려요</p>`;
 
 // 홈의 주 행동: 실제 신청 링크가 열린 회차가 있을 때만 신청을 앞세우고, 없으면 최근 회차 다시 해보기.
 export function primaryAction(workshops) {
@@ -28,8 +30,9 @@ export function primaryAction(workshops) {
 
 function trackCard(w) {
   const open = w.materials === 'open';
+  const locked = w.materials === 'locked';
   const slides = slidesOf(w);
-  return h`<article class="track c-${open ? w.color : 'muted'}${open ? '' : ' is-planning'}">
+  return h`<article class="track c-${open || locked ? w.color : 'muted'}${open || locked ? '' : ' is-planning'}">
   <div class="track-top">
     <span class="track-icon" aria-hidden="true"><span></span></span>
     <div class="track-name"><p class="track-kicker">Workshop ${pad(w.number)}</p><h3><a href="${workshopPath(w)}">${w.shortTitle}</a></h3></div>
@@ -37,9 +40,10 @@ function trackCard(w) {
   </div>
   <p class="track-desc">${w.summary}</p>
   ${checks(w.highlights)}
+  ${locked ? lockNote(w) : ''}
   <div class="track-actions">
     ${isRecruiting(w) ? link(w.recruitment.url, '신청하기', 'btn btn-fill') : ''}
-    ${open ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="${workshopPath(w)}">실습 시작하기 →</a>` : h`<a class="btn btn-ghost" href="${workshopPath(w)}">회차 소개</a>`}
+    ${open ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="${workshopPath(w)}">실습 시작하기 →</a>` : h`<a class="btn btn-ghost" href="${workshopPath(w)}">${locked ? '준비물 보기' : '회차 소개'}</a>`}
     ${open && slides ? link(slides.url, '슬라이드', 'btn btn-ghost') : ''}
   </div>
 </article>`;
@@ -107,7 +111,7 @@ export function roadmapPage(content) {
   const { site, workshops, showcase, studio } = content;
   const next = workshops.find(w => w.event.status !== 'done');
   const steps = [
-    ...workshops.map(w => ({ kicker: `Workshop ${w.number}`, title: w.shortTitle, outcome: w.outcome, url: workshopPath(w), color: w.materials === 'open' ? w.color : 'muted', status: cardStatus(w), item: w })),
+    ...workshops.map(w => ({ kicker: `Workshop ${w.number}`, title: w.shortTitle, outcome: w.outcome, url: workshopPath(w), color: w.materials === 'planning' ? 'muted' : w.color, status: cardStatus(w), item: w })),
     { kicker: 'Showcase', title: showcase.korean, outcome: showcase.outcome, url: '/showcase/', color: showcase.color, status: eventBadge(showcase), item: showcase }
   ];
   return h`<header class="page-head">
@@ -164,9 +168,11 @@ export function workshopPage(content, w) {
   const prev = workshops[index - 1];
   const next = workshops[index + 1];
   const open = w.materials === 'open';
-  const color = open ? w.color : 'muted';
-  const demo = demoOf(w);
-  const slides = slidesOf(w);
+  const locked = w.materials === 'locked';
+  const color = w.materials === 'planning' ? 'muted' : w.color;
+  // 자료가 열리기 전에는 예제·슬라이드 주소를 페이지에 넣지 않습니다.
+  const demo = open ? demoOf(w) : null;
+  const slides = open ? slidesOf(w) : null;
   const pager = h`<nav class="pager" aria-label="다른 회차">
   ${prev ? h`<a href="${workshopPath(prev)}">← Workshop ${pad(prev.number)}</a>` : raw('<span></span>')}
   ${next ? h`<a href="${workshopPath(next)}">Workshop ${pad(next.number)} →</a>` : h`<a href="/showcase/">Showcase →</a>`}
@@ -184,11 +190,25 @@ export function workshopPage(content, w) {
   </div>` : ''}
   <dl class="info">
     <div><dt>일정</dt><dd>${scheduleText(w, site.timeZone)}</dd></div>
-    <div><dt>장소</dt><dd>${w.event.place ?? '장소 미정'}</dd></div>
+    <div><dt>장소</dt><dd>${placeText(w)}</dd></div>
     ${w.duration ? h`<div><dt>시간</dt><dd>${w.duration}</dd></div>` : ''}
     ${w.audience ? h`<div><dt>대상</dt><dd>${w.audience}</dd></div>` : ''}
   </dl>
 </header>`;
+
+  if (locked) {
+    return h`<div class="c-${color}">${head}
+${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
+<section class="pending locked">
+  <h2><span aria-hidden="true">🔒</span> 실습과 슬라이드는 ${w.opensLabel}에 열려요</h2>
+  <p class="hint">워크숍이 시작하면 이 페이지에서 단계별 미션과 예제, 슬라이드를 바로 볼 수 있어요. 그 전에 아래 준비만 끝내 오세요.</p>
+</section>
+<section class="block two">
+  ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
+  ${w.checks.length ? h`<div class="box"><h2>시작 전 확인</h2>${checks(w.checks)}</div>` : ''}
+</section>
+${pager}</div>`;
+  }
 
   if (!open) {
     const latest = workshops.filter(x => x.materials === 'open').at(-1);
@@ -262,8 +282,8 @@ export function studioPage(content) {
   <div class="box">
     <h2>일정</h2>
     ${sessions.length
-      ? checks(sessions.map(s => `${formatSchedule(s, site.timeZone)} · ${s.place ?? '장소 미정'}`))
-      : h`<p class="hint">일정 안내 예정 · 장소 미정</p>`}
+      ? checks(sessions.map(s => `${formatSchedule(s, site.timeZone)} · ${s.place ?? '장소 추후 안내'}`))
+      : h`<p class="hint">준비 중이에요. 정해지면 이곳에 안내할게요.</p>`}
   </div>
   <div class="box"><h2>가져올 것</h2>${checks(studio.bring)}</div>
 </section>

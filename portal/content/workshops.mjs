@@ -1,7 +1,11 @@
 // 워크숍 회차별 콘텐츠. 상태 값의 의미는 portal/README.md의 '상태 값' 표를 보세요.
-// - event.status: 'done'(진행 완료) | 'scheduled'(일정 확정) | 'tbd'(일정 미정) | 'planning'(기획 중)
+// - event.status: 'done'(진행 완료) | 'scheduled'(일정 확정) | 'tbd'·'planning'(준비 중)
+//   start·end가 있으면 시각에 맞춰 자동으로 바뀝니다: 끝난 뒤 '진행 완료'.
 // - recruitment.open이 true이고 url이 있을 때만 '신청하기' 버튼이 나타납니다.
 // - materials: 'open'(자료 열림) | 'planning'(자료 준비 중). 'planning'이면 미션·자료 영역을 그리지 않습니다.
+// - materialsOpenAt: 이 시각 전에는 미션·슬라이드·예제를 숨기고 '○월 ○일 ○시에 열려요'를 보여줍니다.
+//   배포된 사이트가 요청마다 현재 시각을 확인하므로, 이 시각에 다시 배포하지 않아도 자동으로 열립니다.
+// - exampleDirs: 자료가 열릴 때 /examples/ 아래에 함께 공개할 저장소 폴더.
 // - 확정되지 않은 값은 null로 둡니다. 임의의 주소나 '#'을 넣지 마세요.
 
 const repo = 'https://github.com/aeron1120/openAI_WS';
@@ -163,9 +167,11 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     outcome: '직접 수정하고 변경을 기록하는 프로젝트',
     summary: '기능 하나를 Codex로 추가하고, Git·GitHub로 기록하고, 실수를 되돌려 봐요.',
     doing: '기능 하나를 직접 추가해 확인하고, Git·GitHub로 기록하고 되돌리는 법을 익혀요.',
-    event: { status: 'tbd', start: null, end: null, place: null },
+    event: { status: 'scheduled', start: '2026-11-02T18:00:00+09:00', end: '2026-11-02T19:00:00+09:00', place: null },
     recruitment: { open: false, url: null },
     materials: 'open',
+    materialsOpenAt: '2026-11-02T18:00:00+09:00',
+    exampleDirs: ['workshop2/starter', 'workshop2/complete'],
     duration: '60분 예정',
     audience: '전공 무관 · Workshop 1 안 들어도 OK',
     joinNote: 'Workshop 1에 오지 않았어도 참여할 수 있어요. ‘시작 전 확인’만 미리 끝내 오세요.',

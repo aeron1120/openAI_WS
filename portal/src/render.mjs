@@ -33,14 +33,16 @@ export function formatSchedule(event, timeZone) {
   return `${date} ${time.format(start)}${end} (한국 시간)`;
 }
 
-const eventLabels = { done: ['진행 완료', 'done'], scheduled: ['일정 확정', 'scheduled'], tbd: ['일정 미정', 'tbd'], planning: ['기획 중', 'planning'] };
+const eventLabels = { done: ['진행 완료', 'done'], live: ['진행 중', 'open'], scheduled: ['일정 확정', 'scheduled'], tbd: ['준비 중', 'planning'], planning: ['준비 중', 'planning'] };
 export function isRecruiting(item) {
   return Boolean(item.recruitment?.open && isUsableUrl(item.recruitment.url));
 }
 export function eventBadge(item) {
   if (isRecruiting(item)) return h`<span class="badge badge-open">모집 중</span>`;
   const [label, tone] = eventLabels[item.event?.status] ?? eventLabels.tbd;
-  return h`<span class="badge badge-${tone}">${label}</span>`;
+  // 날짜가 정해진 다가오는 행사는 '일정 확정' 대신 날짜를 보여줍니다.
+  const text = item.event?.status === 'scheduled' && item.event.badge ? item.event.badge : label;
+  return h`<span class="badge badge-${tone}">${text}</span>`;
 }
 export function materialsBadge(item) {
   return item.materials === 'open'
