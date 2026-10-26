@@ -50,7 +50,7 @@ test('calls only official HTTPS endpoint, encodes secret once and returns select
   let requested;
   const response = await handleWeather(request(), { KMA_SERVICE_KEY: 'test%2Bkey%3D' }, { now, fetchImpl: async (input, init) => {
     requested = new URL(input);
-    assert.equal(init.redirect, 'error');
+    assert.equal(init.redirect, 'manual');
     return Response.json(payload([row('TMP', '18.5'), row('POP', '30')]));
   }});
   assert.equal(response.status, 200);
