@@ -1,1 +1,1 @@
-export const version = { id: 'v0', label: '기본 화면', step: 0 };
+export const version = { id: 'v1', label: '날씨 연결', step: 1 };
