@@ -66,7 +66,7 @@ function studioStrip(studio) {
 }
 
 function tracks(content) {
-  return h`<div class="tracks">${content.workshops.map(trackCard)}${showcaseCard(content.showcase)}</div>
+  return h`<div class="tracks-area"><div class="tracks">${content.workshops.map(trackCard)}${showcaseCard(content.showcase)}</div></div>
 ${studioStrip(content.studio)}`;
 }
 

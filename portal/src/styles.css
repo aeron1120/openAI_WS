@@ -122,7 +122,16 @@ small { color: var(--muted); }
 .tags li { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); font-size: .82rem; font-weight: 600; color: #3b4558; background: #fafbfd; }
 
 /* Track cards */
+/* 열 개수는 화면 너비가 아니라 카드가 들어갈 공간 너비로 정합니다(카드 하나가 300px 이상일 때만 늘림). */
+.tracks-area { container-type: inline-size; }
 .tracks { display: grid; gap: 14px; margin-top: 28px; }
+@container (min-width: 560px) {
+  .tracks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .track-wide { grid-column: 1 / -1; }
+}
+@container (min-width: 1280px) {
+  .tracks { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 .track { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 18px; padding: 20px; min-width: 0; }
 .track-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
 .track-icon { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--c-soft); }
@@ -135,7 +144,8 @@ small { color: var(--muted); }
 .track-top > .badge { margin-left: auto; margin-top: 2px; }
 .track-desc { color: var(--muted); font-size: .94rem; }
 .track .checks { margin-bottom: 4px; }
-.track-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 14px; }
+.track-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 14px; }
+.btn, .badge, .track-kicker { white-space: nowrap; }
 .track-actions .btn-fill { flex: 1; }
 .track.is-planning { background: #fbfcfe; }
 .track.is-planning .track-desc { margin-bottom: 0; }
@@ -260,8 +270,6 @@ small { color: var(--muted); }
 
 @media (min-width: 760px) {
   .panel { padding: 36px; }
-  .tracks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .track-wide { grid-column: 1 / -1; }
   .block.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .info { grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 0; background: none; gap: 8px; }
   .info div { display: block; background: rgba(255, 255, 255, .75); border-radius: 12px; padding: 10px 12px; }
@@ -283,8 +291,6 @@ small { color: var(--muted); }
 }
 /* 넓은 화면: 워크숍 카드를 한 줄에, 글자는 조금 크게 */
 @media (min-width: 1400px) {
-  .tracks { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .track-actions { flex-wrap: wrap; }
   .content { padding: 32px 40px 40px; }
   .panel { padding: 52px 56px; }
 }
