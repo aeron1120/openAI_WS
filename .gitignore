@@ -6,3 +6,6 @@ node_modules/
 workshop2/recovery-practice/
 dist/
 .wrangler/
+dist-workshop1/
+.dev.vars
+.dev.vars.*

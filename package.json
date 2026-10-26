@@ -5,6 +5,9 @@
   "description": "SNU workshop practice examples",
   "scripts": {
     "dev": "node server.mjs",
+    "build:workshop1": "node scripts/build-workshop1.mjs",
+    "dev:workshop1": "npm run build:workshop1 && npx --yes wrangler@4.152.0 dev --config wrangler.workshop1.jsonc",
+    "deploy:workshop1": "npm run build:workshop1 && npx --yes wrangler@4.152.0 deploy --config wrangler.workshop1.jsonc --keep-vars",
     "build": "node scripts/build-site.mjs",
     "deploy": "npm run build && npx --yes wrangler@4.152.0 deploy",
     "prepare:recovery": "node scripts/prepare-recovery.mjs"
