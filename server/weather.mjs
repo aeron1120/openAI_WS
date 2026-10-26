@@ -87,7 +87,8 @@ export async function handleWeather(request, env, { fetchImpl = fetch, now = new
     const url = new URL(KMA_ENDPOINT);
     url.search = new URLSearchParams({ serviceKey, pageNo: '1', numOfRows: '2000', dataType: 'JSON',
       base_date: issued.baseDate, base_time: issued.baseTime, nx: String(GRID.nx), ny: String(GRID.ny) }).toString();
-    const response = await fetchImpl(url.toString(), { signal: controller.signal, redirect: 'error', headers: { Accept: 'application/json' } });
+    // Workers supports manual/follow only. Reject all 3xx below instead of following the key to another host.
+    const response = await fetchImpl(url.toString(), { signal: controller.signal, redirect: 'manual', headers: { Accept: 'application/json' } });
     upstreamStatus = response.status;
     const rawBody = await response.text();
     let result;
