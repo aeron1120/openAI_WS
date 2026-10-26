@@ -25,4 +25,6 @@
 
 기능이 늘어나면 `features/`, 이미지가 필요하면 `assets/` 같은 하위 폴더를 추가할 수 있습니다. 파일 이름은 `my-map.js`, `campus-photo.png`처럼 영문·숫자·하이픈을 사용하세요. 새 파일은 HTML에서 연결해 주세요.
 
+박스를 복제할 때는 Codex에 “새 박스의 ID와 연결된 이름도 중복되지 않게 바꿔줘”라고 함께 요청하세요. 직접 복제한다면 `id`, `for`, `aria-labelledby`, `data-copy`의 연결을 맞춰야 안내와 복사 버튼이 새 박스를 가리킵니다.
+
 **다음:** [실습 안내](../guides/README.md) · [내 아이디어로 바꾸기](../guides/CUSTOMIZE.md) · [막혔을 때](../guides/TROUBLESHOOTING.md)
