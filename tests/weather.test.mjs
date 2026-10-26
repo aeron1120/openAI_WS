@@ -100,7 +100,7 @@ test('failure diagnostics distinguish HTTP, portal codes, invalid JSON, network 
     assert.ok(!text.includes('SECRET_VALUE'));
     const body = JSON.parse(text);
     assert.equal(body.code, 'WEATHER_UPSTREAM_ERROR');
-    assert.deepEqual(body.diagnostic, diagnostic);
+    assert.deepEqual(body.diagnostic, { ...diagnostic, baseDate: '20261026', baseTime: '1100', nx: 59, ny: 125 });
   }
 });
 
@@ -109,8 +109,8 @@ test('only one to three ASCII digits can be exposed as upstreamCode', async () =
     const response = await handleWeather(request(), { KMA_SERVICE_KEY: 'SECRET_VALUE' }, { now, fetchImpl: async () => Response.json(payload([], value)) });
     const text = await response.text();
     assert.ok(!text.includes('SECRET_VALUE'));
-    assert.deepEqual(JSON.parse(text).diagnostic, { reason: 'UPSTREAM_API_ERROR', upstreamStatus: 200 });
+    assert.deepEqual(JSON.parse(text).diagnostic, { reason: 'UPSTREAM_API_ERROR', upstreamStatus: 200, baseDate: '20261026', baseTime: '1100', nx: 59, ny: 125 });
   }
   const xml = await handleWeather(request(), { KMA_SERVICE_KEY: 'SECRET_VALUE' }, { now, fetchImpl: async () => new Response('<returnReasonCode>30 SECRET_VALUE</returnReasonCode>') });
-  assert.deepEqual((await xml.json()).diagnostic, { reason: 'UPSTREAM_INVALID_JSON', upstreamStatus: 200 });
+  assert.deepEqual((await xml.json()).diagnostic, { reason: 'UPSTREAM_INVALID_JSON', upstreamStatus: 200, baseDate: '20261026', baseTime: '1100', nx: 59, ny: 125 });
 });

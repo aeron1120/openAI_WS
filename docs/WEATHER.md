@@ -34,6 +34,8 @@
 
 카드의 오류 안내는 동일하게 유지하면서, `/api/weather` 응답의 `diagnostic`에 제한된 진단 정보만 제공한다. `upstreamStatus`는 기상청 측 HTTP 상태 숫자이며, `upstreamCode`는 API가 반환한 1~3자리 숫자 코드만 포함한다. 원본 응답, 서비스키, 요청 URL, 예외 메시지는 반환하지 않는다. JSON을 요청했더라도 포털이 XML 오류를 반환하면 숫자 `returnReasonCode`만 읽는다.
 
+`diagnostic.baseDate`와 `baseTime`은 서버가 실제로 요청한 한국 표준시 발표일·시각이며, `nx`·`ny`는 요청 격자다. 로컬 성공과 배포 실패를 비교할 때 이 네 값부터 일치하는지 확인한다. 서버 실행 환경의 날짜가 발표용 예시 날짜와 다를 수 있으며, 실패 시 임의의 과거 예보로 대체하지 않는다.
+
 | diagnostic.reason | 확인할 내용 |
 | --- | --- |
 | `UPSTREAM_HTTP_ERROR` | `upstreamStatus` 확인. 403은 접근 거부, 429는 요청 제한, 5xx는 제공기관 또는 게이트웨이 실패일 수 있다. 상태만으로 키의 유효성을 단정하지 않는다. |
