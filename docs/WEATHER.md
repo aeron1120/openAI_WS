@@ -30,6 +30,19 @@
 
 자동 검증: `node --test tests/weather.test.mjs tests/weather-client.test.mjs`. 테스트 응답은 명시적으로 만든 픽스처이며 실제 날씨 확인을 대신하지 않는다.
 
+## 502 응답 진단
+
+카드의 오류 안내는 동일하게 유지하면서, `/api/weather` 응답의 `diagnostic`에 제한된 진단 정보만 제공한다. `upstreamStatus`는 기상청 측 HTTP 상태 숫자이며, `upstreamCode`는 API가 반환한 1~3자리 숫자 코드만 포함한다. 원본 응답, 서비스키, 요청 URL, 예외 메시지는 반환하지 않는다. JSON을 요청했더라도 포털이 XML 오류를 반환하면 숫자 `returnReasonCode`만 읽는다.
+
+| diagnostic.reason | 확인할 내용 |
+| --- | --- |
+| `UPSTREAM_HTTP_ERROR` | `upstreamStatus` 확인. 403은 접근 거부, 429는 요청 제한, 5xx는 제공기관 또는 게이트웨이 실패일 수 있다. 상태만으로 키의 유효성을 단정하지 않는다. |
+| `UPSTREAM_API_ERROR` | `upstreamCode`를 포털 오류 안내와 비교한다. 예: 20 접근 권한, 22 호출 한도, 30 미등록 키, 31 사용기간 만료. |
+| `UPSTREAM_INVALID_JSON` | JSON과 알려진 숫자 XML 오류를 모두 해석하지 못했다. 서비스 응답 형식 또는 게이트웨이 장애를 확인한다. |
+| `UPSTREAM_NETWORK_ERROR` | 제공기관 연결 또는 응답 수신 실패. 키가 틀렸다는 뜻으로 단정하지 않는다. |
+| `UPSTREAM_TIMEOUT` | 12초 이내에 요청을 완료하지 못했다. |
+| `SERVICE_KEY_ENCODING_ERROR` | Secret의 퍼센트 인코딩 형식을 확인하고, 포털의 Decoding 값을 다시 설정한다. |
+
 ## 공식 근거
 
 - [공공데이터포털: 서비스 URL, 인증, JSON 형식, 오류 코드](https://www.data.go.kr/data/15084084/openapi.do)
