@@ -29,7 +29,7 @@ export async function handleAdmin({ request, url, session, config, db, storage, 
     const status = url.searchParams.get('status') || null;
     const workshop = url.searchParams.get('workshop') ? Number(url.searchParams.get('workshop')) : null;
     if (status && !STATUSES.includes(status)) throw bad('상태 값을 확인해 주세요.');
-    if (workshop !== null && !Number.isInteger(workshop)) throw bad('회차 값을 확인해 주세요.');
+    if (workshop !== null && (!Number.isInteger(workshop) || workshop < 1)) throw bad('회차 값을 확인해 주세요.');
     const rows = await db.listQuestions({ status, workshop });
     return json({ questions: rows.map(row => ({ ...summary(row), student: row.student })) });
   }

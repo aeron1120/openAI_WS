@@ -156,3 +156,15 @@ test('questions are validated and limited', async () => {
   flow.clock.now = NOW + 60 * 60 * 1000;
   assert.equal(await status(question), 201);
 });
+
+test('follow-ups on a question already waiting send no extra mail, and a broken image still shows the thread', async () => {
+  const flow = questionApp();
+  const cookie = await loginAs(flow, 1);
+  const { attachment } = await (await upload(flow, cookie)).json();
+  const { question: q } = await (await ask(flow, cookie, { ...question, attachmentIds: [attachment.id] })).json();
+  await send(flow.app, `/api/questions/${q.id}/messages`, cookie, { body: { body: '하나 더' } });
+  assert.equal(flow.notifier.sent.length, 1);
+  flow.storage.signedUrl = async () => { throw new Error('Storage 500'); };
+  const detail = await (await flow.app(api(`/api/questions/${q.id}`, { cookie }))).json();
+  assert.deepEqual(detail.question.messages[0].images, [{ id: attachment.id, url: null }]);
+});

@@ -60,7 +60,8 @@ export async function questionView(row, storage, { operator = false } = {}) {
   const messages = await Promise.all((row.messages ?? []).map(async m => ({
     id: m.id, author: m.author, body: m.body, errorText: m.error_text, createdAt: m.created_at,
     ...(operator && m.operator_email ? { operatorEmail: m.operator_email } : {}),
-    images: await Promise.all((m.attachments ?? []).map(async a => ({ id: a.id, url: await storage.signedUrl(a.path) })))
+    // 이미지 하나의 주소를 못 만들어도 대화 전체는 보여줍니다(url: null).
+    images: await Promise.all((m.attachments ?? []).map(async a => ({ id: a.id, url: await storage.signedUrl(a.path).catch(() => null) })))
   })));
   return { ...summary(row), messages, ...(operator ? { student: row.student } : {}) };
 }
@@ -88,7 +89,8 @@ export async function handleQuestions({ request, url, session, config, db, stora
       await db.updateQuestion(questionId, { status: 'ai_answered', updated_at: iso(nowMs) });
       return json({ question: { id: questionId, status: 'ai_answered' } }, 201);
     }
-    await notifier.questionWaiting({ questionId, workshop, step, email: session.email, body: input.body, followUp: false });
+    // 메일은 기다리지 않습니다(실패해도 notify가 로그만 남김).
+    notifier.questionWaiting({ questionId, workshop, step, email: session.email, body: input.body, followUp: false });
     return json({ question: { id: questionId, status: 'escalated' } }, 201);
   }
 
@@ -106,7 +108,7 @@ export async function handleQuestions({ request, url, session, config, db, stora
     const allowed = data.status === 'resolved' || (data.status === 'escalated' && row.status === 'ai_answered');
     if (!allowed) throw bad('바꿀 수 없는 상태예요.');
     await db.updateQuestion(row.id, { status: data.status, updated_at: iso(nowMs) });
-    if (data.status === 'escalated') await notifier.questionWaiting({ questionId: row.id, workshop: row.workshop, step: row.step_id, email: session.email, body: summary(row).preview, followUp: true });
+    if (data.status === 'escalated') notifier.questionWaiting({ questionId: row.id, workshop: row.workshop, step: row.step_id, email: session.email, body: summary(row).preview, followUp: true });
     return json({ question: { id: row.id, status: data.status } });
   }
 
@@ -117,6 +119,7 @@ export async function handleQuestions({ request, url, session, config, db, stora
   await usableAttachments({ db, input, uploaderId: session.sid, nowMs });
   await postMessage({ db, questionId: row.id, author: 'student', input, nowMs });
   await db.updateQuestion(row.id, { status: 'escalated', updated_at: iso(nowMs) });
-  await notifier.questionWaiting({ questionId: row.id, workshop: row.workshop, step: row.step_id, email: session.email, body: input.body, followUp: true });
+  // 이미 답변 대기 중인 질문에 덧붙인 경우에는 메일을 다시 보내지 않습니다.
+  if (row.status !== 'escalated') notifier.questionWaiting({ questionId: row.id, workshop: row.workshop, step: row.step_id, email: session.email, body: input.body, followUp: true });
   return json({ question: { id: row.id, status: 'escalated' } }, 201);
 }

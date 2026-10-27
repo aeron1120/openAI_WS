@@ -63,3 +63,8 @@ test('operators see how many students finished each step', async () => {
   const { progress } = await (await flow.app(api('/api/admin/progress', { cookie: operator }))).json();
   assert.deepEqual(progress, [{ workshop: 1, step: 'compare', count: 1 }, { workshop: 1, step: 'run-local', count: 2 }]);
 });
+
+test('the workshop filter must be a positive number', async () => {
+  const { flow, operator } = await withQuestion();
+  for (const value of ['0', '-1', 'x']) assert.equal((await flow.app(api(`/api/admin/questions?workshop=${value}`, { cookie: operator }))).status, 400, value);
+});
