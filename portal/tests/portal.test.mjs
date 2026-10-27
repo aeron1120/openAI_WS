@@ -210,6 +210,9 @@ test('content validation rejects placeholder or insecure links, missing recruitm
   const badOption = clone(defaultContent);
   badOption.workshops[0].missions.find(m => m.options).options[0].slide = 0;
   assert.throws(() => validateContent(badOption), /slideId/);
+  const published = clone(defaultContent);
+  published.workshops[1].resources.find(r => r.kind === 'slides').url = 'https://docs.google.com/presentation/d/e/2PACX-abc/pub';
+  assert.throws(() => validateContent(published), /presentation\/d\/<ID>/);
   const badOpen = clone(defaultContent);
   badOpen.workshops[1].materialsOpenAt = '2026-11-02 18:00';
   assert.throws(() => validateContent(badOpen), /materialsOpenAt/);
