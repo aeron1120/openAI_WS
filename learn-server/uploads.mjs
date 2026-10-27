@@ -18,7 +18,13 @@ export async function handleUpload({ request, session, config, db, storage, limi
   const id = newId();
   const path = `${session.sid}/${id}.${EXTENSIONS[mime]}`;
   await storage.upload(path, bytes, mime);
-  await db.createAttachment({ id, uploaderId: session.sid, path, mime, size: bytes.length, now: new Date(nowMs).toISOString() });
+  try {
+    await db.createAttachment({ id, uploaderId: session.sid, path, mime, size: bytes.length, now: new Date(nowMs).toISOString() });
+  } catch (error) {
+    // 기록을 못 남기면 정리 대상에서도 빠지므로, 방금 올린 파일을 바로 지웁니다.
+    await storage.remove([path]).catch(() => {});
+    throw error;
+  }
   return json({ attachment: { id } }, 201);
 }
 

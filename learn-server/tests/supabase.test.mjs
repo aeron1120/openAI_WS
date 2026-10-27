@@ -93,7 +93,7 @@ test('question queries use PostgREST filters, embeds and ordering', async () => 
     'GET attachments?id=in.(a1,a2)&uploader_id=eq.s1&message_id=is.null&created_at=gte.2026-10-27T11%3A00%3A00.000Z&select=id',
     'PATCH attachments?id=in.(a1)',
     'GET attachments?message_id=is.null&created_at=lt.2026-10-26T12%3A00%3A00.000Z&select=id,path&limit=500',
-    'DELETE attachments?id=in.(a1,a2)',
+    'DELETE attachments?id=in.(a1,a2)&message_id=is.null',
     'GET progress?select=workshop,step_id&limit=10000'
   ]);
   assert.deepEqual(JSON.parse(calls[0].body), { student_id: 's1', workshop: 1, step_id: 'run-local', mode: 'own', status: 'escalated', created_at: 't', updated_at: 't' });

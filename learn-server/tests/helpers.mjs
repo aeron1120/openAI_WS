@@ -148,7 +148,7 @@ export function memoryDb() {
     },
     async attachToMessage({ ids, messageId }) { for (const a of t.attachments) if (ids.includes(a.id)) a.message_id = messageId; },
     async staleAttachments(before) { return t.attachments.filter(a => a.message_id === null && a.created_at < before).map(({ id, path }) => ({ id, path })); },
-    async deleteAttachments(ids) { t.attachments = t.attachments.filter(a => !ids.includes(a.id)); }
+    async deleteAttachments(ids) { t.attachments = t.attachments.filter(a => !(ids.includes(a.id) && a.message_id === null)); }
   };
 }
 

@@ -53,6 +53,25 @@ test('unattached images older than a day are removed from storage and the databa
   assert.equal(flow.storage.files.size, 1);
 });
 
+test('images attached to a message survive cleanup', async () => {
+  const flow = questionApp();
+  const cookie = await loginAs(flow, 1);
+  const { attachment } = await (await upload(flow, cookie)).json();
+  await send(flow.app, '/api/questions', cookie, { body: { workshop: 1, step: 'run-local', body: '봐 주세요', attachmentIds: [attachment.id] } });
+  flow.clock.now = NOW + 3 * 24 * 60 * 60 * 1000;
+  assert.equal(await flow.app.cleanup(), 0);
+  assert.equal(flow.db.tables.attachments.length, 1);
+  assert.equal(flow.storage.files.size, 1);
+});
+
+test('a failed database write removes the just-uploaded file', async () => {
+  const flow = questionApp();
+  const cookie = await loginAs(flow, 1);
+  flow.db.createAttachment = async () => { throw new Error('Supabase 500'); };
+  assert.equal((await upload(flow, cookie)).status, 500);
+  assert.equal(flow.storage.files.size, 0);
+});
+
 const ask = (flow, cookie, body) => send(flow.app, '/api/questions', cookie, { body });
 const question = { workshop: 1, step: 'run-local', mode: 'own', body: '서버가 안 켜져요', errorText: 'EADDRINUSE' };
 

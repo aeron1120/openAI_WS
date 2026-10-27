@@ -91,8 +91,9 @@ export function supabaseClient({ url, key, fetchImpl = fetch }) {
     staleAttachments(before) {
       return request(`attachments?message_id=is.null&created_at=lt.${enc(before)}&select=id,path&limit=500`);
     },
+    // 정리 도중 메시지에 붙은 첨부는 지우지 않도록 message_id가 비어 있는 행만 지웁니다.
     async deleteAttachments(ids) {
-      await request(`attachments?id=${inList(ids)}`, { method: 'DELETE', headers: { prefer: 'return=minimal' } });
+      await request(`attachments?id=${inList(ids)}&message_id=is.null`, { method: 'DELETE', headers: { prefer: 'return=minimal' } });
     }
   };
 }
