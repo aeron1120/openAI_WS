@@ -164,6 +164,15 @@ npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-stud
   - 기능 선택지(`options`)에도 같은 값을 넣으면, 학생이 그 선택지를 펼칠 때 해당 슬라이드로 넘어갑니다.
 - 단계를 바꾸거나 회차 공개 시각을 바꾸면 수업 서버의 `WORKSHOP_OPEN_AT`(Render 설정, `render.yaml`)도 같은 시각으로 맞춥니다. 서버는 열린 회차의 진도만 저장합니다.
 
+### 질문하기와 운영진 화면
+
+- 수업 화면의 단계마다 **막혔어요 · 질문하기**가 있습니다. 진행 방식(예제 그대로/내 아이디어로), 질문 내용(2000자), 오류 문구, 오류 화면 이미지를 보낼 수 있습니다.
+- 이미지는 3장까지, 장당 5MB, PNG·JPEG·WebP만 됩니다. 파일 선택, 끌어다 놓기, 캡처 후 붙여넣기(Ctrl+V)를 지원합니다. 이미지는 Supabase의 비공개 공간에 저장되고, 질문한 학생과 운영진에게만 10분짜리 주소로 보입니다.
+- `/learn/questions/`(내 질문): 내 질문 목록과 대화, 추가 질문, "해결됐어요". 검색에는 나오지 않습니다(`sitemap.xml` 제외, `robots.txt` Disallow).
+- `/admin/`(운영진): 수업 서버의 `OPERATOR_EMAILS`에 있는 계정만 쓸 수 있습니다. 질문 목록(답변 대기 먼저 보기, 회차 거르기), 답변(4000자, 이미지 가능), 상태 바꾸기, 단계별 완료 학생 수. 메뉴에는 없고, 새 질문 알림 메일의 링크(`/admin/?q=<질문 id>`)로 들어옵니다.
+- 화면 스크립트: `src/learn.js`(로그인·공통 기능 `window.Learn`·수업 목록·수업 화면), `src/questions.js`(질문 칸·대화·이미지 올리기, 학생·운영진 공용), `src/admin.js`(운영진 화면). 페이지마다 필요한 것만 순서대로 불러옵니다(`scripts/build.mjs`의 `script`).
+- 새 질문 메일은 수업 서버에 `RESEND_API_KEY`와 `NOTIFY_EMAIL`이 있을 때만 갑니다. 없어도 질문은 저장되고 `/admin/`에서 볼 수 있습니다.
+
 ## 워크숍 2 예제 화면
 
 자료가 열린 시점의 페이지 묶음에만 `../workshop2/starter`와 `../workshop2/complete`의 `index.html`·`app.js`·`styles.css`를 `/examples/workshop2/`로 복사합니다(Workshop 2는 2026-11-02 18:00부터). 기존 Workshop 2 공개 Worker(`openai-ws`)는 2026-10-27 확인 시 삭제된 상태여서, 포털이 이 예제의 공개 위치를 맡습니다.
