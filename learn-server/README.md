@@ -20,6 +20,7 @@
 | `session.mjs` | 서명 쿠키 |
 | `http.mjs` | 응답·쿠키·Origin 확인 도우미 |
 | `supabase.mjs` | Supabase REST 클라이언트 |
+| `progress.mjs` | 진도 API (단계 완료 표시) |
 | `schema.sql` | Supabase 테이블·RLS·Storage 버킷 (한 번 실행) |
 
 ## 명령 (저장소 루트에서)
@@ -39,6 +40,7 @@
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google Cloud OAuth 클라이언트(웹) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | Supabase Project URL, secret 키(`sb_secret_…`) |
 | `OPERATOR_EMAILS` | 운영진 @snu.ac.kr 메일, 쉼표로 구분 |
+| `WORKSHOP_OPEN_AT` | 회차별 공개 시각 JSON. 예: `{"1":"2026-10-26T18:00:00+09:00"}`. 포털 `workshops.mjs`의 공개 시각과 같게. 없는 회차는 닫힘 |
 
 비밀값은 저장소·대화·공개 파일에 넣지 않습니다. 빠진 값이 있으면 서버 로그에 이름만 나오고 `/api/health`가 `configured: false`를 돌려줍니다.
 
@@ -50,6 +52,16 @@
 4. **Cloudflare Pages 비밀값**: `LEARN_API_ORIGIN`(Render 서비스 주소)과 `PROXY_SECRET`(Render와 같은 값)을 넣고 포털을 다시 배포. 자세한 명령은 `portal/README.md`.
 
 무료 요금제는 15분간 요청이 없으면 잠들고 첫 요청에 30초~1분이 걸립니다. 화면은 "서버를 깨우는 중"을 보여주며 자동으로 다시 시도합니다. 워크숍 전에 한 번 열어 두세요.
+
+## API
+
+| 요청 | 하는 일 |
+| --- | --- |
+| `GET /api/health` | 상태 확인 (프록시 없이도 응답) |
+| `GET /api/auth/google?next=/learn/…` → `GET /api/auth/google/callback` | SNU 로그인 |
+| `GET /api/me`, `DELETE /api/session` | 내 정보, 로그아웃 |
+| `GET /api/progress` | 내 완료 단계 전체 `{ progress: [{ workshop, step, completedAt }] }` |
+| `PUT` / `DELETE /api/progress/<회차>/<단계 id>` | 단계 완료 / 취소 (열린 회차만, 포털 Origin 필요) |
 
 ## 확인 기록
 
