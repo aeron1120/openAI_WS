@@ -177,7 +177,7 @@
       // 답변·상태 변경 뒤에는 목록과 상세를 함께 다시 불러옵니다.
       const after = text => {
         loadList({ quiet: true });
-        openDetail(id, { quiet: true, notice: text });
+        if (current === id) openDetail(id, { quiet: true, notice: text }); // 그 사이 다른 질문을 열었으면 그대로 둡니다.
       };
 
       const toList = button('← 목록으로', 'btn btn-ghost admin-back', () => {
