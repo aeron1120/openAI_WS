@@ -65,7 +65,7 @@ Cloudflare Pages (포털, 기존 프로젝트)
 - `next`는 `/learn/` 또는 `/admin/`으로 시작하는 같은 사이트 경로만. 그 외는 `/learn/`.
 - 세션 쿠키 `__Host-learn_session`: `{ sid: 학생 id, exp }`를 `SESSION_SECRET`(32자 이상)으로 HMAC 서명. HttpOnly, Secure, SameSite=Lax, Path=/, 14일.
 - 상태를 바꾸는 요청(POST/PATCH/DELETE)은 `Origin`이 포털 주소이고 `Content-Type: application/json`일 때만 처리.
-- 운영진: 환경값 `OPERATOR_EMAILS`(쉼표 구분: aeron1120·seolynn07·kitaehyun@snu.ac.kr)에 있는 계정만 `/api/admin/*` 사용. 운영진도 같은 SNU 로그인.
+- 운영진: 환경값 `OPERATOR_EMAILS`(운영진 @snu.ac.kr 메일을 쉼표로 구분. 저장소가 공개라 주소는 Render 설정에만 적는다)에 있는 계정만 `/api/admin/*` 사용. 운영진도 같은 SNU 로그인.
 - 기존 `server/auth.mjs`의 서명 쿠키·JWKS 검증 방식을 참고하되, ID 토큰 직접 수신(GIS)이 아니라 서버 코드 교환 방식으로 새로 작성.
 - 로그인 화면 안내: "이메일·이름과 작성한 질문을 수업 운영에만 사용합니다." 프로필 사진은 저장하지 않음.
 
