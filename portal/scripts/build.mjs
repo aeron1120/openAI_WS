@@ -87,8 +87,10 @@ export function routes(content) {
     { path: '/studio/', title: 'Studio Session', render: pages.studioPage, description: content.studio.description },
     { path: '/showcase/', title: 'Showcase', render: pages.showcasePage, description: content.showcase.description },
     { path: '/about/', title: '운영 소개와 협력 안내', render: pages.aboutPage, description: `${content.site.name} 운영진, 진행 기록, 협력 방식 안내.` },
-    { path: '/learn/', title: '수업 듣기', render: learnPages.learnPage, description: '서울대 계정으로 로그인하고 슬라이드를 보며 단계별로 실습해요.', script: 'learn.js' },
-    ...learnPages.lessonWorkshops(content).map(w => ({ path: learnPages.lessonPath(w), title: `수업 · Workshop ${w.slug}`, render: c => learnPages.lessonPage(c, w), description: `${w.title} — 슬라이드를 보며 단계별로 실습해요.`, script: 'learn.js' }))
+    { path: '/learn/', title: '수업 듣기', render: learnPages.learnPage, description: '서울대 계정으로 로그인하고 슬라이드를 보며 단계별로 실습해요.', script: ['learn.js', 'questions.js'] },
+    { path: '/learn/questions/', title: '내 질문', render: learnPages.questionsPage, description: '수업 중 남긴 질문과 운영진의 답을 확인해요.', script: ['learn.js', 'questions.js'] },
+    { path: '/admin/', title: '운영진', render: learnPages.adminPage, description: '운영진용 질문 답변과 수업 진행 화면.', script: ['learn.js', 'questions.js', 'admin.js'] },
+    ...learnPages.lessonWorkshops(content).map(w => ({ path: learnPages.lessonPath(w), title: `수업 · Workshop ${w.slug}`, render: c => learnPages.lessonPage(c, w), description: `${w.title} — 슬라이드를 보며 단계별로 실습해요.`, script: ['learn.js', 'questions.js'] }))
   ];
 }
 
@@ -128,11 +130,12 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
 
   const css = await readFile(path.join(portal, 'src/styles.css'), 'utf8');
   const js = await readFile(path.join(portal, 'src/main.js'), 'utf8');
-  const learnJs = await readFile(path.join(portal, 'src/learn.js'), 'utf8');
-  const assets = { css: hash(css), js: hash(js), 'learn.js': hash(learnJs) };
+  const extra = {};
+  for (const name of ['learn.js', 'questions.js', 'admin.js']) extra[name] = await readFile(path.join(portal, 'src', name), 'utf8');
+  const assets = { css: hash(css), js: hash(js), ...Object.fromEntries(Object.entries(extra).map(([name, text]) => [name, hash(text)])) };
   await writeFile(path.join(out, 'styles.css'), css);
   await writeFile(path.join(out, 'main.js'), js);
-  await writeFile(path.join(out, 'learn.js'), learnJs);
+  for (const [name, text] of Object.entries(extra)) await writeFile(path.join(out, name), text);
   await cp(path.join(portal, 'public'), out, { recursive: true });
 
   // 루트: 빌드 시각 기준 화면(미리보기, 그리고 함수가 실패했을 때의 안전한 기본값)
@@ -148,7 +151,7 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
   await writeFile(path.join(out, '_routes.json'), JSON.stringify({
     version: 1,
     include: ['/*'],
-    exclude: ['/styles.css', '/main.js', '/learn.js', '/favicon.svg', '/og.png', '/images/*', '/sitemap.xml', '/robots.txt']
+    exclude: ['/styles.css', '/main.js', '/learn.js', '/questions.js', '/admin.js', '/favicon.svg', '/og.png', '/images/*', '/sitemap.xml', '/robots.txt']
   }));
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${written.map(p => `  <url><loc>${content.site.url}${p}</loc></url>`).join('\n')}\n</urlset>\n`;

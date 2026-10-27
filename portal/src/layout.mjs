@@ -61,7 +61,7 @@ ${h`<html lang="ko">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="/styles.css?v=${assets.css}">
 <script src="/main.js?v=${assets.js}" defer></script>
-${script ? h`<script src="/${script}?v=${assets[script]}" defer></script>` : ''}
+${[script ?? []].flat().map(name => h`<script src="/${name}?v=${assets[name]}" defer></script>`)}
 </head>
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>

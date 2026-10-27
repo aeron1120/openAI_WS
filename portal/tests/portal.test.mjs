@@ -26,7 +26,7 @@ async function exists(file) {
 
 test('every route, 404, sitemap and one page set per schedule window are built', async t => {
   const { pages, outDir, read, variants } = await build(t);
-  assert.deepEqual(pages, ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/', '/learn/', '/learn/01/']);
+  assert.deepEqual(pages, ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/', '/learn/', '/learn/questions/', '/admin/', '/learn/01/']);
   assert.ok(await exists(path.join(outDir, '404.html')));
   const sitemap = await read('sitemap.xml');
   for (const page of pages) assert.match(sitemap, new RegExp(`<loc>${defaultContent.site.url}${page}</loc>`));
@@ -47,7 +47,7 @@ test('internal links resolve, no placeholder links, and share metadata uses the 
       for (const [, href] of html.matchAll(/(?:href|src)="(\/[^"]*)"/g)) {
         const clean = href.split(/[?#]/)[0];
         // 공용 파일(css·js·이미지)은 루트에, 페이지와 예제는 같은 묶음 안에 있어야 합니다.
-        const shared = /^\/(styles\.css|main\.js|learn\.js|favicon\.svg|og\.png|images\/)/.test(clean);
+        const shared = /^\/(styles\.css|main\.js|learn\.js|questions\.js|admin\.js|favicon\.svg|og\.png|images\/)/.test(clean);
         const file = path.join(shared ? outDir : root, clean, clean.endsWith('/') ? 'index.html' : '');
         assert.ok(await exists(file), `${path.relative(outDir, root) || '/'}${page} → ${href} does not exist`);
       }
@@ -366,4 +366,28 @@ test('a lesson page does not exist before its workshop opens', async t => {
   assert.equal(await exists(path.join(outDir, 'learn/02/index.html')), false);
   assert.ok(await exists(path.join(outDir, 'learn/01/index.html')));
   assert.match(await read('/learn/'), /11\/2 \(월\) 18:00에 열려요/);
+});
+
+test('question and operator pages load their scripts in order and the lesson has ask buttons', async t => {
+  const { read, outDir } = await build(t);
+  const scripts = html => [...html.matchAll(/<script src="\/([a-z.]+)\?v=[0-9a-f]{10}" defer>/g)].map(m => m[1]);
+  assert.deepEqual(scripts(await read('/learn/')), ['main.js', 'learn.js', 'questions.js']);
+  assert.deepEqual(scripts(await read('/learn/01/')), ['main.js', 'learn.js', 'questions.js']);
+  assert.deepEqual(scripts(await read('/learn/questions/')), ['main.js', 'learn.js', 'questions.js']);
+  const admin = await read('/admin/');
+  assert.deepEqual(scripts(admin), ['main.js', 'learn.js', 'questions.js', 'admin.js']);
+  assert.match(admin, /data-admin/);
+  assert.match(await read('/learn/questions/'), /data-questions/);
+  const raw = /data-steps=(["'])(.*?)\1/.exec(admin)[2];
+  const json = raw.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const steps = JSON.parse(json);
+  assert.deepEqual(steps[0].steps.map(s => s.id), ['open-starter', 'run-local', 'first-change', 'connect-feature']);
+  assert.equal(steps[0].number, 1);
+  const lesson = await read('/learn/01/');
+  assert.equal((lesson.match(/data-ask-open/g) ?? []).length, defaultContent.workshops[0].missions.length);
+  assert.match(await read('/learn/'), /<p class="learn-links"><a href="\/learn\/questions\/">내 질문<\/a> <span data-answer-count><\/span><\/p>/);
+  assert.doesNotMatch(await read('/'), /href="\/admin\//);
+  for (const name of ['questions.js', 'admin.js']) assert.ok(await exists(path.join(outDir, name)));
+  const routes = JSON.parse(await readFile(path.join(outDir, '_routes.json'), 'utf8'));
+  assert.ok(routes.exclude.includes('/questions.js') && routes.exclude.includes('/admin.js'));
 });

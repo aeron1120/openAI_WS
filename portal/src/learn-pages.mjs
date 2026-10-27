@@ -26,6 +26,7 @@ export function learnPage(content) {
 </header>
 ${gate}
 <section class="learn-list" data-learn-content hidden aria-label="수업 목록">
+  <p class="learn-links"><a href="/learn/questions/">내 질문</a> <span data-answer-count></span></p>
   ${open.map(w => h`<a class="learn-card c-${w.color}" href="${lessonPath(w)}">
     <span class="track-kicker">Workshop ${pad(w.number)}</span>
     <strong>${w.title}</strong>
@@ -41,6 +42,29 @@ ${gate}
 <p class="hint">@snu.ac.kr Google 계정만 로그인할 수 있어요. 이메일·이름과 작성한 질문은 수업 운영에만 사용합니다.</p>`;
 }
 
+// 내 질문(/learn/questions/): 목록·대화는 questions.js가 채웁니다.
+export function questionsPage() {
+  return h`<nav class="crumbs" aria-label="현재 위치"><a href="/learn/">수업 듣기</a> › 내 질문</nav>
+<header class="page-head">
+  <h1>내 질문</h1>
+  <p class="lead">수업 중에 남긴 질문과 운영진의 답을 모아 보여줘요.</p>
+</header>
+${gate}
+<div class="questions" data-learn-content data-questions hidden></div>
+<p class="hint">질문과 첨부한 이미지는 운영진만 볼 수 있어요. 비밀번호나 개인정보가 보이는 화면은 가려서 올려 주세요.</p>`;
+}
+
+// 운영진(/admin/): 질문 답변·진도 화면은 admin.js가 채웁니다. 단계 이름은 data-steps로 전달합니다.
+export function adminPage(content) {
+  const steps = lessonWorkshops(content).map(w => ({ number: w.number, title: w.title, steps: w.missions.map(m => ({ id: m.id, title: m.title })) }));
+  return h`<header class="page-head">
+  <h1>운영진</h1>
+  <p class="lead">학생 질문에 답하고 수업 진행 상황을 확인해요. 운영진 계정만 쓸 수 있어요.</p>
+</header>
+${gate}
+<div class="admin" data-learn-content data-admin hidden data-steps="${JSON.stringify(steps)}"></div>`;
+}
+
 function lessonStep(m, i, total) {
   return h`<section class="lesson-step" id="step-${m.id}" data-step="${m.id}" data-slide-id="${m.slideId}" ${i ? raw('hidden') : ''}>
   <p class="track-kicker">${i + 1} / ${total} 단계</p>
@@ -50,7 +74,9 @@ function lessonStep(m, i, total) {
     <button type="button" class="btn btn-ghost" data-prev ${i === 0 ? raw('disabled') : ''}>← 이전</button>
     <button type="button" class="btn btn-fill" data-done aria-pressed="false">이 단계 완료</button>
     <button type="button" class="btn btn-ghost" data-next ${i === total - 1 ? raw('disabled') : ''}>다음 →</button>
+    <button type="button" class="btn btn-ghost" data-ask-open>막혔어요 · 질문하기</button>
   </div>
+  <div class="ask" data-ask hidden></div>
   <p class="lesson-status" data-done-status role="status" aria-live="polite"></p>
 </section>`;
 }

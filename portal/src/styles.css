@@ -370,6 +370,8 @@ small { color: var(--muted); }
 .learn-error { margin: 0; color: #b42318; font-weight: 600; }
 .learn-user { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .learn-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin: 20px 0; }
+.learn-links { grid-column: 1 / -1; margin: 0; }
+.ask { margin-top: 12px; }
 .learn-card { display: grid; gap: 6px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--ink); text-decoration: none; }
 a.learn-card:hover { border-color: var(--c); }
 .learn-card.is-locked { opacity: .7; }
