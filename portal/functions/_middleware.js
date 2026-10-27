@@ -2,6 +2,31 @@
 // 워크숍 자료는 materialsOpenAt 시각이 되면 다시 배포하지 않아도 자동으로 열립니다.
 // /_v/ 경로는 직접 열 수 없으므로, 아직 열리지 않은 자료의 페이지는 공개되지 않습니다.
 
+// /api/*는 수업 서버(Render)로 그대로 전달합니다. 같은 주소라 로그인 쿠키가 제3자 쿠키로 막히지 않습니다.
+// PROXY_SECRET 헤더는 포털을 거친 요청만 Render가 받도록 하는 공유 비밀값입니다(브라우저가 보낸 값은 덮어씀).
+const apiJson = (status, error, message) => new Response(JSON.stringify({ error, message }), {
+  status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }
+});
+
+export async function proxyApi(request, env, url) {
+  if (!env.LEARN_API_ORIGIN || !env.PROXY_SECRET) return apiJson(503, 'LEARN_NOT_CONFIGURED', '수업 서버를 준비하고 있어요.');
+  const headers = new Headers(request.headers);
+  headers.set('x-proxy-secret', env.PROXY_SECRET);
+  headers.set('x-forwarded-host', url.host);
+  headers.delete('host');
+  const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
+  try {
+    const response = await fetch(new URL(url.pathname + url.search, env.LEARN_API_ORIGIN), {
+      method: request.method, headers, body: hasBody ? await request.arrayBuffer() : undefined, redirect: 'manual'
+    });
+    const out = new Headers(response.headers);
+    out.set('Cache-Control', 'no-store');
+    return new Response(response.body, { status: response.status, headers: out });
+  } catch {
+    return apiJson(502, 'LEARN_UNAVAILABLE', '수업 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.');
+  }
+}
+
 export function variantIndex(times, now) {
   return times.filter(t => now >= Date.parse(t)).length;
 }
@@ -9,6 +34,7 @@ export function variantIndex(times, now) {
 export async function onRequest({ request, env, next }) {
   const url = new URL(request.url);
   if (url.pathname === '/_v' || url.pathname.startsWith('/_v/')) return new Response('Not found', { status: 404 });
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) return proxyApi(request, env, url);
   if (request.method !== 'GET' && request.method !== 'HEAD') return next();
 
   let times;

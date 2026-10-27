@@ -270,3 +270,57 @@ test('start checks come with a step-by-step help that needs the script to open',
   bad.workshops[1].checkHelp.pop();
   assert.throws(() => validateContent(bad), /checkHelp/);
 });
+
+async function withFetch(fake, run) {
+  const original = globalThis.fetch;
+  globalThis.fetch = fake;
+  try { return await run(); } finally { globalThis.fetch = original; }
+}
+const learnEnv = { LEARN_API_ORIGIN: 'https://learn.example', PROXY_SECRET: 'q'.repeat(40), ASSETS: { fetch: () => { throw new Error('assets must not be used for /api'); } } };
+const noNext = () => { throw new Error('/api must not fall through to pages'); };
+
+test('/api requests go to the learn server with the proxy secret, cookies and redirects intact', async () => {
+  const seen = [];
+  const response = await withFetch(async (input, init) => {
+    seen.push({ url: String(input), init });
+    const headers = new Headers({ Location: 'https://accounts.google.com/o/oauth2/v2/auth?x=1' });
+    headers.append('Set-Cookie', '__Host-learn_oauth=abc; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600');
+    return new Response(null, { status: 302, headers });
+  }, () => onRequest({
+    request: new Request('https://portal.test/api/auth/google?next=%2Flearn%2F', { headers: { 'x-proxy-secret': 'forged', cookie: 'a=b' } }),
+    env: learnEnv, next: noNext
+  }));
+  assert.equal(seen[0].url, 'https://learn.example/api/auth/google?next=%2Flearn%2F');
+  assert.equal(seen[0].init.headers.get('x-proxy-secret'), learnEnv.PROXY_SECRET);
+  assert.equal(seen[0].init.headers.get('cookie'), 'a=b');
+  assert.equal(seen[0].init.redirect, 'manual');
+  assert.equal(response.status, 302);
+  assert.match(response.headers.get('location'), /^https:\/\/accounts\.google\.com\//);
+  assert.match(response.headers.get('set-cookie'), /__Host-learn_oauth=abc/);
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+});
+
+test('/api write requests keep their method, origin and body', async () => {
+  const seen = [];
+  await withFetch(async (input, init) => { seen.push(init); return new Response('{}', { status: 200 }); }, () => onRequest({
+    request: new Request('https://portal.test/api/session', { method: 'DELETE', headers: { origin: 'https://portal.test' } }),
+    env: learnEnv, next: noNext
+  }));
+  await withFetch(async (input, init) => { seen.push(init); return new Response('{}', { status: 200 }); }, () => onRequest({
+    request: new Request('https://portal.test/api/x', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"a":1}' }),
+    env: learnEnv, next: noNext
+  }));
+  assert.equal(seen[0].method, 'DELETE');
+  assert.equal(seen[0].headers.get('origin'), 'https://portal.test');
+  assert.equal(seen[1].method, 'POST');
+  assert.equal(new TextDecoder().decode(seen[1].body), '{"a":1}');
+});
+
+test('/api answers 503 when the learn server is not configured and 502 when it cannot be reached', async () => {
+  const unconfigured = await onRequest({ request: new Request('https://portal.test/api/me'), env: { ASSETS: learnEnv.ASSETS }, next: noNext });
+  assert.equal(unconfigured.status, 503);
+  assert.equal((await unconfigured.json()).error, 'LEARN_NOT_CONFIGURED');
+  const down = await withFetch(async () => { throw new Error('connect failed'); }, () => onRequest({ request: new Request('https://portal.test/api/me'), env: learnEnv, next: noNext }));
+  assert.equal(down.status, 502);
+  assert.equal((await down.json()).error, 'LEARN_UNAVAILABLE');
+});
