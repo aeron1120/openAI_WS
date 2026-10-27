@@ -33,3 +33,13 @@ test('WORKSHOP_OPEN_AT gives each workshop its opening time', () => {
     assert.ok(loadConfig({ ...ENV, WORKSHOP_OPEN_AT: bad }).problems.some(p => p.startsWith('WORKSHOP_OPEN_AT')), bad);
   }
 });
+
+test('mail and AI settings are optional, and only the none AI provider is accepted', () => {
+  const plain = loadConfig(ENV);
+  assert.equal(plain.notify.apiKey, null);
+  assert.equal(plain.notify.to, null);
+  assert.equal(plain.aiProvider, 'none');
+  const mail = loadConfig({ ...ENV, RESEND_API_KEY: 're_x', NOTIFY_EMAIL: 'op@snu.ac.kr' });
+  assert.deepEqual(mail.notify, { apiKey: 're_x', to: 'op@snu.ac.kr' });
+  assert.ok(loadConfig({ ...ENV, AI_PROVIDER: 'openai' }).problems.some(p => p.startsWith('AI_PROVIDER')));
+});

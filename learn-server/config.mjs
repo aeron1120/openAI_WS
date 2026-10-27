@@ -21,6 +21,8 @@ export function loadConfig(env) {
       problems.push('WORKSHOP_OPEN_AT 형식 (예: {"1":"2026-10-26T18:00:00+09:00"})');
     }
   }
+  const aiProvider = env.AI_PROVIDER || 'none';
+  if (aiProvider !== 'none') problems.push('AI_PROVIDER는 아직 none만 지원합니다');
   return {
     ok: problems.length === 0,
     problems,
@@ -30,6 +32,8 @@ export function loadConfig(env) {
     google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET },
     supabase: { url: env.SUPABASE_URL, key: env.SUPABASE_SERVICE_KEY },
     operators: new Set((env.OPERATOR_EMAILS ?? '').split(',').map(email => email.trim().toLowerCase()).filter(Boolean)),
-    workshopOpenAt
+    workshopOpenAt,
+    notify: { apiKey: env.RESEND_API_KEY || null, to: env.NOTIFY_EMAIL || null },
+    aiProvider
   };
 }
