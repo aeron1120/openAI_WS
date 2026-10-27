@@ -50,3 +50,7 @@
 4. **Cloudflare Pages 비밀값**: `LEARN_API_ORIGIN`(Render 서비스 주소)과 `PROXY_SECRET`(Render와 같은 값)을 넣고 포털을 다시 배포. 자세한 명령은 `portal/README.md`.
 
 무료 요금제는 15분간 요청이 없으면 잠들고 첫 요청에 30초~1분이 걸립니다. 화면은 "서버를 깨우는 중"을 보여주며 자동으로 다시 시도합니다. 워크숍 전에 한 번 열어 두세요.
+
+## 확인 기록
+
+- 2026-10-28: 서비스 `https://snu-learn-server.onrender.com`. 직접 접속 403, 포털 경유 `/api/health` `configured: true`, 로그인 전 `/api/me` 401, 로그인 시작 시 Google로 이동 확인. 운영진 SNU 계정으로 실제 로그인 → 이름·이메일·운영진 표시 확인.

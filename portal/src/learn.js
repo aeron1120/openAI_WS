@@ -48,7 +48,9 @@
         show(el('p', 'learn-error', '로그아웃하지 못했어요. 다시 시도해 주세요.'), logout);
       }
     });
-    const nodes = [el('p', 'learn-status', `${user.name}님, 로그인되었어요.`), el('p', 'hint', user.email)];
+    // 학교 계정 이름은 "이름 / 학생 / 학과"처럼 와서, 화면에는 첫 부분만 보여줍니다.
+    const name = user.name.split(' / ')[0] || user.name;
+    const nodes = [el('p', 'learn-status', `${name}님, 로그인되었어요.`), el('p', 'hint', user.email)];
     if (user.operator) nodes.push(el('p', 'hint', '운영진 계정이에요.'));
     nodes.push(el('p', '', '수업 화면은 곧 열려요.'), logout);
     show(...nodes);
