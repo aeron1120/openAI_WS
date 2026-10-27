@@ -23,3 +23,35 @@ test('a legacy JWT service key is also sent as a bearer token, and errors throw'
   const failing = supabaseClient({ url: ENV.SUPABASE_URL, key: 'k', fetchImpl: fakeFetch({ dbStatus: 500 }) });
   await assert.rejects(failing.upsertStudent({ googleSub: 'g', email: 'e', name: 'n', now: 't' }), /Supabase 500/);
 });
+
+test('progress is listed per student, first completion time kept, and removed', async () => {
+  const state = {};
+  const db = supabaseClient({ url: ENV.SUPABASE_URL, key: 'sb_secret_test', fetchImpl: fakeFetch(state) });
+  await db.markStep({ studentId: 's1', workshop: 1, stepId: 'run-local', now: 't1' });
+  await db.markStep({ studentId: 's1', workshop: 1, stepId: 'run-local', now: 't2' });
+  await db.markStep({ studentId: 's2', workshop: 1, stepId: 'compare', now: 't1' });
+  assert.deepEqual(await db.listProgress('s1'), [{ workshop: 1, step_id: 'run-local', completed_at: 't1' }]);
+  await db.unmarkStep({ studentId: 's1', workshop: 1, stepId: 'run-local' });
+  assert.deepEqual(await db.listProgress('s1'), []);
+  assert.equal((await db.listProgress('s2')).length, 1);
+});
+
+test('progress requests use the right PostgREST filters and headers', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url: String(url), init });
+    if (init.method === 'POST') return new Response(null, { status: 201 });
+    if (init.method === 'DELETE') return new Response(null, { status: 204 });
+    return new Response('[]', { status: 200 });
+  };
+  const db = supabaseClient({ url: 'https://db.test', key: 'k', fetchImpl });
+  await db.listProgress('s 1');
+  await db.markStep({ studentId: 's1', workshop: 2, stepId: 'record', now: 't' });
+  await db.unmarkStep({ studentId: 's1', workshop: 2, stepId: 'record' });
+  assert.equal(calls[0].url, 'https://db.test/rest/v1/progress?student_id=eq.s%201&select=workshop,step_id,completed_at&order=completed_at.asc');
+  assert.equal(calls[1].url, 'https://db.test/rest/v1/progress?on_conflict=student_id,workshop,step_id');
+  assert.equal(calls[1].init.headers.prefer, 'resolution=ignore-duplicates,return=minimal');
+  assert.deepEqual(JSON.parse(calls[1].init.body), { student_id: 's1', workshop: 2, step_id: 'record', completed_at: 't' });
+  assert.equal(calls[2].url, 'https://db.test/rest/v1/progress?student_id=eq.s1&workshop=eq.2&step_id=eq.record');
+  assert.equal(calls[2].init.method, 'DELETE');
+});

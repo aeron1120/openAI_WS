@@ -49,6 +49,25 @@ export function fakeFetch(state = {}) {
       state.upserts.push({ url, body, headers: init.headers });
       return Response.json([{ id: 'student-1', email: body.email, name: body.name }], { status: 201 });
     }
+    if (url.startsWith(`${ENV.SUPABASE_URL}/rest/v1/progress`)) {
+      if (state.dbStatus) return new Response('{}', { status: state.dbStatus });
+      state.progress ??= [];
+      const query = new URL(url).searchParams;
+      const eq = name => query.get(name)?.replace(/^eq\./, '');
+      const method = init.method ?? 'GET';
+      if (method === 'GET') {
+        return Response.json(state.progress.filter(row => row.student_id === eq('student_id')).map(({ workshop, step_id, completed_at }) => ({ workshop, step_id, completed_at })));
+      }
+      if (method === 'POST') {
+        const row = JSON.parse(init.body);
+        if (!state.progress.some(r => r.student_id === row.student_id && r.workshop === row.workshop && r.step_id === row.step_id)) state.progress.push(row);
+        return new Response(null, { status: 201 });
+      }
+      if (method === 'DELETE') {
+        state.progress = state.progress.filter(r => !(r.student_id === eq('student_id') && String(r.workshop) === eq('workshop') && r.step_id === eq('step_id')));
+        return new Response(null, { status: 204 });
+      }
+    }
     throw new Error(`unexpected fetch ${url}`);
   };
 }
