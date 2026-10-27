@@ -6,6 +6,7 @@ import { HttpError, json, readCookie, redirect, safeEqual, sameOrigin, setCookie
 import { sign, verify } from './session.mjs';
 import { authUrl, exchangeCode, verifyIdToken, GoogleError } from './google.mjs';
 import { supabaseClient } from './supabase.mjs';
+import { handleProgress } from './progress.mjs';
 
 const SESSION_COOKIE = '__Host-learn_session';
 const OAUTH_COOKIE = '__Host-learn_oauth';
@@ -21,6 +22,12 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
 
   function currentSession(request, seconds) {
     return verify(readCookie(request, SESSION_COOKIE), config.sessionSecret, 'session', seconds);
+  }
+
+  function requireSession(request, seconds) {
+    const session = currentSession(request, seconds);
+    if (!session) throw new HttpError(401, 'LOGIN_REQUIRED', '서울대 계정으로 로그인해 주세요.');
+    return session;
   }
 
   function startLogin(url, seconds) {
@@ -66,14 +73,16 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
       if (url.pathname === '/api/health') return json({ ok: true, configured: config.ok });
       if (!config.ok) throw new HttpError(503, 'LEARN_NOT_CONFIGURED', '수업 서버를 준비하고 있어요.');
       if (!safeEqual(request.headers.get('x-proxy-secret') ?? '', config.proxySecret)) throw new HttpError(403, 'DIRECT_ACCESS', '포털 주소로 접속해 주세요.');
+      if (url.pathname === '/api/progress' || url.pathname.startsWith('/api/progress/')) {
+        return await handleProgress({ request, url, session: requireSession(request, seconds), config, db, nowMs: now() });
+      }
       switch (`${request.method} ${url.pathname}`) {
         case 'GET /api/auth/google':
           return startLogin(url, seconds);
         case 'GET /api/auth/google/callback':
           return await finishLogin(request, url, seconds);
         case 'GET /api/me': {
-          const session = currentSession(request, seconds);
-          if (!session) throw new HttpError(401, 'LOGIN_REQUIRED', '서울대 계정으로 로그인해 주세요.');
+          const session = requireSession(request, seconds);
           return json({ user: { email: session.email, name: session.name, operator: config.operators.has(session.email) } });
         }
         case 'DELETE /api/session':
