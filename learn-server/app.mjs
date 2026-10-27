@@ -1,12 +1,15 @@
 // 수업 시스템 API. 포털(Cloudflare Pages)이 /api/*를 x-proxy-secret 헤더와 함께 전달합니다.
 // 1단계: 상태 확인, SNU Google 로그인, 내 정보, 로그아웃.
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { loadConfig } from './config.mjs';
 import { HttpError, json, readCookie, redirect, safeEqual, sameOrigin, setCookie } from './http.mjs';
 import { sign, verify } from './session.mjs';
 import { authUrl, exchangeCode, verifyIdToken, GoogleError } from './google.mjs';
 import { supabaseClient } from './supabase.mjs';
 import { handleProgress } from './progress.mjs';
+import { storageClient } from './storage.mjs';
+import { createNotifier } from './notify.mjs';
+import { createAi } from './ai.mjs';
 
 const SESSION_COOKIE = '__Host-learn_session';
 const OAUTH_COOKIE = '__Host-learn_oauth';
@@ -15,9 +18,12 @@ const OAUTH_SECONDS = 10 * 60;
 // 로그인 후 돌아갈 곳: /learn/… 또는 /admin/… 폴더 주소만
 const NEXT_PATH = /^\/(?:learn|admin)\/(?:[A-Za-z0-9_-]+\/)*$/;
 
-export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () => randomBytes(24).toString('base64url') }) {
+export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () => randomBytes(24).toString('base64url'), newId = randomUUID, db: givenDb, storage: givenStorage, notifier: givenNotifier, ai: givenAi }) {
   const config = loadConfig(env);
-  const db = config.ok ? supabaseClient({ ...config.supabase, fetchImpl }) : null;
+  const db = givenDb ?? (config.ok ? supabaseClient({ ...config.supabase, fetchImpl }) : null);
+  const storage = givenStorage ?? (config.ok ? storageClient({ ...config.supabase, fetchImpl }) : null);
+  const notifier = givenNotifier ?? createNotifier({ ...config.notify, publicOrigin: config.publicOrigin, fetchImpl });
+  const ai = givenAi ?? createAi({ provider: config.aiProvider });
   const callbackUrl = `${config.publicOrigin}/api/auth/google/callback`;
 
   function currentSession(request, seconds) {

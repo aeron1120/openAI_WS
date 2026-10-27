@@ -84,8 +84,8 @@ export function api(path, { method = 'GET', headers = {}, proxy = true, cookie }
 // set-cookie 중 지우는 쿠키(Max-Age=0)를 뺀 "이름=값" 목록
 export const cookiesFrom = response => response.headers.getSetCookie().filter(c => !/Max-Age=0/.test(c)).map(c => c.split(';')[0]).join('; ');
 
-export function makeApp(state = {}, env = ENV) {
-  return { state, app: createApp({ env, fetchImpl: fakeFetch(state), now: () => NOW }) };
+export function makeApp(state = {}, env = ENV, deps = {}) {
+  return { state, app: createApp({ env, fetchImpl: fakeFetch(state), now: () => NOW, ...deps }) };
 }
 
 // 로그인 시작 → 가짜 Google 토큰 준비 → 콜백까지. override로 토큰 내용을 바꿉니다.
@@ -97,4 +97,100 @@ export async function login({ app, state }, { next = '/learn/', override = {}, c
   const query = typeof callbackQuery === 'function' ? callbackQuery(realState) : callbackQuery ?? `code=code-1&state=${realState}`;
   const callback = await app(api(`/api/auth/google/callback?${query}`, { cookie: cookiesFrom(start) }));
   return { start, google, callback, session: cookiesFrom(callback) };
+}
+
+// 메모리 DB: supabase.mjs와 같은 함수 모양. 질문·첨부·운영진 경로 테스트용.
+export function memoryDb() {
+  const t = { students: [], progress: [], questions: [], messages: [], attachments: [] };
+  let seq = 0;
+  const uuid = () => `00000000-0000-4000-8000-${String(++seq).padStart(12, '0')}`;
+  const detail = q => q && {
+    ...q,
+    student: (({ email, name }) => ({ email, name }))(t.students.find(s => s.id === q.student_id) ?? {}),
+    messages: t.messages.filter(m => m.question_id === q.id).map(m => ({
+      ...m,
+      attachments: t.attachments.filter(a => a.message_id === m.id).map(({ id, path, mime }) => ({ id, path, mime }))
+    }))
+  };
+  return {
+    tables: t,
+    async upsertStudent({ googleSub, email, name, now }) {
+      let s = t.students.find(x => x.google_sub === googleSub);
+      if (!s) { s = { id: uuid(), google_sub: googleSub, created_at: now }; t.students.push(s); }
+      Object.assign(s, { email, name, last_seen_at: now });
+      return { id: s.id, email, name };
+    },
+    async listProgress(studentId) { return t.progress.filter(p => p.student_id === studentId); },
+    async markStep({ studentId, workshop, stepId, now }) {
+      if (!t.progress.some(p => p.student_id === studentId && p.workshop === workshop && p.step_id === stepId)) t.progress.push({ student_id: studentId, workshop, step_id: stepId, completed_at: now });
+    },
+    async unmarkStep({ studentId, workshop, stepId }) { t.progress = t.progress.filter(p => !(p.student_id === studentId && p.workshop === workshop && p.step_id === stepId)); },
+    async listAllProgress() { return t.progress.map(({ workshop, step_id }) => ({ workshop, step_id })); },
+    async createQuestion({ studentId, workshop, stepId, mode, status, now }) {
+      const id = uuid();
+      t.questions.push({ id, student_id: studentId, workshop, step_id: stepId, mode, status, created_at: now, updated_at: now });
+      return id;
+    },
+    async addMessage({ questionId, author, operatorEmail = null, body, errorText = null, now }) {
+      const id = uuid();
+      t.messages.push({ id, question_id: questionId, author, operator_email: operatorEmail, body, error_text: errorText, created_at: now });
+      return id;
+    },
+    async updateQuestion(id, fields) { Object.assign(t.questions.find(q => q.id === id), fields); },
+    async getQuestion(id) { return detail(t.questions.find(q => q.id === id)) ?? null; },
+    async listQuestions({ studentId, status, workshop } = {}) {
+      return t.questions.filter(q => (!studentId || q.student_id === studentId) && (!status || q.status === status) && (!workshop || q.workshop === workshop))
+        .map(detail).sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+    },
+    async createAttachment({ id, uploaderId, path, mime, size, now }) { t.attachments.push({ id, uploader_id: uploaderId, message_id: null, path, mime, size, created_at: now }); },
+    async claimableAttachments({ ids, uploaderId, since }) {
+      return t.attachments.filter(a => ids.includes(a.id) && a.uploader_id === uploaderId && a.message_id === null && a.created_at >= since).map(({ id }) => ({ id }));
+    },
+    async attachToMessage({ ids, messageId }) { for (const a of t.attachments) if (ids.includes(a.id)) a.message_id = messageId; },
+    async staleAttachments(before) { return t.attachments.filter(a => a.message_id === null && a.created_at < before).map(({ id, path }) => ({ id, path })); },
+    async deleteAttachments(ids) { t.attachments = t.attachments.filter(a => !ids.includes(a.id)); }
+  };
+}
+
+export function memoryStorage() {
+  const files = new Map();
+  return {
+    files,
+    async upload(path, bytes, mime) { files.set(path, { bytes, mime }); },
+    async signedUrl(path) { return `https://storage.test/${path}?token=t`; },
+    async remove(paths) { for (const path of paths) files.delete(path); }
+  };
+}
+
+export function fakeNotifier() {
+  const sent = [];
+  return { sent, async questionWaiting(info) { sent.push(info); return true; } };
+}
+
+export const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13]);
+export const OPEN_ENV = { ...ENV, WORKSHOP_OPEN_AT: JSON.stringify({ 1: '2026-10-26T18:00:00+09:00', 2: '2026-11-02T18:00:00+09:00' }) };
+
+// 질문 경로용: 메모리 DB·저장소·알림과 움직이는 시계
+export function questionApp() {
+  const clock = { now: NOW };
+  let ids = 0;
+  const deps = { db: memoryDb(), storage: memoryStorage(), notifier: fakeNotifier(), now: () => clock.now, newId: () => `10000000-0000-4000-8000-${String(++ids).padStart(12, '0')}` };
+  return { ...makeApp({}, OPEN_ENV, deps), ...deps, clock };
+}
+
+export async function loginAs(flow, n, email = `s${n}@snu.ac.kr`) {
+  const { session } = await login(flow, { override: { sub: `google-${n}`, email, name: `학생${n} / 학생 / 공과대학` } });
+  return session;
+}
+
+// 포털 Origin·JSON으로 보내는 요청 (body가 Buffer면 그대로)
+export function send(app, path, cookie, { method = 'POST', body, type = 'application/json', origin = 'https://portal.test' } = {}) {
+  const headers = { 'x-proxy-secret': ENV.PROXY_SECRET, cookie, 'content-type': type };
+  if (origin) headers.origin = origin;
+  return app(new Request(`https://learn.onrender.test${path}`, {
+    method,
+    headers,
+    body: body === undefined ? undefined : Buffer.isBuffer(body) || typeof body === 'string' ? body : JSON.stringify(body),
+    duplex: 'half'
+  }));
 }
