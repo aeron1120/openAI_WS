@@ -1,0 +1,31 @@
+# Render Blueprint: SNU 수업·질문 API 서버. learn-server/ 폴더만 배포합니다.
+# 비밀값(sync: false)은 Render 대시보드에서 직접 입력합니다. 저장소에 값을 적지 마세요.
+services:
+  - type: web
+    name: snu-learn-server
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: learn-server
+    buildCommand: npm install --omit=dev
+    startCommand: node server.mjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: PUBLIC_ORIGIN
+        value: https://snu-student-collective.pages.dev
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PROXY_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: OPERATOR_EMAILS
+        sync: false
