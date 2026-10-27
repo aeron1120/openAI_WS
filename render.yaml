@@ -31,3 +31,9 @@ services:
         sync: false
       - key: WORKSHOP_OPEN_AT
         value: '{"1":"2026-10-26T18:00:00+09:00","2":"2026-11-02T18:00:00+09:00"}'
+      - key: RESEND_API_KEY
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false
+      - key: AI_PROVIDER
+        value: none

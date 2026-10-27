@@ -21,6 +21,14 @@
 | `http.mjs` | 응답·쿠키·Origin 확인 도우미 |
 | `supabase.mjs` | Supabase REST 클라이언트 |
 | `progress.mjs` | 진도 API (단계 완료 표시) |
+| `questions.mjs` | 학생 질문 API, 운영진 API와 함께 쓰는 입력 확인·첨부 붙이기·화면용 모양 |
+| `admin.mjs` | 운영진 API (질문 목록·답변·상태, 단계별 완료 수) |
+| `uploads.mjs` | 이미지 올리기, 메시지에 안 붙은 오래된 이미지 정리(하루 1번) |
+| `storage.mjs` | Supabase Storage (비공개 버킷 `question-images`, 10분짜리 서명 주소) |
+| `images.mjs` | 파일 앞부분으로 PNG·JPEG·WebP 확인 |
+| `limits.mjs` | 학생별 시간당 횟수 제한 (서버 메모리) |
+| `notify.mjs` | 운영진 메일 알림 (Resend) |
+| `ai.mjs` | AI 답변 연결부 (지금은 꺼짐) |
 | `schema.sql` | Supabase 테이블·RLS·Storage 버킷 (한 번 실행) |
 
 ## 명령 (저장소 루트에서)
@@ -41,6 +49,9 @@
 | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | Supabase Project URL, secret 키(`sb_secret_…`) |
 | `OPERATOR_EMAILS` | 운영진 @snu.ac.kr 메일, 쉼표로 구분 |
 | `WORKSHOP_OPEN_AT` | 회차별 공개 시각 JSON. 예: `{"1":"2026-10-26T18:00:00+09:00"}`. 포털 `workshops.mjs`의 공개 시각과 같게. 없는 회차는 닫힘 |
+| `RESEND_API_KEY` | 선택. Resend API 키. 없으면 메일을 보내지 않음(질문은 그대로 저장) |
+| `NOTIFY_EMAIL` | 새 질문 알림을 받을 운영진 메일 1곳. Resend를 도메인 없이 쓰면 Resend 가입 메일만 가능 |
+| `AI_PROVIDER` | 지금은 `none`만 (AI 답변 꺼짐) |
 
 비밀값은 저장소·대화·공개 파일에 넣지 않습니다. 빠진 값이 있으면 서버 로그에 이름만 나오고 `/api/health`가 `configured: false`를 돌려줍니다.
 
@@ -62,6 +73,12 @@
 | `GET /api/me`, `DELETE /api/session` | 내 정보, 로그아웃 |
 | `GET /api/progress` | 내 완료 단계 전체 `{ progress: [{ workshop, step, completedAt }] }` |
 | `PUT` / `DELETE /api/progress/<회차>/<단계 id>` | 단계 완료 / 취소 (열린 회차만, 포털 Origin 필요) |
+| `POST /api/uploads` (본문: 이미지 바이트, `Content-Type: image/png·jpeg·webp`) | 이미지 1장 올리기 → `{ attachment: { id } }`. 5MB 이하, 1시간 30장 |
+| `GET` / `POST /api/questions` | 내 질문 목록 / 질문하기 `{ workshop, step, mode?, body, errorText?, attachmentIds? }` (1시간 10개) |
+| `GET /api/questions/<id>`, `POST …/messages`, `PATCH` `{ status }` | 내 질문 대화(이미지는 10분짜리 주소), 추가 질문, 해결 처리 |
+| `GET /api/admin/questions?status=&workshop=`, `GET /api/admin/questions/<id>` | (운영진) 질문 목록·상세 |
+| `POST /api/admin/questions/<id>/messages`, `PATCH /api/admin/questions/<id>` | (운영진) 답변(최대 4000자, 이미지 가능), 상태 변경 |
+| `GET /api/admin/progress` | (운영진) 회차·단계별 완료 학생 수 |
 
 ## 확인 기록
 
