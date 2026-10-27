@@ -201,6 +201,75 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
       'npm run dev 후 localhost:5173/workshop2/starter/ 에 카드 3개가 보인다',
       'git config user.name · user.email이 설정되어 있다'
     ],
+    // checks와 같은 순서. 페이지의 '도움말'을 누르면 한 항목씩 강조하며 보여줘요.
+    checkHelp: [
+      {
+        title: '프로그램 3개가 설치됐는지 확인',
+        why: '실습 앱을 내 컴퓨터에서 실행하고(Node.js·npm), 바꾼 내용을 기록하는(Git) 데 필요한 프로그램이에요.',
+        steps: [
+          '터미널을 열어요. Windows는 시작 메뉴에서 “PowerShell” 검색, Mac은 ⌘+Space → “터미널”. VS Code에서는 메뉴 Terminal → New Terminal.',
+          '아래 명령을 한 줄씩 입력하고 Enter를 눌러요.'
+        ],
+        command: 'node --version\nnpm --version\ngit --version',
+        expect: 'v20.11.1, 10.2.4, git version 2.45.1처럼 숫자가 세 줄 나오면 돼요. node는 v20 이상이어야 해요.',
+        fixes: [
+          '“인식되지 않습니다”, “command not found”가 나오면 설치가 안 된 거예요. 아래 링크에서 설치한 뒤 터미널을 껐다가 다시 열어요.',
+          'Node.js는 LTS 버전을 받으면 npm도 함께 설치돼요.',
+          'Mac에서 git을 입력했을 때 개발자 도구 설치 창이 뜨면 “설치”를 눌러요.',
+          'Windows에서 npm만 “스크립트를 실행할 수 없습니다” 오류가 나면 npm 대신 npm.cmd를 입력해요. (예: npm.cmd --version)'
+        ],
+        links: [
+          { label: 'Node.js 설치', url: 'https://nodejs.org/ko/download' },
+          { label: 'Git 설치', url: 'https://git-scm.com/downloads' },
+          { label: 'VS Code 설치', url: 'https://code.visualstudio.com/' }
+        ]
+      },
+      {
+        title: 'Fork해서 내 컴퓨터로 가져오기',
+        why: '원본 저장소를 내 GitHub 계정으로 복사(Fork)해야, 내가 바꾼 내용을 내 저장소에 기록할 수 있어요.',
+        steps: [
+          'GitHub에 로그인하고 아래 ‘원본 저장소’를 열어요.',
+          '오른쪽 위 Fork → Create fork. 주소가 github.com/내아이디/openAI_WS로 바뀌면 성공이에요.',
+          '내 Fork 페이지에서 초록색 Code 버튼 → HTTPS 주소를 복사해요.',
+          'VS Code 첫 화면에서 Clone Git Repository → 주소 붙여 넣기 → 저장할 폴더 고르기 → 열기.',
+          '가져온 폴더가 열린 VS Code에서 터미널을 열고 아래 명령을 입력해요.'
+        ],
+        command: 'git remote -v',
+        expect: 'origin 줄에 https://github.com/내아이디/openAI_WS.git처럼 내 GitHub 아이디가 보이면 돼요.',
+        fixes: [
+          '내 아이디 대신 aeron1120이 보이면 원본을 그대로 가져온 거예요. Fork부터 하고, 내 Fork 주소로 다시 Clone해요.',
+          '“not a git repository”가 나오면 가져온 폴더 밖에서 터미널을 연 거예요. VS Code에서 그 폴더를 열고 다시 시도해요.'
+        ],
+        links: [{ label: '원본 저장소', url: 'https://github.com/aeron1120/openAI_WS' }]
+      },
+      {
+        title: '실습 화면 띄워 보기',
+        why: '워크숍 당일 바로 시작할 수 있게, 실습 앱이 내 컴퓨터에서 열리는지 미리 확인해요.',
+        steps: [
+          '가져온 openAI_WS 폴더가 열린 VS Code에서 터미널을 열어요.',
+          '아래 명령을 입력해요. 따로 설치할 것은 없어요.',
+          '브라우저 주소창에 localhost:5173/workshop2/starter/ 를 입력해 열어요.'
+        ],
+        command: 'npm run dev',
+        expect: '모임 카드 3개가 보이면 돼요. 확인이 끝나면 터미널에서 Ctrl+C를 눌러 서버를 꺼요.',
+        fixes: [
+          'Windows에서 “스크립트를 실행할 수 없습니다”가 나오면 npm.cmd run dev를 입력해요.',
+          '“Missing script: dev”가 나오면 폴더 위치가 달라요. package.json이 있는 openAI_WS 폴더에서 실행해요.',
+          '포트가 사용 중이라는 오류가 나오면 이미 켜 둔 서버가 있어요. 그 터미널에서 Ctrl+C를 누른 뒤 다시 실행해요.'
+        ]
+      },
+      {
+        title: 'Git에 내 이름 등록하기',
+        why: '기록(commit)에 누가 바꿨는지 남기려면 이름과 이메일이 필요해요.',
+        steps: ['가져온 폴더 안 터미널에서 아래 명령을 입력해요.'],
+        command: 'git config user.name\ngit config user.email',
+        expect: '이름과 이메일이 한 줄씩 나오면 돼요.',
+        fixes: ['아무것도 나오지 않으면 아래 명령으로 설정해요. 따옴표 안을 내 정보로 바꿔서 입력해요.'],
+        extra: { label: '설정하기 (따옴표 안을 바꿔서)', text: 'git config user.name "내 이름"\ngit config user.email "GitHub에 쓰는 이메일"' },
+        tip: '이메일을 공개하고 싶지 않다면 GitHub의 noreply 주소를 써도 돼요.',
+        links: [{ label: 'GitHub 커밋 이메일 안내', url: 'https://docs.github.com/ko/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-email-preferences/setting-your-commit-email-address' }]
+      }
+    ],
     missions: [
       {
         id: 'compare',

@@ -60,7 +60,9 @@ test('before Workshop 2 starts, its missions, slides and examples are not publis
   const page = await read('/workshops/02/');
   assert.match(page, /11\/2 \(월\) 18:00에 열려요/);
   assert.match(page, /준비물/);
-  assert.doesNotMatch(page, /class="mission"|copy-block|docs\.google\.com\/presentation|\/examples\//);
+  // 시작 전 확인 도움말(template)은 행사 전에도 보여야 하므로 빼고 검사합니다.
+  const outsideHelp = page.replace(/<template>[\s\S]*?<\/template>/g, '');
+  assert.doesNotMatch(outsideHelp, /class="mission"|copy-block|docs\.google\.com\/presentation|\/examples\//);
   const home = await read('/');
   const ws2Card = home.match(/<article class="track c-blue[\s\S]*?<\/article>/)[0];
   assert.match(ws2Card, /11\/2 \(월\) 18:00/);
@@ -245,4 +247,18 @@ test('Workshop 2 sign-up links to Luma until the event starts', async t => {
   assert.match(await during.read('/'), /Workshop 2 실습 시작하기/);
   const ended = await build(t, defaultContent, WS2_ENDS);
   for (const page of ['/', '/workshops/02/']) assert.doesNotMatch(await ended.read(page), /luma\.com/);
+});
+
+test('start checks come with a step-by-step help that needs the script to open', async t => {
+  const { read } = await build(t);
+  const page = await read('/workshops/02/');
+  assert.match(page, /data-check-guide/);
+  assert.match(page, /<button type="button" class="help-start" hidden>/);
+  const template = page.match(/<template>([\s\S]*?)<\/template>/)[1];
+  assert.equal((template.match(/class="help-step"/g) ?? []).length, defaultContent.workshops[1].checks.length);
+  assert.match(template, /node --version/);
+  assert.match(template, /nodejs\.org/);
+  const bad = structuredClone(defaultContent);
+  bad.workshops[1].checkHelp.pop();
+  assert.throws(() => validateContent(bad), /checkHelp/);
 });

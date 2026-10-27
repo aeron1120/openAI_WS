@@ -42,6 +42,8 @@ export function validateContent(content) {
     if (w.recruitment.open && !isUsableUrl(w.recruitment.url)) problems.push(`${where}: 모집 중이면 recruitment.url이 필요합니다.`);
     w.resources.forEach((r, i) => checkUrl(r.url, `${where} resources[${i}]`));
     if (w.video) checkUrl(w.video.src, `${where} video.src`);
+    if (w.checkHelp && w.checkHelp.length !== w.checks.length) problems.push(`${where}: checkHelp는 checks와 같은 개수·순서로 적어 주세요.`);
+    w.checkHelp?.forEach((c, i) => c.links?.forEach((l, j) => checkUrl(l.url, `${where} checkHelp[${i}].links[${j}]`)));
     const missionIds = new Set();
     for (const m of w.missions) {
       if (missionIds.has(m.id)) problems.push(`${where}: mission id 중복 ${m.id}`);

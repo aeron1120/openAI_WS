@@ -30,6 +30,31 @@ export function primaryAction(workshops) {
   return { label: '학기 로드맵 보기', url: '/roadmap/' };
 }
 
+// 시작 전 확인 + 도움말. 도움말 내용은 template에 두고, main.js가 항목을 하나씩 강조하며 보여줍니다.
+function helpStep(c) {
+  return h`<section class="help-step">
+  <h3>${c.title}</h3>
+  <p class="help-why">${c.why}</p>
+  ${c.steps?.length ? h`<ol class="help-steps">${c.steps.map(step => h`<li>${step}</li>`)}</ol>` : ''}
+  ${c.command ? copyBlock(c.command, '터미널에 입력', { code: true }) : ''}
+  <p class="help-expect"><strong>이렇게 보이면 OK</strong> ${c.expect}</p>
+  ${c.fixes?.length ? h`<div class="help-fix"><p><strong>안 될 때</strong></p><ul>${c.fixes.map(fix => h`<li>${fix}</li>`)}</ul></div>` : ''}
+  ${c.extra ? copyBlock(c.extra.text, c.extra.label, { code: true }) : ''}
+  ${c.tip ? h`<p class="hint">${c.tip}</p>` : ''}
+  ${c.links?.length ? h`<p class="help-links">${c.links.map(l => link(l.url, l.label))}</p>` : ''}
+</section>`;
+}
+
+function checkBox(w) {
+  if (!w.checks.length) return '';
+  const help = w.checkHelp?.length === w.checks.length;
+  return h`<div class="box"${help ? raw(' data-check-guide') : ''}>
+  <h2>시작 전 확인</h2>${checks(w.checks)}
+  ${help ? h`<button type="button" class="help-start" hidden><span aria-hidden="true">?</span>도움말 · 하나씩 확인하기</button>
+  <template>${w.checkHelp.map(helpStep)}</template>` : ''}
+</div>`;
+}
+
 function trackCard(w) {
   const open = w.materials === 'open';
   const locked = w.materials === 'locked';
@@ -210,7 +235,7 @@ ${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
 </section>
 <section class="block two">
   ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
-  ${w.checks.length ? h`<div class="box"><h2>시작 전 확인</h2>${checks(w.checks)}</div>` : ''}
+  ${checkBox(w)}
 </section>
 ${pager}</div>`;
   }
@@ -237,7 +262,7 @@ ${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
 
 <section class="block two">
   ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
-  ${w.checks.length ? h`<div class="box"><h2>시작 전 확인</h2>${checks(w.checks)}</div>` : ''}
+  ${checkBox(w)}
 </section>
 
 ${w.missions.length ? h`<section class="block" id="missions">

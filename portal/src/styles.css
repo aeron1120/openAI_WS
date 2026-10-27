@@ -330,3 +330,36 @@ small { color: var(--muted); }
 .session-time { font-weight: 700; font-size: .94rem; }
 .session.is-done .session-time { color: var(--muted); }
 .box h2 small { font-weight: 600; margin-left: 6px; }
+
+/* 시작 전 확인 도움말 */
+.help-start { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; min-height: 44px; padding: 8px 16px 8px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; font-size: .92rem; cursor: pointer; }
+.help-start span { display: grid; place-items: center; width: 22px; height: 22px; border: 1.5px solid currentColor; border-radius: 50%; font-size: .78rem; }
+.help-start:hover { border-color: var(--c, var(--navy)); color: var(--c, var(--navy)); }
+.checks li.is-help-current { position: relative; z-index: 1001; }
+.help-spot { position: fixed; z-index: 1000; border-radius: 12px; box-shadow: 0 0 0 4px rgba(37, 86, 208, .55), 0 0 0 9999px rgba(15, 23, 42, .55); background: rgba(255, 255, 255, .0); pointer-events: none; transition: top .25s, left .25s, width .25s, height .25s; }
+.help-card { position: fixed; z-index: 1002; width: min(440px, calc(100vw - 24px)); max-height: calc(100vh - 24px); display: flex; flex-direction: column; padding: 20px 20px 14px; border-radius: 20px; background: var(--surface); color: var(--ink); box-shadow: 0 18px 50px rgba(0, 0, 0, .28); word-break: keep-all; }
+.help-head { display: flex; justify-content: space-between; align-items: center; font-size: .82rem; font-weight: 700; color: var(--muted); }
+.help-head > span:first-child { display: inline-flex; align-items: center; gap: 7px; }
+.help-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--em); }
+.help-progress { height: 4px; margin: 10px 0 14px; border-radius: 4px; background: #e8ecf5; overflow: hidden; flex: none; }
+.help-progress span { display: block; height: 100%; background: var(--em); transition: width .25s; }
+.help-body { overflow-y: auto; min-height: 0; outline: none; }
+.help-body h3 { margin: 0 0 6px; font-size: 1.15rem; }
+.help-why { margin: 0 0 10px; color: var(--muted); font-size: .92rem; }
+.help-steps { margin: 0 0 4px; padding-left: 20px; display: grid; gap: 6px; font-size: .92rem; }
+.help-expect { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: #e7f4ea; color: #1d4d2b; font-size: .9rem; }
+.help-expect strong { display: block; margin-bottom: 2px; }
+.help-fix { margin-top: 12px; font-size: .9rem; }
+.help-fix p { margin: 0 0 4px; }
+.help-fix ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.help-links { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 0; font-size: .9rem; font-weight: 700; }
+.help-card .copy-block { margin-top: 10px; }
+.help-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex: none; }
+.help-actions button { min-height: 44px; border: 0; border-radius: 12px; padding: 0 16px; font: inherit; font-weight: 700; cursor: pointer; }
+.help-close { margin-right: auto; padding-inline: 4px !important; background: none; color: var(--ink); }
+.help-prev { background: #eef1f6; color: var(--ink); }
+.help-prev:disabled { color: #a5adbb; cursor: default; }
+.help-next { background: var(--navy); color: #fff; }
+.help-keys { margin: 8px 0 0; text-align: right; font-size: .74rem; color: var(--muted); flex: none; }
+@media (max-width: 719px) { .help-card { width: auto; max-height: 62vh; } .help-keys { display: none; } }
+@media (prefers-reduced-motion: reduce) { .help-spot, .help-progress span { transition: none; } }
