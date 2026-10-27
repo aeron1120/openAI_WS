@@ -82,7 +82,7 @@ ${raw(body)}
     </main>
     <footer class="site-footer">
       <p><strong>${site.name}</strong> · 운영 ${site.operators.role} ${site.operators.names.join('·')}</p>
-      <p>${site.supportNotice} 서울대학교나 OpenAI의 공식 홈페이지가 아닙니다.</p>
+      <p>${site.supportNotice}</p>
       <p class="footer-links">${isUsableUrl(openChat) ? link(openChat, '오픈채팅') : ''}${link(site.links.repository, 'GitHub')}<a href="/about/">운영·협력 안내</a></p>
     </footer>
   </div>
