@@ -73,9 +73,12 @@ export const projects = [
   }
 ];
 
+// 함께하는 팀: 협력이 확정된 곳만 적습니다. 연락처는 공개 페이지에 넣지 않아요.
 export const collaboration = [
-  { who: '학생회', what: '소속 학생 대상 모집 안내, 단과대·학과 학생을 위한 공동 세션' },
-  { who: '행정실·관련 부서', what: '실습 공간과 교내 공지 협조, 적절한 담당 부서 연결' },
-  { who: '동아리·학회', what: '관심 주제에 맞춘 실습, 참여 그룹 모집과 진행 지원' },
-  { who: '교육·창업 관련 조직', what: '멘토링, 후속 프로젝트 지원, Showcase 연계' }
+  { who: 'OpenAI Student Collective', what: '프로그램 운영 지원' },
+  { who: '총동아리연합회', what: '공동 홍보' },
+  { who: 'SNUquill', what: '공동 홍보(인스타그램), 팀 워크숍 참여' },
+  { who: '총연극회', what: '공동 홍보, 팀 워크숍 참여' },
+  { who: '야생조류연구회', what: '팀 워크숍 참여' },
+  { who: 'DWNc', what: '공동 홍보(인스타그램)' }
 ];

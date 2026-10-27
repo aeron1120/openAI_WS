@@ -372,8 +372,7 @@ export function aboutPage(content) {
   </div>
 </section>
 <section class="block">
-  <h2>함께할 수 있는 방법</h2>
-  <p class="hint">가능한 협력 방식의 예시예요. 확정된 협력 기관을 뜻하지 않습니다.</p>
+  <h2>함께하는 팀</h2>
   <ul class="collab">${collaboration.map(c => h`<li><strong>${c.who}</strong><span>${c.what}</span></li>`)}</ul>
 </section>
 <section class="block">
