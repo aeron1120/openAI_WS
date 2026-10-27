@@ -4,7 +4,7 @@ import { h, raw, link, isUsableUrl } from './render.mjs';
 function navGroups(content) {
   const { workshops, studio, showcase } = content;
   return [
-    { items: [{ path: '/', label: '홈', color: 'home' }] },
+    { items: [{ path: '/', label: '홈', color: 'home' }, { path: '/learn/', label: '수업 듣기', sub: '서울대 계정 로그인', color: 'navy' }] },
     {
       title: '학기 과정',
       items: [
@@ -31,7 +31,7 @@ function navList(content, path) {
 
 const brand = h`<a class="brand" href="/"><img class="brand-mark" src="/images/brand/logo-192.png" alt="" width="36" height="36"><span class="brand-text"><strong>Student Collective</strong><small>OpenAI · SNU</small></span></a>`;
 
-export function layout({ site, content, path, title, description, body, assets }) {
+export function layout({ site, content, path, title, description, body, assets, script }) {
   const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.promise}`;
   const url = site.url + path;
   const openChat = site.links.openChat;
@@ -61,6 +61,7 @@ ${h`<html lang="ko">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="/styles.css?v=${assets.css}">
 <script src="/main.js?v=${assets.js}" defer></script>
+${script ? h`<script src="/${script}?v=${assets[script]}" defer></script>` : ''}
 </head>
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>

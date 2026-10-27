@@ -416,3 +416,15 @@ export function notFoundPage() {
   <div class="actions"><a class="btn btn-primary" href="/">처음으로</a><a class="btn btn-ghost" href="/workshops/">전체 워크숍</a></div>
 </header>`;
 }
+
+export function learnPage() {
+  return h`<header class="page-head">
+  <h1>수업 듣기</h1>
+  <p class="lead">서울대 계정으로 로그인하면 슬라이드를 보며 단계별로 따라 하고, 막힌 부분을 바로 질문할 수 있어요.</p>
+</header>
+<section class="box learn-box" data-learn aria-live="polite">
+  <p class="learn-status">로그인 상태를 확인하고 있어요…</p>
+  <noscript><p class="learn-error">이 화면은 JavaScript를 켜야 쓸 수 있어요.</p></noscript>
+</section>
+<p class="hint">@snu.ac.kr Google 계정만 로그인할 수 있어요. 이메일·이름과 작성한 질문은 수업 운영에만 사용합니다.</p>`;
+}

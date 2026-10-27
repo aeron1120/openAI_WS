@@ -363,3 +363,8 @@ small { color: var(--muted); }
 .help-keys { margin: 8px 0 0; text-align: right; font-size: .74rem; color: var(--muted); flex: none; }
 @media (max-width: 719px) { .help-card { width: auto; max-height: 62vh; } .help-keys { display: none; } }
 @media (prefers-reduced-motion: reduce) { .help-spot, .help-progress span { transition: none; } }
+
+/* 수업 듣기 (/learn/) */
+.learn-box { display: grid; gap: 12px; justify-items: start; }
+.learn-status { margin: 0; font-weight: 600; }
+.learn-error { margin: 0; color: #b42318; font-weight: 600; }

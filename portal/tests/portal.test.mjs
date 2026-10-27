@@ -26,7 +26,7 @@ async function exists(file) {
 
 test('every route, 404, sitemap and one page set per schedule window are built', async t => {
   const { pages, outDir, read, variants } = await build(t);
-  assert.deepEqual(pages, ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/']);
+  assert.deepEqual(pages, ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/', '/learn/']);
   assert.ok(await exists(path.join(outDir, '404.html')));
   const sitemap = await read('sitemap.xml');
   for (const page of pages) assert.match(sitemap, new RegExp(`<loc>${defaultContent.site.url}${page}</loc>`));
@@ -47,7 +47,7 @@ test('internal links resolve, no placeholder links, and share metadata uses the 
       for (const [, href] of html.matchAll(/(?:href|src)="(\/[^"]*)"/g)) {
         const clean = href.split(/[?#]/)[0];
         // 공용 파일(css·js·이미지)은 루트에, 페이지와 예제는 같은 묶음 안에 있어야 합니다.
-        const shared = /^\/(styles\.css|main\.js|favicon\.svg|og\.png|images\/)/.test(clean);
+        const shared = /^\/(styles\.css|main\.js|learn\.js|favicon\.svg|og\.png|images\/)/.test(clean);
         const file = path.join(shared ? outDir : root, clean, clean.endsWith('/') ? 'index.html' : '');
         assert.ok(await exists(file), `${path.relative(outDir, root) || '/'}${page} → ${href} does not exist`);
       }
@@ -323,4 +323,17 @@ test('/api answers 503 when the learn server is not configured and 502 when it c
   const down = await withFetch(async () => { throw new Error('connect failed'); }, () => onRequest({ request: new Request('https://portal.test/api/me'), env: learnEnv, next: noNext }));
   assert.equal(down.status, 502);
   assert.equal((await down.json()).error, 'LEARN_UNAVAILABLE');
+});
+
+test('the learn page loads its script, explains the SNU login and is in the menu', async t => {
+  const { read, outDir } = await build(t);
+  const html = await read('/learn/');
+  assert.match(html, /<script src="\/learn\.js\?v=[0-9a-f]{10}" defer><\/script>/);
+  assert.match(html, /data-learn/);
+  assert.match(html, /@snu\.ac\.kr/);
+  assert.ok(await exists(path.join(outDir, 'learn.js')));
+  assert.doesNotMatch(await read('/'), /learn\.js/);
+  assert.match(await read('/'), /href="\/learn\/"[^>]*>[\s\S]*?수업 듣기/);
+  const routes = JSON.parse(await readFile(path.join(outDir, '_routes.json'), 'utf8'));
+  assert.ok(routes.exclude.includes('/learn.js'));
 });

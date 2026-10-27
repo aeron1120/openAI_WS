@@ -73,7 +73,8 @@ export function routes(content) {
     ...content.workshops.map(w => ({ path: `/workshops/${w.slug}/`, title: `Workshop ${w.slug} · ${w.title}`, render: c => pages.workshopPage(c, w), description: `${w.message} — ${w.summary}` })),
     { path: '/studio/', title: 'Studio Session', render: pages.studioPage, description: content.studio.description },
     { path: '/showcase/', title: 'Showcase', render: pages.showcasePage, description: content.showcase.description },
-    { path: '/about/', title: '운영 소개와 협력 안내', render: pages.aboutPage, description: `${content.site.name} 운영진, 진행 기록, 협력 방식 안내.` }
+    { path: '/about/', title: '운영 소개와 협력 안내', render: pages.aboutPage, description: `${content.site.name} 운영진, 진행 기록, 협력 방식 안내.` },
+    { path: '/learn/', title: '수업 듣기', render: pages.learnPage, description: '서울대 계정으로 로그인하고 슬라이드를 보며 단계별로 실습해요.', script: 'learn.js' }
   ];
 }
 
@@ -86,7 +87,7 @@ async function writePages(dir, content, assets) {
     const body = String(route.render(content));
     const file = path.join(dir, route.path, 'index.html');
     await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, layout({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets }));
+    await writeFile(file, layout({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets, script: route.script }));
     written.push(route.path);
   }
   await writeFile(path.join(dir, '404.html'), layout({ site: content.site, content, path: '/404', title: '페이지를 찾을 수 없어요', description: content.site.description, body: String(pages.notFoundPage()), assets }));
@@ -113,9 +114,11 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
 
   const css = await readFile(path.join(portal, 'src/styles.css'), 'utf8');
   const js = await readFile(path.join(portal, 'src/main.js'), 'utf8');
-  const assets = { css: hash(css), js: hash(js) };
+  const learnJs = await readFile(path.join(portal, 'src/learn.js'), 'utf8');
+  const assets = { css: hash(css), js: hash(js), 'learn.js': hash(learnJs) };
   await writeFile(path.join(out, 'styles.css'), css);
   await writeFile(path.join(out, 'main.js'), js);
+  await writeFile(path.join(out, 'learn.js'), learnJs);
   await cp(path.join(portal, 'public'), out, { recursive: true });
 
   // 루트: 빌드 시각 기준 화면(미리보기, 그리고 함수가 실패했을 때의 안전한 기본값)
@@ -131,7 +134,7 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
   await writeFile(path.join(out, '_routes.json'), JSON.stringify({
     version: 1,
     include: ['/*'],
-    exclude: ['/styles.css', '/main.js', '/favicon.svg', '/og.png', '/images/*', '/sitemap.xml', '/robots.txt']
+    exclude: ['/styles.css', '/main.js', '/learn.js', '/favicon.svg', '/og.png', '/images/*', '/sitemap.xml', '/robots.txt']
   }));
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${written.map(p => `  <url><loc>${content.site.url}${p}</loc></url>`).join('\n')}\n</urlset>\n`;
