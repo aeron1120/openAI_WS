@@ -10,6 +10,13 @@ if (problems.length) console.warn(`learn-server: 설정 필요 → ${problems.jo
 const app = createApp({ env: process.env });
 const port = Number(process.env.PORT ?? 8787);
 
+// 메시지에 붙지 않은 오래된 첨부 이미지를 시작할 때와 하루에 한 번 정리합니다.
+const cleanup = () => app.cleanup().then(count => { if (count) console.log(`learn-server: 오래된 첨부 ${count}개 정리`); }).catch(error => console.error('learn-server: cleanup failed', error.message));
+if (!problems.length) {
+  cleanup();
+  setInterval(cleanup, 24 * 60 * 60 * 1000).unref();
+}
+
 http.createServer(async (req, res) => {
   try {
     const headers = new Headers();

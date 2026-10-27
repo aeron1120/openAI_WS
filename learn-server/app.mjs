@@ -10,6 +10,8 @@ import { handleProgress } from './progress.mjs';
 import { storageClient } from './storage.mjs';
 import { createNotifier } from './notify.mjs';
 import { createAi } from './ai.mjs';
+import { createLimiter } from './limits.mjs';
+import { cleanupAttachments, handleUpload } from './uploads.mjs';
 
 const SESSION_COOKIE = '__Host-learn_session';
 const OAUTH_COOKIE = '__Host-learn_oauth';
@@ -25,6 +27,12 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
   const notifier = givenNotifier ?? createNotifier({ ...config.notify, publicOrigin: config.publicOrigin, fetchImpl });
   const ai = givenAi ?? createAi({ provider: config.aiProvider });
   const callbackUrl = `${config.publicOrigin}/api/auth/google/callback`;
+  const HOUR = 60 * 60 * 1000;
+  const limiter = {
+    questions: createLimiter({ limit: 10, windowMs: HOUR }),
+    messages: createLimiter({ limit: 30, windowMs: HOUR }),
+    uploads: createLimiter({ limit: 30, windowMs: HOUR })
+  };
 
   function currentSession(request, seconds) {
     return verify(readCookie(request, SESSION_COOKIE), config.sessionSecret, 'session', seconds);
@@ -72,7 +80,7 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
     return redirect(config.publicOrigin + oauth.next, [setCookie(SESSION_COOKIE, session, SESSION_SECONDS), setCookie(OAUTH_COOKIE, '', 0)]);
   }
 
-  return async function handle(request) {
+  async function handle(request) {
     const url = new URL(request.url);
     const seconds = Math.floor(now() / 1000);
     try {
@@ -85,6 +93,9 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
       if (!safeEqual(request.headers.get('x-proxy-secret') ?? '', config.proxySecret)) throw new HttpError(403, 'DIRECT_ACCESS', '포털 주소로 접속해 주세요.');
       if (url.pathname === '/api/progress' || url.pathname.startsWith('/api/progress/')) {
         return await handleProgress({ request, url, session: requireSession(request, seconds), config, db, nowMs: now() });
+      }
+      if (url.pathname === '/api/uploads') {
+        return await handleUpload({ request, session: requireSession(request, seconds), config, db, storage, limiter, nowMs: now(), newId });
       }
       switch (`${request.method} ${url.pathname}`) {
         case 'GET /api/auth/google':
@@ -106,5 +117,7 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
       console.error('learn-server: unexpected error', error?.message);
       return json({ error: 'SERVER_ERROR', message: '잠시 후 다시 시도해 주세요.' }, 500);
     }
-  };
+  }
+  handle.cleanup = () => cleanupAttachments({ db, storage, nowMs: now() });
+  return handle;
 }
