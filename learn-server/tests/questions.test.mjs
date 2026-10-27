@@ -52,3 +52,88 @@ test('unattached images older than a day are removed from storage and the databa
   assert.equal(flow.db.tables.attachments.length, 1);
   assert.equal(flow.storage.files.size, 1);
 });
+
+const ask = (flow, cookie, body) => send(flow.app, '/api/questions', cookie, { body });
+const question = { workshop: 1, step: 'run-local', mode: 'own', body: '서버가 안 켜져요', errorText: 'EADDRINUSE' };
+
+test('a student asks a question at an open step and operators are told', async () => {
+  const flow = questionApp();
+  const cookie = await loginAs(flow, 1);
+  const response = await ask(flow, cookie, question);
+  assert.equal(response.status, 201);
+  const { question: created } = await response.json();
+  assert.equal(created.status, 'escalated');
+  const [row] = flow.db.tables.questions;
+  assert.deepEqual({ workshop: row.workshop, step: row.step_id, mode: row.mode, status: row.status }, { workshop: 1, step: 'run-local', mode: 'own', status: 'escalated' });
+  assert.deepEqual(flow.db.tables.messages.map(m => [m.author, m.body, m.error_text]), [['student', '서버가 안 켜져요', 'EADDRINUSE']]);
+  assert.deepEqual(flow.notifier.sent, [{ questionId: created.id, workshop: 1, step: 'run-local', email: 's1@snu.ac.kr', body: '서버가 안 켜져요', followUp: false }]);
+  const list = await (await flow.app(api('/api/questions', { cookie }))).json();
+  assert.deepEqual(list.questions.map(q => [q.id, q.status, q.preview, q.lastAuthor]), [[created.id, 'escalated', '서버가 안 켜져요', 'student']]);
+  const detail = await (await flow.app(api(`/api/questions/${created.id}`, { cookie }))).json();
+  assert.equal(detail.question.messages[0].errorText, 'EADDRINUSE');
+  assert.equal(detail.question.messages[0].operatorEmail, undefined);
+});
+
+test('images are attached once, only by their uploader, within an hour', async () => {
+  const flow = questionApp();
+  const one = await loginAs(flow, 1);
+  const two = await loginAs(flow, 2);
+  const { attachment } = await (await send(flow.app, '/api/uploads', one, { body: PNG, type: 'image/png' })).json();
+  assert.equal((await ask(flow, two, { ...question, attachmentIds: [attachment.id] })).status, 400);
+  assert.equal(flow.db.tables.questions.length, 0);
+  const created = await (await ask(flow, one, { ...question, attachmentIds: [attachment.id] })).json();
+  const detail = await (await flow.app(api(`/api/questions/${created.question.id}`, { cookie: one }))).json();
+  assert.deepEqual(detail.question.messages[0].images, [{ id: attachment.id, url: `https://storage.test/${flow.db.tables.attachments[0].path}?token=t` }]);
+  assert.equal((await ask(flow, one, { ...question, attachmentIds: [attachment.id] })).status, 400);
+  const late = await (await send(flow.app, '/api/uploads', one, { body: PNG, type: 'image/png' })).json();
+  flow.clock.now = NOW + 61 * 60 * 1000;
+  assert.equal((await ask(flow, one, { ...question, attachmentIds: [late.attachment.id] })).status, 400);
+});
+
+test('students only see and change their own questions', async () => {
+  const flow = questionApp();
+  const one = await loginAs(flow, 1);
+  const two = await loginAs(flow, 2);
+  const { question: q } = await (await ask(flow, one, question)).json();
+  assert.equal((await flow.app(api(`/api/questions/${q.id}`, { cookie: two }))).status, 404);
+  assert.equal((await send(flow.app, `/api/questions/${q.id}/messages`, two, { body: { body: '나도' } })).status, 404);
+  assert.equal((await send(flow.app, `/api/questions/${q.id}`, two, { method: 'PATCH', body: { status: 'resolved' } })).status, 404);
+  assert.deepEqual((await (await flow.app(api('/api/questions', { cookie: two }))).json()).questions, []);
+  assert.equal((await flow.app(api('/api/questions/not-a-uuid', { cookie: one }))).status, 404);
+});
+
+test('follow-ups go back to the operators and a student can mark a question resolved', async () => {
+  const flow = questionApp();
+  const cookie = await loginAs(flow, 1);
+  const { question: q } = await (await ask(flow, cookie, question)).json();
+  flow.db.tables.questions[0].status = 'answered';
+  flow.clock.now = NOW + 1000;
+  const follow = await send(flow.app, `/api/questions/${q.id}/messages`, cookie, { body: { body: '아직 안 돼요' } });
+  assert.equal(follow.status, 201);
+  assert.equal(flow.db.tables.questions[0].status, 'escalated');
+  assert.equal(flow.db.tables.questions[0].updated_at, new Date(NOW + 1000).toISOString());
+  assert.equal(flow.notifier.sent.at(-1).followUp, true);
+  assert.equal((await send(flow.app, `/api/questions/${q.id}`, cookie, { method: 'PATCH', body: { status: 'answered' } })).status, 400);
+  assert.equal((await send(flow.app, `/api/questions/${q.id}`, cookie, { method: 'PATCH', body: { status: 'resolved' } })).status, 200);
+  assert.equal(flow.db.tables.questions[0].status, 'resolved');
+});
+
+test('questions are validated and limited', async () => {
+  const flow = questionApp();
+  const cookie = await loginAs(flow, 1);
+  const status = async body => (await ask(flow, cookie, body)).status;
+  assert.equal(await status({ ...question, workshop: 2 }), 403);
+  assert.equal(await status({ ...question, body: '   ' }), 400);
+  assert.equal(await status({ ...question, body: 'a'.repeat(2001) }), 400);
+  assert.equal(await status({ ...question, errorText: 'a'.repeat(4001) }), 400);
+  assert.equal(await status({ ...question, step: 'Bad Step' }), 400);
+  assert.equal(await status({ ...question, mode: 'other' }), 400);
+  assert.equal(await status({ ...question, attachmentIds: ['x'] }), 400);
+  assert.equal((await send(flow.app, '/api/questions', cookie, { body: 'body=1', type: 'application/x-www-form-urlencoded' })).status, 415);
+  assert.equal((await send(flow.app, '/api/questions', cookie, { body: question, origin: null })).status, 403);
+  assert.equal(flow.db.tables.questions.length, 0);
+  for (let i = 0; i < 10; i++) assert.equal(await status(question), 201);
+  assert.equal(await status(question), 429);
+  flow.clock.now = NOW + 60 * 60 * 1000;
+  assert.equal(await status(question), 201);
+});

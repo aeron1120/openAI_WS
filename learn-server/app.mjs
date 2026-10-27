@@ -11,6 +11,7 @@ import { storageClient } from './storage.mjs';
 import { createNotifier } from './notify.mjs';
 import { createAi } from './ai.mjs';
 import { createLimiter } from './limits.mjs';
+import { handleQuestions } from './questions.mjs';
 import { cleanupAttachments, handleUpload } from './uploads.mjs';
 
 const SESSION_COOKIE = '__Host-learn_session';
@@ -96,6 +97,9 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
       }
       if (url.pathname === '/api/uploads') {
         return await handleUpload({ request, session: requireSession(request, seconds), config, db, storage, limiter, nowMs: now(), newId });
+      }
+      if (url.pathname === '/api/questions' || url.pathname.startsWith('/api/questions/')) {
+        return await handleQuestions({ request, url, session: requireSession(request, seconds), config, db, storage, notifier, ai, limiter, nowMs: now() });
       }
       switch (`${request.method} ${url.pathname}`) {
         case 'GET /api/auth/google':
