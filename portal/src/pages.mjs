@@ -3,7 +3,7 @@ import { h, raw, link, isUsableUrl, isRecruiting, eventBadge, formatSchedule, co
 const pad = n => String(n).padStart(2, '0');
 const workshopPath = w => `/workshops/${w.slug}/`;
 const checks = items => items?.length ? h`<ul class="checks">${items.map(item => h`<li>${item}</li>`)}</ul>` : '';
-const slidesOf = w => w.resources.find(r => r.audience === 'presenter' && isUsableUrl(r.url));
+const slidesOf = w => w.resources.find(r => r.kind === 'slides' && isUsableUrl(r.url));
 const demoOf = w => w.resources.find(r => r.kind === 'demo' && isUsableUrl(r.url));
 
 function scheduleText(item, timeZone) {
@@ -216,7 +216,7 @@ export function workshopPage(content, w) {
     ${isRecruiting(w) ? link(w.recruitment.url, '신청하기', 'btn btn-fill') : ''}
     ${open ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="#missions">실습 시작하기 ↓</a>` : ''}
     ${demo ? link(demo.url, '예제 열기', 'btn btn-ghost') : ''}
-    ${slides ? link(slides.url, '발표 슬라이드', 'btn btn-ghost') : ''}
+    ${slides ? link(slides.url, '슬라이드', 'btn btn-ghost') : ''}
   </div>` : ''}
   <dl class="info">
     <div><dt>일정</dt><dd>${scheduleText(w, site.timeZone)}</dd></div>

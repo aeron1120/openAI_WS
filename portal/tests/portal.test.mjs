@@ -153,15 +153,17 @@ test('planning workshops show only topic and status, no missions or downloads', 
   assert.doesNotMatch(html, /class="mission"|copy-block|<video/);
 });
 
-test('presenter slides are labelled separately from student materials', async t => {
+test('workshops link the student slides, never the presenter deck', async t => {
   const { read } = await build(t, defaultContent, WS2_OPENS);
+  const presenterDecks = ['1OYbhNdlJFerD-LumLyBXP3SUZKata9K1m_avNXCvUvM', '17PScZeZtImAaSqLmmq5VUY9kSDZb60RTFyzo1U8ReQg', '1rUCvsJvfaKOH13tPIRh-ZlsAGvh3S_zWljE84p_BakQ'];
   for (const page of ['/workshops/01/', '/workshops/02/']) {
     const html = await read(page);
     const rows = html.match(/<li>\s*<a class="res-link"[\s\S]*?<\/li>/g) ?? [];
     const slides = rows.filter(row => row.includes('docs.google.com/presentation'));
     assert.equal(slides.length, 1, `${page} lists the slides once`);
-    assert.match(slides[0], /badge-presenter">발표 자료/);
-    for (const row of rows.filter(row => !row.includes('docs.google.com/presentation'))) assert.doesNotMatch(row, /발표 자료/);
+    assert.match(slides[0], /실습 슬라이드/);
+    assert.doesNotMatch(html, /발표 자료/);
+    for (const id of presenterDecks) assert.ok(!html.includes(id), `${page} links a presenter deck`);
   }
 });
 
@@ -196,6 +198,12 @@ test('content validation rejects placeholder or insecure links, missing recruitm
   const noZone = clone(defaultContent);
   noZone.workshops[1].event = { status: 'scheduled', start: '2026-11-30T18:00:00', end: null, place: null };
   assert.throws(() => validateContent(noZone), /시간대/);
+  const presenter = clone(defaultContent);
+  presenter.workshops[0].resources.push({ label: '발표 슬라이드', kind: 'slides', audience: 'presenter', url: 'https://docs.google.com/presentation/d/example/edit', checked: '2026-10-27' });
+  assert.throws(() => validateContent(presenter), /학생용만/);
+  const unlabelled = clone(defaultContent);
+  unlabelled.workshops[0].resources.push({ label: '슬라이드', kind: 'guide', audience: 'student', url: 'https://docs.google.com/presentation/d/example/edit', checked: '2026-10-27' });
+  assert.throws(() => validateContent(unlabelled), /학생용만/);
   const badOpen = clone(defaultContent);
   badOpen.workshops[1].materialsOpenAt = '2026-11-02 18:00';
   assert.throws(() => validateContent(badOpen), /materialsOpenAt/);

@@ -41,6 +41,11 @@ export function validateContent(content) {
     for (const dir of w.exampleDirs ?? []) if (!/^workshop\d+\/[a-z0-9-]+$/.test(dir)) problems.push(`${where}: exampleDirs 값 확인 "${dir}"`);
     if (w.recruitment.open && !isUsableUrl(w.recruitment.url)) problems.push(`${where}: 모집 중이면 recruitment.url이 필요합니다.`);
     w.resources.forEach((r, i) => checkUrl(r.url, `${where} resources[${i}]`));
+    // 슬라이드는 학생용(실습 부분만 남긴 복사본)만 공개합니다. 발표본은 QR·소개 슬라이드가 있어 넣지 않습니다.
+    w.resources.forEach((r, i) => {
+      const isSlides = r.kind === 'slides' || /docs\.google\.com\/presentation/.test(r.url ?? '');
+      if (isSlides && (r.kind !== 'slides' || r.audience !== 'student')) problems.push(`${where} resources[${i}]: 슬라이드는 학생용만 넣어 주세요 (kind: 'slides', audience: 'student').`);
+    });
     if (w.video) checkUrl(w.video.src, `${where} video.src`);
     if (w.checkHelp && w.checkHelp.length !== w.checks.length) problems.push(`${where}: checkHelp는 checks와 같은 개수·순서로 적어 주세요.`);
     w.checkHelp?.forEach((c, i) => c.links?.forEach((l, j) => checkUrl(l.url, `${where} checkHelp[${i}].links[${j}]`)));

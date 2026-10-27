@@ -52,7 +52,7 @@ export const workshops = [
       { label: '시작 안내', kind: 'guide', audience: 'student', url: file('guides/START-HERE.md'), checked: '2026-10-27' },
       { label: '기능별 안내', kind: 'guide', audience: 'student', url: file('guides/README.md'), checked: '2026-10-27', note: '로그인 · 지도 · 날씨' },
       { label: '운영진 예제 ‘틈’', kind: 'demo', audience: 'student', url: 'https://openai-ws-workshop1.a01085519047.workers.dev/versions/', checked: '2026-10-27', note: '발표용 예제예요. 열어도 내 프로젝트가 생기지는 않아요. 2026-10-26 기록 기준으로 로그인·지도는 아직 확인 중이에요.' },
-      { label: '발표 슬라이드', kind: 'slides', audience: 'presenter', url: 'https://docs.google.com/presentation/d/1OYbhNdlJFerD-LumLyBXP3SUZKata9K1m_avNXCvUvM/edit', checked: '2026-10-27' }
+      { label: '실습 슬라이드', kind: 'slides', audience: 'student', url: 'https://docs.google.com/presentation/d/1pUcnsVa0Ab_z_ZxbVnO6cCHCIcTYVVvz10C9Tt52xuU/edit?usp=sharing', checked: '2026-10-27', note: '발표본에서 실습 부분만 모았어요' }
     ],
     checks: [
       '압축 푼 폴더에 starter 폴더가 보인다',
@@ -193,7 +193,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
       { label: '실습 소스 (GitHub)', kind: 'starter', audience: 'student', url: folder('workshop2'), checked: '2026-10-27', note: 'Fork · Clone해서 수정해요' },
       { label: '참가자 준비 안내', kind: 'guide', audience: 'student', url: file('docs/PARTICIPANT.md'), checked: '2026-10-27' },
       { label: '5분 복구 연습', kind: 'guide', audience: 'student', url: file('docs/RECOVERY.md'), checked: '2026-10-27' },
-      { label: '발표 슬라이드', kind: 'slides', audience: 'presenter', url: 'https://docs.google.com/presentation/d/1rUCvsJvfaKOH13tPIRh-ZlsAGvh3S_zWljE84p_BakQ/edit', checked: '2026-10-27' }
+      { label: '실습 슬라이드', kind: 'slides', audience: 'student', url: 'https://docs.google.com/presentation/d/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE/edit?usp=sharing', checked: '2026-10-27', note: '발표본에서 실습 부분만 모았어요' }
     ],
     checks: [
       'node · npm · git --version이 모두 나온다 (Node 20 이상)',
