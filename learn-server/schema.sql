@@ -59,6 +59,11 @@ alter table public.questions enable row level security;
 alter table public.messages enable row level security;
 alter table public.attachments enable row level security;
 
+-- 브라우저용 역할(anon·authenticated)에는 권한을 주지 않고, 서버가 쓰는 service_role에만 줍니다.
+-- 프로젝트를 만들 때 'Automatically expose new tables'를 꺼도 서버가 동작하도록 직접 적어 둡니다.
+revoke all on public.students, public.progress, public.questions, public.messages, public.attachments from anon, authenticated;
+grant select, insert, update, delete on public.students, public.progress, public.questions, public.messages, public.attachments to service_role;
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('question-images', 'question-images', false, 5242880, array['image/png', 'image/jpeg', 'image/webp'])
 on conflict (id) do nothing;
