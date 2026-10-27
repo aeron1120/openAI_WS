@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ENV, api, cookiesFrom, login, makeApp } from './helpers.mjs';
+import { ENV, NOW, api, cookiesFrom, fakeFetch, login, makeApp } from './helpers.mjs';
+import { createApp } from '../app.mjs';
 import { sign } from '../session.mjs';
 
 const errorOf = response => new URL(response.headers.get('location')).searchParams.get('error');
@@ -34,6 +35,7 @@ test('an SNU student is saved, gets a session and returns to the requested page'
   const { callback, session } = await login(flow, { next: '/learn/02/' });
   assert.equal(callback.status, 302);
   assert.equal(callback.headers.get('location'), 'https://portal.test/learn/02/');
+  assert.equal(flow.state.tokenRequests[0].get('redirect_uri'), 'https://portal.test/api/auth/google/callback');
   assert.match(callback.headers.getSetCookie().join('\n'), /__Host-learn_session=.+Max-Age=1209600/);
   assert.match(callback.headers.getSetCookie().join('\n'), /__Host-learn_oauth=; .*Max-Age=0/);
   assert.deepEqual(flow.state.upserts[0].body, { google_sub: 'google-123', email: 'student@snu.ac.kr', name: '김학생', last_seen_at: '2026-10-27T12:00:00.000Z' });
@@ -67,7 +69,10 @@ test('non-SNU accounts never get a session', async () => {
 
 test('state mismatch, cancel, missing state cookie and Google or database failures are reported', async () => {
   assert.equal(errorOf((await login(makeApp(), { callbackQuery: 'code=c&state=wrong' })).callback), 'failed');
-  assert.equal(errorOf((await login(makeApp(), { callbackQuery: 'error=access_denied' })).callback), 'cancelled');
+  assert.equal(errorOf((await login(makeApp(), { callbackQuery: state => `error=access_denied&state=${state}` })).callback), 'cancelled');
+  assert.equal(errorOf((await login(makeApp(), { callbackQuery: state => `error=server_error&state=${state}` })).callback), 'failed');
+  assert.equal(errorOf((await login(makeApp(), { callbackQuery: 'error=access_denied&state=wrong' })).callback), 'failed');
+  assert.equal(errorOf((await login(makeApp(), { callbackQuery: state => `state=${state}` })).callback), 'failed');
   assert.equal(errorOf(await makeApp().app(api('/api/auth/google/callback?code=c&state=s'))), 'expired');
   assert.equal(errorOf((await login(makeApp({ tokenStatus: 400 }))).callback), 'failed');
   assert.equal(errorOf((await login(makeApp({ dbStatus: 500 }))).callback), 'failed');
@@ -95,4 +100,15 @@ test('unknown routes are 404 JSON', async () => {
   const response = await makeApp().app(api('/api/nothing'));
   assert.equal(response.status, 404);
   assert.equal((await response.json()).error, 'NOT_FOUND');
+});
+
+test('an expired login attempt asks to start again', async () => {
+  let t = NOW;
+  const state = {};
+  const app = createApp({ env: ENV, fetchImpl: fakeFetch(state), now: () => t });
+  const start = await app(api('/api/auth/google'));
+  const realState = new URL(start.headers.get('location')).searchParams.get('state');
+  t = NOW + 601_000;
+  const callback = await app(api(`/api/auth/google/callback?code=c&state=${realState}`, { cookie: cookiesFrom(start) }));
+  assert.equal(errorOf(callback), 'expired');
 });

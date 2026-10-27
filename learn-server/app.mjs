@@ -36,9 +36,11 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
     const fail = reason => redirect(`${config.publicOrigin}/learn/?error=${reason}`, [setCookie(OAUTH_COOKIE, '', 0)]);
     const oauth = verify(readCookie(request, OAUTH_COOKIE), config.sessionSecret, 'oauth', seconds);
     if (!oauth) return fail('expired');
-    if (url.searchParams.has('error')) return fail('cancelled');
+    // state를 먼저 확인해야 바깥 링크로 로그인을 취소시킬 수 없습니다.
+    if (!safeEqual(url.searchParams.get('state') ?? '', oauth.state)) return fail('failed');
+    if (url.searchParams.has('error')) return fail(url.searchParams.get('error') === 'access_denied' ? 'cancelled' : 'failed');
     const code = url.searchParams.get('code');
-    if (!code || !safeEqual(url.searchParams.get('state') ?? '', oauth.state)) return fail('failed');
+    if (!code) return fail('failed');
     let identity;
     try {
       const token = await exchangeCode({ code, clientId: config.google.clientId, clientSecret: config.google.clientSecret, redirectUri: callbackUrl, fetchImpl });

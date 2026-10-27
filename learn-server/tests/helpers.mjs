@@ -74,7 +74,8 @@ export async function login({ app, state }, { next = '/learn/', override = {}, c
   const start = await app(api(`/api/auth/google?next=${encodeURIComponent(next)}`));
   const google = new URL(start.headers.get('location'));
   state.idToken = idToken(claims(google.searchParams.get('nonce'), override));
-  const query = callbackQuery ?? `code=code-1&state=${google.searchParams.get('state')}`;
+  const realState = google.searchParams.get('state');
+  const query = typeof callbackQuery === 'function' ? callbackQuery(realState) : callbackQuery ?? `code=code-1&state=${realState}`;
   const callback = await app(api(`/api/auth/google/callback?${query}`, { cookie: cookiesFrom(start) }));
   return { start, google, callback, session: cookiesFrom(callback) };
 }
