@@ -23,3 +23,13 @@ test('missing or weak values are listed by name only', () => {
 test('no operators means nobody is an operator', () => {
   assert.equal(loadConfig({ ...ENV, OPERATOR_EMAILS: undefined }).operators.size, 0);
 });
+
+test('WORKSHOP_OPEN_AT gives each workshop its opening time', () => {
+  const config = loadConfig({ ...ENV, WORKSHOP_OPEN_AT: '{"1":"2026-10-26T18:00:00+09:00","2":"2026-11-02T18:00:00+09:00"}' });
+  assert.equal(config.ok, true);
+  assert.equal(config.workshopOpenAt.get(2), Date.parse('2026-11-02T09:00:00Z'));
+  assert.equal(loadConfig(ENV).workshopOpenAt.size, 0);
+  for (const bad of ['not json', '[]', '{"one":"2026-10-26T18:00:00+09:00"}', '{"1":"2026-10-26T18:00:00"}', '{"1":5}']) {
+    assert.ok(loadConfig({ ...ENV, WORKSHOP_OPEN_AT: bad }).problems.some(p => p.startsWith('WORKSHOP_OPEN_AT')), bad);
+  }
+});
