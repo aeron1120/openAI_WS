@@ -10,7 +10,8 @@
     failed: '로그인을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.'
   };
   const params = new URLSearchParams(location.search);
-  const loginError = messages[params.get('error')];
+  const errorCode = params.get('error');
+  const loginError = Object.hasOwn(messages, errorCode) ? messages[errorCode] : null;
   if (params.has('error')) history.replaceState(null, '', location.pathname);
 
   const el = (tag, className, text) => {
