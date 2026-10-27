@@ -7,7 +7,7 @@ const output = path.resolve(root, 'dist-workshop1');
 if (path.dirname(output) !== path.resolve(root)) throw new Error('Invalid build output.');
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
-const files = ['workshop1/index.html', 'workshop1/styles.css', 'workshop1/app.js', 'workshop1/meetings.mjs', 'workshop1/version.mjs'];
+const files = ['workshop1/index.html', 'workshop1/styles.css', 'workshop1/app.js', 'workshop1/meetings.mjs', 'workshop1/version.mjs', 'workshop1/tour.mjs', 'workshop1/tour.css'];
 for (const file of await readdir(path.join(root, 'workshop1'))) {
   if (['weather.mjs', 'auth.mjs', 'maps.mjs'].includes(file)) files.push(`workshop1/${file}`);
 }
