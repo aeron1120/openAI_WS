@@ -204,6 +204,12 @@ test('content validation rejects placeholder or insecure links, missing recruitm
   const unlabelled = clone(defaultContent);
   unlabelled.workshops[0].resources.push({ label: '슬라이드', kind: 'guide', audience: 'student', url: 'https://docs.google.com/presentation/d/example/edit', checked: '2026-10-27' });
   assert.throws(() => validateContent(unlabelled), /학생용만/);
+  const noSlide = clone(defaultContent);
+  delete noSlide.workshops[1].missions[0].slideId;
+  assert.throws(() => validateContent(noSlide), /slideId/);
+  const badOption = clone(defaultContent);
+  badOption.workshops[0].missions.find(m => m.options).options[0].slide = 0;
+  assert.throws(() => validateContent(badOption), /slideId/);
   const badOpen = clone(defaultContent);
   badOpen.workshops[1].materialsOpenAt = '2026-11-02 18:00';
   assert.throws(() => validateContent(badOpen), /materialsOpenAt/);

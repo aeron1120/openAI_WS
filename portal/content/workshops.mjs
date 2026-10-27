@@ -7,6 +7,7 @@
 //   배포된 사이트가 요청마다 현재 시각을 확인하므로, 이 시각에 다시 배포하지 않아도 자동으로 열립니다.
 // - exampleDirs: 자료가 열릴 때 /examples/ 아래에 함께 공개할 저장소 폴더.
 // - 확정되지 않은 값은 null로 둡니다. 임의의 주소나 '#'을 넣지 마세요.
+// - missions[].slide / slideId: 수업 화면에서 이 단계가 시작되는 학생용 슬라이드 번호(1부터)와 Google Slides 페이지 ID.
 
 const repo = 'https://github.com/aeron1120/openAI_WS';
 const file = path => `${repo}/blob/main/${path}`;
@@ -62,6 +63,7 @@ export const workshops = [
     missions: [
       {
         id: 'open-starter',
+        slide: 1, slideId: 'h2ea000745df279bf_2_24',
         title: '기초 틀 받고 화면 열기',
         todo: 'GitHub 저장소에서 Code → Download ZIP을 누르고 압축을 모두 풉니다. starter 폴더 안의 index.html을 브라우저로 엽니다.',
         expected: '“이곳에 나의 아이디어를 담아보세요.” 제목과 로그인·지도·날씨·나만의 기능 박스가 보여요. 설치와 API 키는 아직 필요 없어요.',
@@ -70,6 +72,7 @@ export const workshops = [
       },
       {
         id: 'run-local',
+        slide: 4, slideId: 'h2ea000745df279bf_2_62',
         title: 'Codex에게 내 컴퓨터에서 실행해 달라고 하기',
         todo: 'Codex 데스크톱 또는 VS Code에서 압축을 푼 저장소 전체 폴더를 열고, 아래 요청문을 붙여 넣습니다.',
         prompt: `이 저장소에서 Workshop 1 기초 틀을 실습하려고 해.
@@ -83,6 +86,7 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
       },
       {
         id: 'first-change',
+        slide: 4, slideId: 'h2ea000745df279bf_2_62',
         title: '작은 변화 하나 만들기',
         todo: '내 서비스의 이름과 소개 문구를 바꿔 달라고 요청합니다. 예시 문장은 내 아이디어로 바꿔도 좋아요.',
         prompt: `starter의 사이트 이름을 ‘나의 캠퍼스’로 바꾸고,
@@ -94,11 +98,13 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
       },
       {
         id: 'connect-feature',
+        slide: 9, slideId: 'h2ea000745df279bf_2_126',
         title: '내 서비스에 필요한 기능 하나 연결하기',
         todo: '로그인·지도·날씨 중 내 서비스에 필요한 것 하나만 고릅니다. 각 기능은 외부 서비스의 계정·키 설정이 필요하므로, Codex가 먼저 준비 항목을 설명하게 하세요.',
         options: [
           {
             label: '날씨 — 기상청 단기예보',
+            slide: 9, slideId: 'h2ea000745df279bf_2_126',
             needs: '공공데이터포털 기상청 단기예보 이용 신청과 본인 인증키',
             prompt: `starter의 날씨 영역에 기상청 단기예보 API를 연결해줘.
 관악구 대학동의 내일 오후 6시 기온과 강수확률을 보여줘.
@@ -110,6 +116,7 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
           },
           {
             label: '로그인 — Google 계정',
+            slide: 15, slideId: 'h2ea000745df279bf_2_267',
             needs: 'Google 앱 등록과 클라이언트 ID, 로그인 결과를 확인할 서버',
             prompt: `starter의 로그인 영역에 Google 로그인 기능을 구현해줘.
 로그인하면 이름과 프로필 사진을 보여주고,
@@ -121,6 +128,7 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
           },
           {
             label: '지도 — Google Maps',
+            slide: 21, slideId: 'h2ea000745df279bf_2_421',
             needs: 'Google Maps JavaScript API 사용 설정과 지도 키. 결제 계정 설정과 사용량에 따른 비용을 먼저 확인하세요.',
             prompt: `starter의 지도·위치정보 영역에 Google 지도를 구현해줘.
 서울대학교 정문 위치에 마커를 표시하고,
@@ -273,6 +281,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     missions: [
       {
         id: 'compare',
+        slide: 1, slideId: 'ws2_activity_20261019_01',
         title: '완성본 먼저 눌러보기',
         todo: '위 ‘완성본 예제’에서 카드 두 개를 선택한 뒤 하나만 해제하고, 새로고침해 봅니다.',
         expected: '카드마다 따로 선택·해제되고, 새로고침하면 모두 초기화돼요. 이번 실습의 즐겨찾기는 저장되지 않는 게 정상이에요.',
@@ -281,6 +290,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
       },
       {
         id: 'add-favorite',
+        slide: 7, slideId: 'ws2_activity_20261019_07',
         title: 'Codex에게 즐겨찾기 추가 요청하기',
         todo: '내 Fork를 연 VS Code에서 Codex에 아래 요청문을 붙여 넣습니다. 수정은 starter 폴더에서만 진행하고, complete는 비교용으로만 봅니다.',
         prompt: `workshop2/starter/의 모임 카드에 즐겨찾기 버튼을 추가해줘.
@@ -295,6 +305,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
       },
       {
         id: 'record',
+        slide: 14, slideId: 'ws2_activity_20261019_14',
         title: '변경을 기록하고 GitHub에 올리기',
         todo: 'VS Code Source Control에서 바뀐 파일을 열어 비교하고, 이번 기능의 파일만 Stage해서 Commit한 뒤 Push합니다. 터미널을 쓴다면 git status로 실제 파일명을 먼저 확인하세요.',
         commands: `git status
@@ -307,6 +318,7 @@ git push`,
       },
       {
         id: 'recover',
+        slide: 17, slideId: 'ws2_activity_20261019_17',
         title: '5분 복구 연습 — 실수를 되돌리기',
         todo: '저장소 루트에서 연습용 저장소를 만들고, 일부러 망가뜨린 마지막 commit을 되돌립니다. 이 연습은 원본 GitHub에 올라가지 않는 별도 폴더에서만 진행해요.',
         commands: `node scripts/prepare-recovery.mjs

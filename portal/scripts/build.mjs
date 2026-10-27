@@ -46,6 +46,16 @@ export function validateContent(content) {
       const isSlides = r.kind === 'slides' || /docs\.google\.com\/presentation/.test(r.url ?? '');
       if (isSlides && (r.kind !== 'slides' || r.audience !== 'student')) problems.push(`${where} resources[${i}]: 슬라이드는 학생용만 넣어 주세요 (kind: 'slides', audience: 'student').`);
     });
+    // 수업 화면(/learn/)용: 학생용 슬라이드가 있는 회차는 단계마다 시작 슬라이드(번호·ID)가 필요합니다.
+    if (w.resources.some(r => r.kind === 'slides')) {
+      const slideOk = item => Number.isInteger(item.slide) && item.slide >= 1 && /^[A-Za-z0-9_-]+$/.test(item.slideId ?? '');
+      for (const m of w.missions) {
+        if (!slideOk(m)) problems.push(`${where} ${m.id}: slide(슬라이드 번호)와 slideId(슬라이드 ID)를 적어 주세요.`);
+        m.options?.forEach((o, i) => {
+          if ((o.slide != null || o.slideId != null) && !slideOk(o)) problems.push(`${where} ${m.id}.options[${i}]: slide와 slideId를 함께 적어 주세요.`);
+        });
+      }
+    }
     if (w.video) checkUrl(w.video.src, `${where} video.src`);
     if (w.checkHelp && w.checkHelp.length !== w.checks.length) problems.push(`${where}: checkHelp는 checks와 같은 개수·순서로 적어 주세요.`);
     w.checkHelp?.forEach((c, i) => c.links?.forEach((l, j) => checkUrl(l.url, `${where} checkHelp[${i}].links[${j}]`)));
