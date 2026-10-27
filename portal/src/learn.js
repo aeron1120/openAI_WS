@@ -1,4 +1,6 @@
-// 수업 듣기(/learn/…): 로그인 확인 → 화면 열기 → 진도 표시·단계 이동·슬라이드 맞추기.
+// 수업 듣기(/learn/…)·내 질문·운영진 화면의 공통 스크립트: 로그인 확인 → 화면 열기.
+// 수업 목록은 진도·답변 수를, 수업 화면은 단계 이동·슬라이드 맞추기·완료 표시를 여기서 맡습니다.
+// 질문 칸·대화(questions.js)와 운영진 화면(admin.js)은 window.Learn을 써서 이 위에 얹힙니다.
 // 수업 서버는 Render 무료 요금제라 잠들어 있을 수 있어요. 응답이 없으면 최대 1분 동안 5초마다 다시 시도합니다.
 (() => {
   const gate = document.querySelector('[data-learn-gate]');
@@ -35,7 +37,55 @@
     return { response, data };
   }
 
+  // 서버가 보낸 안내 문구(message)를 그대로 씁니다. 로그인이 풀렸으면 다시 로그인하라고 알립니다.
+  const EXPIRED = '로그인이 만료됐어요. 새로고침한 뒤 다시 로그인해 주세요.';
+  const errorOf = ({ response, data } = {}, fallback = '잠시 후 다시 시도해 주세요.') =>
+    response?.status === 401 ? EXPIRED : (typeof data?.message === 'string' && data.message) || fallback;
+
+  // 요청하고, 실패하면 보여줄 문구를 담은 Error를 던집니다(error.status·error.code). json을 주면 JSON으로 보냅니다.
+  async function call(path, { json, fallback, ...init } = {}) {
+    if (json !== undefined) {
+      init.headers = { 'content-type': 'application/json', ...init.headers };
+      init.body = JSON.stringify(json);
+    }
+    let result;
+    try {
+      result = await api(path, init);
+    } catch {
+      throw Object.assign(new Error('서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.'), { status: 0, code: 'NETWORK' });
+    }
+    const { response, data } = result;
+    if (!response.ok) throw Object.assign(new Error(errorOf(result, fallback)), { status: response.status, code: data?.error });
+    return data;
+  }
+
+  // 다른 스크립트가 쓰는 공통 기능. 화면별 초기화는 register(이름, (content, user) => …)로 등록합니다.
+  const inits = new Map();
+  const Learn = window.Learn = {
+    api, call, errorOf, el, button, user: null,
+    register: (name, init) => { inits.set(name, init); }
+  };
+
+  // 로그인 뒤에는 경로만 돌아와요(?id= 같은 뒷부분은 빠짐). 그래서 뒷부분을 이 탭에 잠시 기억했다가 되돌립니다.
+  const RETURN_KEY = 'learn-return';
+  function rememberSearch() {
+    try {
+      if (location.search) sessionStorage.setItem(RETURN_KEY, JSON.stringify({ url: location.pathname + location.search, at: Date.now() }));
+      else sessionStorage.removeItem(RETURN_KEY);
+    } catch { /* 저장소가 막혀 있으면 경로만 돌아와요. */ }
+  }
+  function restoreSearch() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(RETURN_KEY) ?? 'null');
+      sessionStorage.removeItem(RETURN_KEY);
+      // 10분 안에 같은 화면으로 돌아왔을 때만 되돌립니다.
+      const fresh = saved && Date.now() - saved.at < 10 * 60 * 1000 && typeof saved.url === 'string';
+      if (fresh && !location.search && saved.url.startsWith(`${location.pathname}?`)) history.replaceState(null, '', saved.url + location.hash);
+    } catch { /* 무시 */ }
+  }
+
   function loginView() {
+    rememberSearch();
     const link = el('a', 'btn btn-fill', '서울대 계정으로 로그인');
     link.href = `/api/auth/google?next=${encodeURIComponent(location.pathname)}`;
     const nodes = [el('p', 'learn-status', '서울대 계정으로 로그인해 주세요.'), link];
@@ -44,6 +94,8 @@
   }
 
   function signedIn(user) {
+    Learn.user = user;
+    restoreSearch();
     // 학교 계정 이름은 "이름 / 학생 / 학과"처럼 와서, 화면에는 첫 부분만 보여줍니다.
     const name = user.name.split(' / ')[0] || user.name;
     const bar = el('div', 'learn-user');
@@ -64,8 +116,13 @@
     showGate(bar);
     if (!content) return;
     content.hidden = false;
-    if (content.dataset.lesson) initLesson(Number(content.dataset.lesson));
-    else initList();
+    // 화면 종류는 data-lesson(수업) / data-questions(내 질문) / data-admin(운영진) / 없음(수업 목록)으로 구분합니다.
+    const page = content.dataset;
+    if (page.lesson) return initLesson(content, user);
+    if ('admin' in page && !user.operator) return content.replaceChildren(el('p', 'learn-status', '운영진만 볼 수 있어요.'));
+    if ('questions' in page) return inits.get('questions')?.(content, user);
+    if ('admin' in page) return inits.get('admin')?.(content, user);
+    initList(content, user);
   }
 
   async function check(started) {
@@ -95,16 +152,25 @@
     return done;
   }
 
-  async function initList() {
-    let done;
-    try { done = await loadProgress(); } catch { return; } // 진도를 못 불러와도 목록은 그대로 씁니다.
-    for (const node of content.querySelectorAll('[data-progress-for]')) {
-      const count = done.get(Number(node.dataset.progressFor))?.size ?? 0;
-      node.textContent = `${count} / ${node.dataset.total} 단계 완료`;
-    }
+  // 수업 목록: 회차별 진도와 "답변 N개"(운영진이 답한 내 질문 수). 못 불러와도 목록은 그대로 씁니다.
+  function initList(content) {
+    loadProgress().then(done => {
+      for (const node of content.querySelectorAll('[data-progress-for]')) {
+        const count = done.get(Number(node.dataset.progressFor))?.size ?? 0;
+        node.textContent = `${count} / ${node.dataset.total} 단계 완료`;
+      }
+    }).catch(() => {});
+    const answers = content.querySelector('[data-answer-count]');
+    if (!answers) return;
+    call('/api/questions').then(data => {
+      const count = (data.questions ?? []).filter(q => q.status === 'answered').length;
+      answers.textContent = count ? `답변 ${count}개` : '';
+      answers.className = count ? 'badge badge-open' : '';
+    }).catch(() => {});
   }
 
-  function initLesson(workshop) {
+  function initLesson(content) {
+    const workshop = Number(content.dataset.lesson);
     const steps = [...content.querySelectorAll('[data-step]')];
     const dots = new Map([...content.querySelectorAll('[data-goto]')].map(dot => [dot.dataset.goto, dot]));
     const frame = content.querySelector('[data-slides]');
@@ -138,11 +204,16 @@
     }
 
     content.addEventListener('click', async event => {
-      const target = event.target.closest('[data-goto], [data-prev], [data-next], [data-done]');
+      const target = event.target.closest('[data-goto], [data-prev], [data-next], [data-done], [data-ask-open]');
       if (!target) return;
       if (target.dataset.goto) return go(steps.findIndex(step => step.dataset.step === target.dataset.goto));
       if (target.hasAttribute('data-prev')) return go(current - 1);
       if (target.hasAttribute('data-next')) return go(current + 1);
+      if (target.hasAttribute('data-ask-open')) {
+        // 질문 칸은 questions.js가 만듭니다.
+        const section = target.closest('[data-step]');
+        return Learn.openAsk?.(section, { workshop, step: section.dataset.step });
+      }
       // 완료 표시: 서버에 저장된 뒤에만 화면을 바꿉니다.
       const index = current;
       const step = steps[index];
@@ -152,7 +223,7 @@
       target.disabled = true;
       try {
         const { response } = await api(`/api/progress/${workshop}/${id}`, { method: marking ? 'PUT' : 'DELETE' });
-        if (response.status === 401) throw new Error('로그인이 만료됐어요. 새로고침한 뒤 다시 로그인해 주세요.');
+        if (response.status === 401) throw new Error(EXPIRED);
         if (!response.ok) throw new Error();
         status.textContent = '';
         if (marking) done.add(id); else done.delete(id);
@@ -178,5 +249,6 @@
       .catch(() => { /* 진도를 못 불러와도 단계는 볼 수 있어요. */ });
   }
 
-  check(Date.now());
+  // 뒤에 오는 questions.js·admin.js가 먼저 register할 수 있게, 문서를 다 읽은 뒤에 시작합니다.
+  document.addEventListener('DOMContentLoaded', () => check(Date.now()));
 })();
