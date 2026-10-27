@@ -94,6 +94,7 @@ export function routes(content) {
   ];
 }
 
+const PRIVATE_PATHS = ['/learn/questions/', '/admin/'];
 const hash = text => createHash('sha256').update(text).digest('hex').slice(0, 10);
 
 // 한 시점의 페이지 묶음(HTML·404·예제)을 dir에 씁니다.
@@ -154,9 +155,11 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
     exclude: ['/styles.css', '/main.js', '/learn.js', '/questions.js', '/admin.js', '/favicon.svg', '/og.png', '/images/*', '/sitemap.xml', '/robots.txt']
   }));
 
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${written.map(p => `  <url><loc>${content.site.url}${p}</loc></url>`).join('\n')}\n</urlset>\n`;
+  // 로그인해야 쓰는 개인 화면(내 질문·운영진)은 검색에 내보내지 않습니다.
+  const listed = written.filter(p => !PRIVATE_PATHS.includes(p));
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${listed.map(p => `  <url><loc>${content.site.url}${p}</loc></url>`).join('\n')}\n</urlset>\n`;
   await writeFile(path.join(out, 'sitemap.xml'), sitemap);
-  await writeFile(path.join(out, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${content.site.url}/sitemap.xml\n`);
+  await writeFile(path.join(out, 'robots.txt'), `User-agent: *\nAllow: /\n${PRIVATE_PATHS.map(p => `Disallow: ${p}\n`).join('')}Sitemap: ${content.site.url}/sitemap.xml\n`);
   return { outDir: out, pages: written, variants: times.length + 1 };
 }
 

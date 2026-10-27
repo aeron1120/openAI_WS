@@ -29,7 +29,12 @@ test('every route, 404, sitemap and one page set per schedule window are built',
   assert.deepEqual(pages, ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/', '/learn/', '/learn/questions/', '/admin/', '/learn/01/']);
   assert.ok(await exists(path.join(outDir, '404.html')));
   const sitemap = await read('sitemap.xml');
-  for (const page of pages) assert.match(sitemap, new RegExp(`<loc>${defaultContent.site.url}${page}</loc>`));
+  const privatePages = ['/learn/questions/', '/admin/'];
+  for (const page of pages.filter(p => !privatePages.includes(p))) assert.match(sitemap, new RegExp(`<loc>${defaultContent.site.url}${page}</loc>`));
+  for (const page of privatePages) {
+    assert.doesNotMatch(sitemap, new RegExp(`${page}</loc>`));
+    assert.match(await readFile(path.join(outDir, 'robots.txt'), 'utf8'), new RegExp(`Disallow: ${page}`));
+  }
   const dirs = (await readdir(path.join(outDir, '_v'))).filter(name => /^\d+$/.test(name));
   assert.equal(dirs.length, variants);
 });
