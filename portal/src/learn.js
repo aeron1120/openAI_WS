@@ -70,8 +70,8 @@
   const RETURN_KEY = 'learn-return';
   function rememberSearch() {
     try {
+      // 로그인 실패로 돌아와 주소에 ?가 없어도, 앞서 저장한 값은 그대로 둡니다(지우는 건 restoreSearch).
       if (location.search) sessionStorage.setItem(RETURN_KEY, JSON.stringify({ url: location.pathname + location.search, at: Date.now() }));
-      else sessionStorage.removeItem(RETURN_KEY);
     } catch { /* 저장소가 막혀 있으면 경로만 돌아와요. */ }
   }
   function restoreSearch() {

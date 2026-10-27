@@ -189,9 +189,11 @@
       addFiles([...event.dataTransfer.files]);
     });
     // 붙여넣기: 이미지가 있을 때만 가로채고, 글자는 평소처럼 붙여 넣습니다.
+    // Word·PowerPoint에서 복사하면 글자와 함께 그림도 들어오므로, 글자가 있으면 글자로 붙여 넣습니다.
     form.addEventListener('paste', event => {
       const images = [...(event.clipboardData?.files ?? [])].filter(file => file.type.startsWith('image/'));
       if (!images.length) return;
+      if ([...(event.clipboardData?.types ?? [])].includes('text/plain') && event.target.matches?.('textarea')) return;
       event.preventDefault();
       addFiles(images);
     });
