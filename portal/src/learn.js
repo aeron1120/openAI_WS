@@ -144,20 +144,23 @@
       if (target.hasAttribute('data-prev')) return go(current - 1);
       if (target.hasAttribute('data-next')) return go(current + 1);
       // 완료 표시: 서버에 저장된 뒤에만 화면을 바꿉니다.
-      const step = steps[current];
+      const index = current;
+      const step = steps[index];
       const id = step.dataset.step;
       const status = step.querySelector('[data-done-status]');
       const marking = !done.has(id);
       target.disabled = true;
       try {
         const { response } = await api(`/api/progress/${workshop}/${id}`, { method: marking ? 'PUT' : 'DELETE' });
+        if (response.status === 401) throw new Error('로그인이 만료됐어요. 새로고침한 뒤 다시 로그인해 주세요.');
         if (!response.ok) throw new Error();
         status.textContent = '';
         if (marking) done.add(id); else done.delete(id);
-        if (marking && current < steps.length - 1) go(current + 1);
+        // 저장하는 동안 다른 단계로 옮겼다면 그 자리에 둡니다.
+        if (marking && current === index && index < steps.length - 1) go(index + 1);
         else render();
-      } catch {
-        status.textContent = '저장하지 못했어요. 잠시 후 다시 눌러 주세요.';
+      } catch (error) {
+        status.textContent = error.message || '저장하지 못했어요. 잠시 후 다시 눌러 주세요.';
       } finally {
         target.disabled = false;
       }
