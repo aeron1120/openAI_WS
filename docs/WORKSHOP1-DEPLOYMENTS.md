@@ -16,6 +16,21 @@ Immutable URL format: `https://<first8-of-version-id>-openai-ws-workshop1.a01085
 
 The initial cumulative feature commits are b6551f8 (v0), fde85b0 (v1), 7fc89eb (v2), 3ed26c9 (v3). Subsequent compatibility fixes were applied to v1/v2 branches and main without rewriting that history. The latest stage branches are `codex/workshop1-v1-ready` and `codex/workshop1-v2-ready`.
 
+## Screen guide update on 2026-10-27
+
+Each stage now includes `workshop1/tour.mjs` / `tour.css`: a spotlight walkthrough of the features that stage adds (auto-opens once, replay with the help button). `versions.html` was rewritten for students.
+
+| Stage | Source commit | Cloudflare version (alias) |
+| --- | --- | --- |
+| v0 | 9fcb131 (`codex/workshop1-v0-ready`) | 25e60ec6-b4f0-4740-b831-55bb6dd53282 |
+| v1 | 062958f (`codex/workshop1-v1-ready`) | 6a39a151-54d1-40df-9b1c-b178617c1a35 |
+| v2 | d5dfa56 (`codex/workshop1-v2-ready`) | f8b6f7c0-475d-4352-9c9a-71f9c755adc1 |
+| v3 | 7a1a397 (main) | 8266df2f-45ac-493e-a3a8-358eb0fb2df3 |
+
+Verified live: KMA weather on v1–v3, Google client configured on v2–v3, guide script on all four.
+
+**Upload order matters.** `wrangler versions upload` copies secrets and vars from the most recently *uploaded* version, not the deployed one. v0 has no server script, so uploading it produces a version without bindings and every later upload loses `KMA_SERVICE_KEY`, `SESSION_SECRET` and `GOOGLE_CLIENT_ID`. Upload v0 last, pass `--var GOOGLE_CLIENT_ID:<id>`, and check `wrangler versions view <id>` lists both secrets before deploying. SESSION_SECRET was regenerated on 2026-10-27, so earlier demo sessions were signed out.
+
 ## Verified on 2026-10-26
 
 - All four versions uploaded and sequentially deployed; final refresh order v1 → v2 → v3.
