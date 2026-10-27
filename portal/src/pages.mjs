@@ -3,7 +3,7 @@ import { h, raw, link, isUsableUrl, isRecruiting, eventBadge, formatSchedule, co
 const pad = n => String(n).padStart(2, '0');
 const workshopPath = w => `/workshops/${w.slug}/`;
 const checks = items => items?.length ? h`<ul class="checks">${items.map(item => h`<li>${item}</li>`)}</ul>` : '';
-const slidesOf = w => w.resources.find(r => r.kind === 'slides' && isUsableUrl(r.url));
+export const slidesOf = w => w.resources.find(r => r.kind === 'slides' && isUsableUrl(r.url));
 const demoOf = w => w.resources.find(r => r.kind === 'demo' && isUsableUrl(r.url));
 
 function scheduleText(item, timeZone) {
@@ -161,14 +161,12 @@ export function roadmapPage(content) {
 </ol>`;
 }
 
-function missionBlock(m, index) {
-  return h`<details class="mission" id="mission-${m.id}" ${index === 0 ? raw('open') : ''}>
-  <summary><span class="mission-no">${index + 1}</span><span class="mission-title">${m.title}</span></summary>
-  <div class="mission-body">
-    <p>${m.todo}</p>
+// 미션 본문: 공개 워크숍 페이지(접히는 미션)와 수업 화면(/learn/)이 함께 씁니다.
+export function missionBody(m) {
+  return h`<p>${m.todo}</p>
     ${m.prompt ? copyBlock(m.prompt) : ''}
     ${m.commands ? copyBlock(m.commands, '터미널 명령 (한 줄씩 실행)', { code: true }) : ''}
-    ${m.options ? h`<div class="options">${m.options.map(o => h`<details class="option">
+    ${m.options ? h`<div class="options">${m.options.map(o => h`<details class="option"${o.slideId ? h` data-slide-id="${o.slideId}"` : ''}>
       <summary>${o.label}</summary>
       <p class="hint">먼저 필요한 것: ${o.needs}</p>
       ${copyBlock(o.prompt)}
@@ -178,7 +176,14 @@ function missionBlock(m, index) {
       <p><strong>예상 결과</strong>${m.expected}</p>
       ${m.verify?.length ? h`<div><strong>확인</strong>${checks(m.verify)}</div>` : ''}
     </div>
-    ${m.stuck?.length ? h`<details class="stuck"><summary>막혔을 때</summary><ul>${m.stuck.map(s => h`<li>${s}</li>`)}</ul></details>` : ''}
+    ${m.stuck?.length ? h`<details class="stuck"><summary>막혔을 때</summary><ul>${m.stuck.map(s => h`<li>${s}</li>`)}</ul></details>` : ''}`;
+}
+
+function missionBlock(m, index) {
+  return h`<details class="mission" id="mission-${m.id}" ${index === 0 ? raw('open') : ''}>
+  <summary><span class="mission-no">${index + 1}</span><span class="mission-title">${m.title}</span></summary>
+  <div class="mission-body">
+    ${missionBody(m)}
   </div>
 </details>`;
 }
@@ -415,16 +420,4 @@ export function notFoundPage() {
   <p class="lead">주소가 바뀌었거나 아직 준비되지 않은 페이지예요.</p>
   <div class="actions"><a class="btn btn-primary" href="/">처음으로</a><a class="btn btn-ghost" href="/workshops/">전체 워크숍</a></div>
 </header>`;
-}
-
-export function learnPage() {
-  return h`<header class="page-head">
-  <h1>수업 듣기</h1>
-  <p class="lead">서울대 계정으로 로그인하면 슬라이드를 보며 단계별로 따라 하고, 막힌 부분을 바로 질문할 수 있어요.</p>
-</header>
-<section class="box learn-box" data-learn aria-live="polite">
-  <p class="learn-status">로그인 상태를 확인하고 있어요…</p>
-  <noscript><p class="learn-error">이 화면은 JavaScript를 켜야 쓸 수 있어요.</p></noscript>
-</section>
-<p class="hint">@snu.ac.kr Google 계정만 로그인할 수 있어요. 이메일·이름과 작성한 질문은 수업 운영에만 사용합니다.</p>`;
 }

@@ -26,7 +26,7 @@ async function exists(file) {
 
 test('every route, 404, sitemap and one page set per schedule window are built', async t => {
   const { pages, outDir, read, variants } = await build(t);
-  assert.deepEqual(pages, ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/', '/learn/']);
+  assert.deepEqual(pages, ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/', '/learn/', '/learn/01/']);
   assert.ok(await exists(path.join(outDir, '404.html')));
   const sitemap = await read('sitemap.xml');
   for (const page of pages) assert.match(sitemap, new RegExp(`<loc>${defaultContent.site.url}${page}</loc>`));
@@ -342,4 +342,25 @@ test('the learn page loads its script, explains the SNU login and is in the menu
   assert.match(await read('/'), /href="\/learn\/"[^>]*>[\s\S]*?수업 듣기/);
   const routes = JSON.parse(await readFile(path.join(outDir, '_routes.json'), 'utf8'));
   assert.ok(routes.exclude.includes('/learn.js'));
+});
+
+test('each open workshop gets a lesson page with the student slides and every step', async t => {
+  const { read } = await build(t, defaultContent, WS2_OPENS);
+  const html = await read('/learn/02/');
+  const ws2 = defaultContent.workshops[1];
+  assert.match(html, /<iframe data-slides data-embed-base="https:\/\/docs\.google\.com\/presentation\/d\/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE\/embed\?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id\." src="[^"]+slide=id\.ws2_activity_20261019_01"/);
+  for (const m of ws2.missions) assert.match(html, new RegExp(`data-step="${m.id}" data-slide-id="${m.slideId}"`));
+  assert.equal((html.match(/class="lesson-step"/g) ?? []).length, ws2.missions.length);
+  assert.match(html, /data-learn-content data-lesson="2" hidden/);
+  assert.match(html, /<script src="\/learn\.js\?v=/);
+  assert.match(await read('/learn/'), /href="\/learn\/02\/"/);
+  const ws1 = await read('/learn/01/');
+  assert.match(ws1, /<details class="option" data-slide-id="h2ea000745df279bf_2_267">/);
+});
+
+test('a lesson page does not exist before its workshop opens', async t => {
+  const { outDir, read } = await build(t, defaultContent, WS2_OPENS - 60_000);
+  assert.equal(await exists(path.join(outDir, 'learn/02/index.html')), false);
+  assert.ok(await exists(path.join(outDir, 'learn/01/index.html')));
+  assert.match(await read('/learn/'), /11\/2 \(월\) 18:00에 열려요/);
 });
