@@ -4,10 +4,22 @@
 export const studio = {
   title: 'Studio Session',
   korean: '함께 만드는 시간',
-  message: '워크숍 사이사이, 막힌 곳을 풀고 내 프로젝트를 이어서 만들어요.',
-  description: '한 번 하는 행사가 아니라 워크숍 사이마다 이어지는 작업 시간이에요. 막힌 부분이나 다음 기능 질문을 가져오면 함께 풀어요.',
+  cadence: '매주 월요일',
+  message: '매주 월요일, 막힌 곳을 풀고 내 프로젝트를 이어서 만들어요.',
+  description: '매주 월요일에 열리는 작업 시간이에요. 막힌 부분이나 다음 기능 질문을 가져오면 함께 풀어요.',
+  timingNote: '시간은 주마다 달라질 수 있어요. 회차별 시간은 일정에서 확인해 주세요.',
+  // 상태와 배지는 sessions에서 다음 회차를 찾아 자동으로 정합니다.
   event: { status: 'tbd', start: null, end: null, place: null },
-  sessions: [], // 확정된 회차를 { start, end, place } 형식으로 추가하면 일정 목록이 나타납니다.
+  // 회차: { start, end, place, note, topic?, detail?, beginners? } — beginners: true면 '초보자 필수' 표시
+  sessions: [
+    { start: '2026-10-26T19:00:00+09:00', end: '2026-10-26T20:00:00+09:00', place: null, note: 'Workshop 1이 끝난 뒤' },
+    {
+      start: '2026-11-02T19:00:00+09:00', end: '2026-11-02T20:00:00+09:00', place: null, note: 'Workshop 2가 끝난 뒤',
+      topic: '바이브 코딩 기초 환경 설정',
+      detail: 'VS Code 설정부터 GitHub, Cloudflare 연결까지 바이브 코딩을 시작하는 데 필요한 환경을 함께 갖춰요.',
+      beginners: true
+    }
+  ],
   bring: [
     '작업 중인 내 프로젝트 (완성하지 않아도 괜찮아요)',
     '만들고 싶은 것, 시도한 방법, 막힌 부분이나 오류 화면',

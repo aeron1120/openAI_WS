@@ -217,3 +217,18 @@ test('copy buttons start hidden so they only appear when the script can run', as
   assert.ok(buttons.length >= 4);
   for (const button of buttons) assert.match(button, /\shidden>/);
 });
+
+test('studio shows weekly sessions and promotes the next one until it ends', async t => {
+  const before = await build(t);
+  const page = await before.read('/studio/');
+  assert.match(page, /매주 월요일/);
+  assert.match(page, /다음 세션 · 11\/2 \(월\) 19:00/);
+  assert.match(page, /바이브 코딩 기초 환경 설정/);
+  assert.match(page, /초보자 필수/);
+  assert.match(page, /2026년 10월 26일 \(월\) 19:00–20:00[\s\S]*?진행 완료/);
+  assert.match(await before.read('/'), /다음 11\/2 \(월\) 19:00 · 바이브 코딩 기초 환경 설정/);
+  const after = await build(t, defaultContent, Date.parse('2026-11-02T20:00:00+09:00'));
+  const done = await after.read('/studio/');
+  assert.doesNotMatch(done, /다음 세션/);
+  assert.match(done, /badge-scheduled">매주 월요일/);
+});

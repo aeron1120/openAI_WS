@@ -33,7 +33,7 @@ export function formatSchedule(event, timeZone) {
   return `${date} ${time.format(start)}${end} (한국 시간)`;
 }
 
-const eventLabels = { done: ['진행 완료', 'done'], live: ['진행 중', 'open'], scheduled: ['일정 확정', 'scheduled'], tbd: ['준비 중', 'planning'], planning: ['준비 중', 'planning'] };
+const eventLabels = { done: ['진행 완료', 'done'], live: ['진행 중', 'open'], scheduled: ['일정 확정', 'scheduled'], tbd: ['준비 중', 'planning'], planning: ['준비 중', 'planning'], weekly: ['매주 월요일', 'scheduled'] };
 export function isRecruiting(item) {
   return Boolean(item.recruitment?.open && isUsableUrl(item.recruitment.url));
 }

@@ -14,7 +14,7 @@ function navGroups(content) {
           sub: w.materials === 'open' ? w.shortTitle : w.materials === 'locked' ? w.event.badge ?? w.shortTitle : '준비 중',
           color: w.materials === 'planning' ? 'muted' : w.color
         })),
-        { path: '/studio/', label: studio.title, sub: '워크숍 사이마다', color: 'navy' },
+        { path: '/studio/', label: studio.title, sub: studio.next?.badge ?? studio.cadence, color: 'navy' },
         { path: '/showcase/', label: showcase.title, sub: '학기 마무리', color: showcase.color }
       ]
     },

@@ -64,7 +64,9 @@ function showcaseCard(showcase) {
 function studioStrip(studio) {
   return h`<a class="strip" href="/studio/">
   <span class="dot dot-navy" aria-hidden="true"></span>
-  <span><strong>${studio.title}</strong> ${studio.message}</span>
+  <span><strong>${studio.title}</strong> ${studio.next?.topic
+    ? h`다음 ${studio.next.badge} · ${studio.next.topic}${studio.next.beginners ? h` <span class="badge badge-open">초보자 필수</span>` : ''}`
+    : studio.message}</span>
   <span class="strip-arrow" aria-hidden="true">→</span>
 </a>`;
 }
@@ -270,20 +272,36 @@ ${w.share ? h`<section class="block next-box">
 ${pager}</div>`;
 }
 
+function sessionRow(s, timeZone) {
+  const done = s.status === 'done';
+  return h`<li class="session${done ? ' is-done' : ''}">
+  <p class="session-time">${formatSchedule(s, timeZone)}${done ? h` <span class="badge badge-done">진행 완료</span>` : s.status === 'live' ? h` <span class="badge badge-open">진행 중</span>` : ''}</p>
+  <p class="hint">${[s.note, s.topic, done ? null : s.place ?? '장소 추후 안내'].filter(Boolean).join(' · ')}</p>
+</li>`;
+}
+
 export function studioPage(content) {
   const { site, studio } = content;
-  const sessions = studio.sessions.filter(s => s.start);
+  const { next, sessions } = studio;
   return h`<header class="detail-head c-navy">
   <p class="track-kicker">${studio.korean} ${eventBadge(studio)}</p>
   <h1>${studio.title}</h1>
   <p class="lead">${studio.description}</p>
+  <p class="hint">${studio.timingNote}</p>
   ${isUsableUrl(site.links.openChat) ? h`<div class="actions">${link(site.links.openChat, '오픈채팅에서 일정 받기', 'btn btn-primary')}</div>` : ''}
 </header>
+${next?.topic ? h`<section class="block next-session">
+  <p class="next-label">다음 세션 · ${next.badge}${next.beginners ? h` <span class="badge badge-open">초보자 필수</span>` : ''}</p>
+  <h2>${next.topic}</h2>
+  <p>${next.detail}</p>
+  ${next.beginners ? h`<p class="next-call">코딩이 처음이라면 꼭 참여해 주세요. 이후 워크숍을 따라가는 데 필요한 준비를 이 시간에 함께 마쳐요.</p>` : ''}
+  <p class="hint">${formatSchedule(next, site.timeZone)} · ${[next.note, next.place ?? '장소 추후 안내'].filter(Boolean).join(' · ')}</p>
+</section>` : ''}
 <section class="block two">
   <div class="box">
-    <h2>일정</h2>
+    <h2>일정 <small class="hint">${studio.cadence}</small></h2>
     ${sessions.length
-      ? checks(sessions.map(s => `${formatSchedule(s, site.timeZone)} · ${s.place ?? '장소 추후 안내'}`))
+      ? h`<ul class="sessions">${sessions.map(s => sessionRow(s, site.timeZone))}</ul>`
       : h`<p class="hint">준비 중이에요. 정해지면 이곳에 안내할게요.</p>`}
   </div>
   <div class="box"><h2>가져올 것</h2>${checks(studio.bring)}</div>

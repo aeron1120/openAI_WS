@@ -25,6 +25,16 @@ function resolveEvent(event, time, timeZone) {
   return resolved;
 }
 
+// Studio Session은 매주 열리므로, 아직 끝나지 않은 가장 가까운 회차를 대표 일정으로 씁니다.
+function resolveStudio(studio, time, timeZone) {
+  const sessions = (studio.sessions ?? []).filter(s => s.start)
+    .map(s => ({ ...s, ...resolveEvent(s, time, timeZone) }))
+    .sort((a, b) => at(a.start) - at(b.start));
+  const next = sessions.find(s => s.status !== 'done') ?? null;
+  const event = next ? { ...next } : { status: 'weekly', start: null, end: null, place: null };
+  return { ...studio, sessions, next, event };
+}
+
 export function resolveContent(content, time) {
   const { timeZone } = content.site;
   const workshops = content.workshops.map(w => {
@@ -40,7 +50,7 @@ export function resolveContent(content, time) {
   return {
     ...content,
     workshops,
-    studio: { ...content.studio, event: resolveEvent(content.studio.event, time, timeZone) },
+    studio: resolveStudio(content.studio, time, timeZone),
     showcase: { ...content.showcase, event: resolveEvent(content.showcase.event, time, timeZone) },
     projects: content.projects.filter(p => p.workshop == null || openNumbers.has(p.workshop)),
     now: time
@@ -53,5 +63,6 @@ export function boundaries(content) {
   const add = value => { if (value && !Number.isNaN(at(value))) times.add(at(value)); };
   for (const w of content.workshops) { add(w.materialsOpenAt); add(w.event?.start); add(w.event?.end); }
   for (const item of [content.studio, content.showcase]) { add(item.event?.start); add(item.event?.end); }
+  for (const s of content.studio.sessions ?? []) { add(s.start); add(s.end); }
   return [...times].sort((a, b) => a - b);
 }

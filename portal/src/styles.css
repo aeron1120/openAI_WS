@@ -318,3 +318,15 @@ small { color: var(--muted); }
   .sidebar, .topbar, .copy-button, .pager { display: none; }
   .mission:not([open]) .mission-body { display: block; }
 }
+
+/* Studio Session */
+.next-session { border-radius: 16px; padding: 20px; background: var(--navy-soft); }
+.next-session h2 { margin: 4px 0 8px; color: var(--navy); }
+.next-session p { margin: 0 0 8px; }
+.next-label { font-size: .84rem; font-weight: 700; color: var(--navy); }
+.next-call { font-weight: 700; }
+.sessions { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.session p { margin: 0; }
+.session-time { font-weight: 700; font-size: .94rem; }
+.session.is-done .session-time { color: var(--muted); }
+.box h2 small { font-weight: 600; margin-left: 6px; }
