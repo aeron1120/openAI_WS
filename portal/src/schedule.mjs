@@ -1,6 +1,7 @@
 // 시각에 따라 달라지는 상태 계산. 같은 콘텐츠로 '그 시각의 사이트'를 만들 수 있게 합니다.
 // - 행사: end가 지나면 'done', start가 있으면 'scheduled', 없으면 콘텐츠에 적힌 상태
 // - 자료: materialsOpenAt 전이면 'locked' (미션·슬라이드·예제를 그리지 않음)
+// - 신청: 행사가 시작되면 recruitment.open을 끕니다
 
 const at = value => value ? Date.parse(value) : NaN;
 
@@ -39,9 +40,11 @@ export function resolveContent(content, time) {
   const { timeZone } = content.site;
   const workshops = content.workshops.map(w => {
     const locked = w.materials === 'open' && w.materialsOpenAt && time < at(w.materialsOpenAt);
+    const event = resolveEvent(w.event, time, timeZone);
     return {
       ...w,
-      event: resolveEvent(w.event, time, timeZone),
+      event,
+      recruitment: ['live', 'done'].includes(event?.status) ? { ...w.recruitment, open: false } : w.recruitment,
       materials: locked ? 'locked' : w.materials,
       opensLabel: locked ? shortTime(w.materialsOpenAt, timeZone) : null
     };

@@ -19,10 +19,12 @@ function cardStatus(w) {
 }
 const lockNote = w => h`<p class="opens"><span aria-hidden="true">🔒</span> 실습·슬라이드는 ${w.opensLabel}에 열려요</p>`;
 
-// 홈의 주 행동: 실제 신청 링크가 열린 회차가 있을 때만 신청을 앞세우고, 없으면 최근 회차 다시 해보기.
+// 홈의 주 행동: 신청 링크가 열린 회차 → 진행 중인 회차 실습 → 최근 회차 다시 해보기 순서.
 export function primaryAction(workshops) {
   const recruiting = workshops.find(isRecruiting);
   if (recruiting) return { label: `Workshop ${recruiting.number} 신청하기`, url: recruiting.recruitment.url };
+  const live = workshops.find(w => w.event.status === 'live' && w.materials === 'open');
+  if (live) return { label: `Workshop ${live.number} 실습 시작하기`, url: workshopPath(live) };
   const done = workshops.filter(w => w.event.status === 'done' && w.materials === 'open').at(-1);
   if (done) return { label: `Workshop ${done.number} 다시 해보기`, url: workshopPath(done) };
   return { label: '학기 로드맵 보기', url: '/roadmap/' };

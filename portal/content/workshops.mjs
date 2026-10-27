@@ -168,7 +168,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     summary: '기능 하나를 Codex로 추가하고, Git·GitHub로 기록한 뒤 Cloudflare로 친구가 쓸 수 있게 공개해요.',
     doing: '기능을 직접 추가해 확인하고, Git·GitHub로 기록·되돌리기를 익힌 뒤 Cloudflare로 배포해요.',
     event: { status: 'scheduled', start: '2026-11-02T18:00:00+09:00', end: '2026-11-02T19:00:00+09:00', place: '서울대학교 관악캠퍼스 56동(자연과학관10) 105호' },
-    recruitment: { open: false, url: null },
+    recruitment: { open: true, url: 'https://luma.com/54mgt7n8' }, // 행사가 시작되면 자동으로 닫혀요.
     materials: 'open',
     materialsOpenAt: '2026-11-02T18:00:00+09:00',
     exampleDirs: ['workshop2/starter', 'workshop2/complete'],

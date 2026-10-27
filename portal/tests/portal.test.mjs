@@ -124,14 +124,14 @@ test('undated items say 준비 중, never 미정', async t => {
   }
 });
 
-test('a past sign-up form is never offered and nothing claims recruiting without a link', async t => {
-  const { pages, read } = await build(t);
+test('a past sign-up form is never offered and recruiting ends with the event', async t => {
+  const { pages, read } = await build(t, defaultContent, WS2_ENDS);
   for (const page of pages) {
     const html = await read(page);
     assert.doesNotMatch(html, /forms\.gle\/dRtqQzjj7tvUmaQs9/);
     assert.doesNotMatch(html, /모집 중|신청하기/);
   }
-  assert.match(await read('/'), /Workshop 1 다시 해보기/);
+  assert.match(await read('/'), /Workshop 2 다시 해보기/);
 });
 
 test('an open recruitment with a real link becomes the primary action', async t => {
@@ -233,4 +233,16 @@ test('studio shows weekly sessions and promotes the next one until it ends', asy
   const done = await after.read('/studio/');
   assert.doesNotMatch(done, /다음 세션/);
   assert.match(done, /badge-scheduled">매주 월요일/);
+});
+
+test('Workshop 2 sign-up links to Luma until the event starts', async t => {
+  const before = await build(t);
+  const home = await before.read('/');
+  assert.match(home, /href="https:\/\/luma\.com\/54mgt7n8"[^>]*>Workshop 2 신청하기/);
+  assert.match(await before.read('/workshops/02/'), /href="https:\/\/luma\.com\/54mgt7n8"[^>]*>신청하기/);
+  const during = await build(t, defaultContent, WS2_OPENS);
+  assert.doesNotMatch(await during.read('/workshops/02/'), /luma\.com/);
+  assert.match(await during.read('/'), /Workshop 2 실습 시작하기/);
+  const ended = await build(t, defaultContent, WS2_ENDS);
+  for (const page of ['/', '/workshops/02/']) assert.doesNotMatch(await ended.read(page), /luma\.com/);
 });
