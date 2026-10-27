@@ -1,0 +1,14 @@
+{
+  "name": "snu-learn-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "SNU 수업·질문 시스템 API 서버 (Render)",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
