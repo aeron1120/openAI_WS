@@ -50,7 +50,7 @@ export function validateContent(content) {
     // 수업 화면(/learn/)용: 학생용 슬라이드가 있는 회차는 단계마다 시작 슬라이드(번호·ID)가 필요합니다.
     if (w.resources.some(r => r.kind === 'slides')) {
       const deck = w.resources.find(r => r.kind === 'slides');
-      if (!/^https:\/\/docs\.google\.com\/presentation\/d\/[A-Za-z0-9_-]+\//.test(deck.url ?? '')) problems.push(`${where}: 학생용 슬라이드는 docs.google.com/presentation/d/<ID>/… 주소여야 화면에 넣을 수 있어요.`);
+      if (!/^https:\/\/docs\.google\.com\/presentation\/d\/[A-Za-z0-9_-]{20,}\//.test(deck.url ?? '')) problems.push(`${where}: 학생용 슬라이드는 docs.google.com/presentation/d/<ID>/… 주소여야 화면에 넣을 수 있어요.`);
       const slideOk = item => Number.isInteger(item.slide) && item.slide >= 1 && /^[A-Za-z0-9_-]+$/.test(item.slideId ?? '');
       for (const m of w.missions) {
         if (!slideOk(m)) problems.push(`${where} ${m.id}: slide(슬라이드 번호)와 slideId(슬라이드 ID)를 적어 주세요.`);
