@@ -52,3 +52,29 @@ export function fakeFetch(state = {}) {
     throw new Error(`unexpected fetch ${url}`);
   };
 }
+
+import { createApp } from '../app.mjs';
+
+export function api(path, { method = 'GET', headers = {}, proxy = true, cookie } = {}) {
+  return new Request(`https://learn.onrender.test${path}`, {
+    method,
+    headers: { ...(proxy ? { 'x-proxy-secret': ENV.PROXY_SECRET } : {}), ...(cookie ? { cookie } : {}), ...headers }
+  });
+}
+
+// set-cookie 중 지우는 쿠키(Max-Age=0)를 뺀 "이름=값" 목록
+export const cookiesFrom = response => response.headers.getSetCookie().filter(c => !/Max-Age=0/.test(c)).map(c => c.split(';')[0]).join('; ');
+
+export function makeApp(state = {}, env = ENV) {
+  return { state, app: createApp({ env, fetchImpl: fakeFetch(state), now: () => NOW }) };
+}
+
+// 로그인 시작 → 가짜 Google 토큰 준비 → 콜백까지. override로 토큰 내용을 바꿉니다.
+export async function login({ app, state }, { next = '/learn/', override = {}, callbackQuery } = {}) {
+  const start = await app(api(`/api/auth/google?next=${encodeURIComponent(next)}`));
+  const google = new URL(start.headers.get('location'));
+  state.idToken = idToken(claims(google.searchParams.get('nonce'), override));
+  const query = callbackQuery ?? `code=code-1&state=${google.searchParams.get('state')}`;
+  const callback = await app(api(`/api/auth/google/callback?${query}`, { cookie: cookiesFrom(start) }));
+  return { start, google, callback, session: cookiesFrom(callback) };
+}

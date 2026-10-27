@@ -1,0 +1,89 @@
+// 수업 시스템 API. 포털(Cloudflare Pages)이 /api/*를 x-proxy-secret 헤더와 함께 전달합니다.
+// 1단계: 상태 확인, SNU Google 로그인, 내 정보, 로그아웃.
+import { randomBytes } from 'node:crypto';
+import { loadConfig } from './config.mjs';
+import { HttpError, json, readCookie, redirect, safeEqual, sameOrigin, setCookie } from './http.mjs';
+import { sign, verify } from './session.mjs';
+import { authUrl, exchangeCode, verifyIdToken, GoogleError } from './google.mjs';
+import { supabaseClient } from './supabase.mjs';
+
+const SESSION_COOKIE = '__Host-learn_session';
+const OAUTH_COOKIE = '__Host-learn_oauth';
+const SESSION_SECONDS = 14 * 24 * 60 * 60;
+const OAUTH_SECONDS = 10 * 60;
+// 로그인 후 돌아갈 곳: /learn/… 또는 /admin/… 폴더 주소만
+const NEXT_PATH = /^\/(?:learn|admin)\/(?:[A-Za-z0-9_-]+\/)*$/;
+
+export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () => randomBytes(24).toString('base64url') }) {
+  const config = loadConfig(env);
+  const db = config.ok ? supabaseClient({ ...config.supabase, fetchImpl }) : null;
+  const callbackUrl = `${config.publicOrigin}/api/auth/google/callback`;
+
+  function currentSession(request, seconds) {
+    return verify(readCookie(request, SESSION_COOKIE), config.sessionSecret, 'session', seconds);
+  }
+
+  function startLogin(url, seconds) {
+    const requested = url.searchParams.get('next') ?? '';
+    const next = NEXT_PATH.test(requested) ? requested : '/learn/';
+    const state = random();
+    const nonce = random();
+    const cookie = sign({ kind: 'oauth', state, nonce, next, exp: seconds + OAUTH_SECONDS }, config.sessionSecret);
+    return redirect(authUrl({ clientId: config.google.clientId, redirectUri: callbackUrl, state, nonce }), [setCookie(OAUTH_COOKIE, cookie, OAUTH_SECONDS)]);
+  }
+
+  async function finishLogin(request, url, seconds) {
+    const fail = reason => redirect(`${config.publicOrigin}/learn/?error=${reason}`, [setCookie(OAUTH_COOKIE, '', 0)]);
+    const oauth = verify(readCookie(request, OAUTH_COOKIE), config.sessionSecret, 'oauth', seconds);
+    if (!oauth) return fail('expired');
+    if (url.searchParams.has('error')) return fail('cancelled');
+    const code = url.searchParams.get('code');
+    if (!code || !safeEqual(url.searchParams.get('state') ?? '', oauth.state)) return fail('failed');
+    let identity;
+    try {
+      const token = await exchangeCode({ code, clientId: config.google.clientId, clientSecret: config.google.clientSecret, redirectUri: callbackUrl, fetchImpl });
+      identity = await verifyIdToken(token, { clientId: config.google.clientId, nonce: oauth.nonce, fetchImpl, nowMs: now() });
+    } catch (error) {
+      return fail(error instanceof GoogleError ? error.reason : 'failed');
+    }
+    let student;
+    try {
+      student = await db.upsertStudent({ googleSub: identity.sub, email: identity.email, name: identity.name, now: new Date(now()).toISOString() });
+    } catch (error) {
+      console.error('learn-server: student upsert failed', error.message);
+      return fail('failed');
+    }
+    const session = sign({ kind: 'session', sid: student.id, email: identity.email, name: identity.name, exp: seconds + SESSION_SECONDS }, config.sessionSecret);
+    return redirect(config.publicOrigin + oauth.next, [setCookie(SESSION_COOKIE, session, SESSION_SECONDS), setCookie(OAUTH_COOKIE, '', 0)]);
+  }
+
+  return async function handle(request) {
+    const url = new URL(request.url);
+    const seconds = Math.floor(now() / 1000);
+    try {
+      if (url.pathname === '/api/health') return json({ ok: true, configured: config.ok });
+      if (!config.ok) throw new HttpError(503, 'LEARN_NOT_CONFIGURED', '수업 서버를 준비하고 있어요.');
+      if (!safeEqual(request.headers.get('x-proxy-secret') ?? '', config.proxySecret)) throw new HttpError(403, 'DIRECT_ACCESS', '포털 주소로 접속해 주세요.');
+      switch (`${request.method} ${url.pathname}`) {
+        case 'GET /api/auth/google':
+          return startLogin(url, seconds);
+        case 'GET /api/auth/google/callback':
+          return await finishLogin(request, url, seconds);
+        case 'GET /api/me': {
+          const session = currentSession(request, seconds);
+          if (!session) throw new HttpError(401, 'LOGIN_REQUIRED', '서울대 계정으로 로그인해 주세요.');
+          return json({ user: { email: session.email, name: session.name, operator: config.operators.has(session.email) } });
+        }
+        case 'DELETE /api/session':
+          sameOrigin(request, config.publicOrigin);
+          return json({ user: null }, 200, [setCookie(SESSION_COOKIE, '', 0)]);
+        default:
+          throw new HttpError(404, 'NOT_FOUND', '찾을 수 없는 요청입니다.');
+      }
+    } catch (error) {
+      if (error instanceof HttpError) return json({ error: error.code, message: error.message }, error.status);
+      console.error('learn-server: unexpected error', error?.message);
+      return json({ error: 'SERVER_ERROR', message: '잠시 후 다시 시도해 주세요.' }, 500);
+    }
+  };
+}
