@@ -1,5 +1,11 @@
 // Supabase REST(PostgREST) 클라이언트. 서비스 키는 서버에서만 씁니다(RLS를 우회하므로 브라우저로 보내지 않음).
 // 새 키(sb_secret_…)는 apikey 헤더로, 예전 service_role JWT(eyJ…)는 Authorization 헤더로도 보냅니다.
+const enc = encodeURIComponent;
+const inList = ids => `in.(${ids.map(enc).join(',')})`;
+// 질문 목록(요약)과 질문 하나(대화·첨부까지). student:students(...)는 questions.student_id 외래키로 학생을 붙입니다.
+const SUMMARY = 'id,workshop,step_id,mode,status,created_at,updated_at,student:students(email,name),messages(author,body,created_at)';
+const DETAIL = 'id,student_id,workshop,step_id,mode,status,created_at,updated_at,student:students(email,name),messages(id,author,operator_email,body,error_text,created_at,attachments(id,path,mime))';
+
 export function supabaseClient({ url, key, fetchImpl = fetch }) {
   const base = { apikey: key, 'content-type': 'application/json', ...(key.startsWith('eyJ') ? { authorization: `Bearer ${key}` } : {}) };
   async function request(path, { headers = {}, ...init } = {}) {
@@ -34,6 +40,59 @@ export function supabaseClient({ url, key, fetchImpl = fetch }) {
         method: 'DELETE',
         headers: { prefer: 'return=minimal' }
       });
+    },
+    listAllProgress() {
+      return request('progress?select=workshop,step_id&limit=10000');
+    },
+    async createQuestion({ studentId, workshop, stepId, mode, status, now }) {
+      const rows = await request('questions?select=id', {
+        method: 'POST',
+        headers: { prefer: 'return=representation' },
+        body: JSON.stringify({ student_id: studentId, workshop, step_id: stepId, mode, status, created_at: now, updated_at: now })
+      });
+      return rows[0].id;
+    },
+    async addMessage({ questionId, author, operatorEmail = null, body, errorText = null, now }) {
+      const rows = await request('messages?select=id', {
+        method: 'POST',
+        headers: { prefer: 'return=representation' },
+        body: JSON.stringify({ question_id: questionId, author, operator_email: operatorEmail, body, error_text: errorText, created_at: now })
+      });
+      return rows[0].id;
+    },
+    async updateQuestion(id, fields) {
+      await request(`questions?id=eq.${enc(id)}`, { method: 'PATCH', headers: { prefer: 'return=minimal' }, body: JSON.stringify(fields) });
+    },
+    async getQuestion(id) {
+      const rows = await request(`questions?id=eq.${enc(id)}&select=${DETAIL}&messages.order=created_at.asc`);
+      return rows?.[0] ?? null;
+    },
+    listQuestions({ studentId, status, workshop } = {}) {
+      const filters = [];
+      if (studentId) filters.push(`student_id=eq.${enc(studentId)}`);
+      if (status) filters.push(`status=eq.${enc(status)}`);
+      if (workshop) filters.push(`workshop=eq.${enc(workshop)}`);
+      return request(`questions?${[...filters, `select=${SUMMARY}`, 'messages.order=created_at.asc', 'order=updated_at.desc', 'limit=200'].join('&')}`);
+    },
+    async createAttachment({ id, uploaderId, path, mime, size, now }) {
+      await request('attachments', {
+        method: 'POST',
+        headers: { prefer: 'return=minimal' },
+        body: JSON.stringify({ id, uploader_id: uploaderId, path, mime, size, created_at: now })
+      });
+    },
+    // 내가 올렸고, 아직 메시지에 안 붙었고, since 이후에 올린 첨부만 돌려줍니다.
+    claimableAttachments({ ids, uploaderId, since }) {
+      return request(`attachments?id=${inList(ids)}&uploader_id=eq.${enc(uploaderId)}&message_id=is.null&created_at=gte.${enc(since)}&select=id`);
+    },
+    async attachToMessage({ ids, messageId }) {
+      await request(`attachments?id=${inList(ids)}`, { method: 'PATCH', headers: { prefer: 'return=minimal' }, body: JSON.stringify({ message_id: messageId }) });
+    },
+    staleAttachments(before) {
+      return request(`attachments?message_id=is.null&created_at=lt.${enc(before)}&select=id,path&limit=500`);
+    },
+    async deleteAttachments(ids) {
+      await request(`attachments?id=${inList(ids)}`, { method: 'DELETE', headers: { prefer: 'return=minimal' } });
     }
   };
 }
