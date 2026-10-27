@@ -65,7 +65,7 @@ function studioStrip(studio) {
   return h`<a class="strip" href="/studio/">
   <span class="dot dot-navy" aria-hidden="true"></span>
   <span><strong>${studio.title}</strong> ${studio.next?.topic
-    ? h`다음 ${studio.next.badge} · ${studio.next.topic}${studio.next.beginners ? h` <span class="badge badge-open">초보자 필수</span>` : ''}`
+    ? h`다음 ${studio.next.badge} · ${studio.next.topic}${studio.next.tag ? h` <span class="badge badge-open">${studio.next.tag}</span>` : ''}`
     : studio.message}</span>
   <span class="strip-arrow" aria-hidden="true">→</span>
 </a>`;
@@ -119,7 +119,7 @@ export function roadmapPage(content) {
   ];
   return h`<header class="page-head">
   <h1>학기 로드맵</h1>
-  <p class="lead">워크숍 4번, 그 사이마다 Studio Session, 마지막에 Showcase. 중간에 합류해도 괜찮아요.</p>
+  <p class="lead">워크숍 4번과 매주 월요일 Studio Session, 마지막에 Showcase. 중간에 합류해도 괜찮아요.</p>
 </header>
 <ol class="timeline">
   ${steps.map((s, i) => h`${i > 0 && i < steps.length ? h`<li class="tl-studio"><a href="/studio/">${studio.title}</a></li>` : ''}<li class="tl c-${s.color}${s.item === next ? ' is-next' : ''}">
@@ -127,7 +127,7 @@ export function roadmapPage(content) {
     <div class="tl-body">
       <p class="track-kicker">${s.kicker} ${s.status}${s.item === next ? h` <span class="badge badge-next">다음 단계</span>` : ''}</p>
       <h2><a href="${s.url}">${s.title}</a></h2>
-      <p class="tl-outcome">남는 것 · ${s.outcome}</p>
+      ${s.outcome ? h`<p class="tl-outcome">남는 것 · ${s.outcome}</p>` : ''}
       ${s.item.event?.start ? h`<p class="tl-date">${formatSchedule(s.item.event, site.timeZone)}</p>` : ''}
     </div>
   </li>`)}
@@ -218,8 +218,8 @@ ${pager}</div>`;
     return h`<div class="c-${color}">${head}
 <section class="pending">
   <h2>이 회차는 준비하고 있어요</h2>
-  <p>목표: <strong>${w.outcome}</strong></p>
-  <p class="hint">세부 내용은 확정되면 이 페이지에서 안내해요.</p>
+  ${w.outcome ? h`<p>목표: <strong>${w.outcome}</strong></p>
+  <p class="hint">세부 내용은 확정되면 이 페이지에서 안내해요.</p>` : h`<p class="hint">주제와 일정이 정해지면 이 페이지에서 안내해요.</p>`}
   <div class="actions">${latest ? h`<a class="btn btn-primary" href="${workshopPath(latest)}">Workshop ${latest.number} 실습하기</a>` : ''}<a class="btn btn-ghost" href="/roadmap/">학기 로드맵</a></div>
 </section>
 ${pager}</div>`;
@@ -287,14 +287,15 @@ export function studioPage(content) {
   <p class="track-kicker">${studio.korean} ${eventBadge(studio)}</p>
   <h1>${studio.title}</h1>
   <p class="lead">${studio.description}</p>
+  <p><strong>${studio.optionalNote}</strong></p>
   <p class="hint">${studio.timingNote}</p>
   ${isUsableUrl(site.links.openChat) ? h`<div class="actions">${link(site.links.openChat, '오픈채팅에서 일정 받기', 'btn btn-primary')}</div>` : ''}
 </header>
 ${next?.topic ? h`<section class="block next-session">
-  <p class="next-label">다음 세션 · ${next.badge}${next.beginners ? h` <span class="badge badge-open">초보자 필수</span>` : ''}</p>
+  <p class="next-label">다음 세션 · ${next.badge}${next.tag ? h` <span class="badge badge-open">${next.tag}</span>` : ''}</p>
   <h2>${next.topic}</h2>
   <p>${next.detail}</p>
-  ${next.beginners ? h`<p class="next-call">코딩이 처음이라면 꼭 참여해 주세요. 이후 워크숍을 따라가는 데 필요한 준비를 이 시간에 함께 마쳐요.</p>` : ''}
+  ${next.call ? h`<p class="next-call">${next.call}</p>` : ''}
   <p class="hint">${formatSchedule(next, site.timeZone)} · ${[next.note, next.place ?? '장소 추후 안내'].filter(Boolean).join(' · ')}</p>
 </section>` : ''}
 <section class="block two">

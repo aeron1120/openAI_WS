@@ -5,19 +5,21 @@ export const studio = {
   title: 'Studio Session',
   korean: '함께 만드는 시간',
   cadence: '매주 월요일',
-  message: '매주 월요일, 막힌 곳을 풀고 내 프로젝트를 이어서 만들어요.',
-  description: '매주 월요일에 열리는 작업 시간이에요. 막힌 부분이나 다음 기능 질문을 가져오면 함께 풀어요.',
+  message: '매주 월요일, 워크숍 내용을 다시 짚고 막힌 곳을 함께 풀어요.',
+  description: '매주 월요일에 열리는 작업 시간이에요. 워크숍 내용을 다시 정리하고, 막힌 부분이나 다음 기능 질문을 가져오면 함께 풀어요.',
+  optionalNote: '오면 좋지만 필수는 아니에요. 매번 내용을 다시 정리하기 때문에, 못 와도 다음 워크숍을 따라가는 데 문제없어요.',
   timingNote: '시간은 주마다 달라질 수 있어요. 회차별 시간은 일정에서 확인해 주세요.',
   // 상태와 배지는 sessions에서 다음 회차를 찾아 자동으로 정합니다.
   event: { status: 'tbd', start: null, end: null, place: null },
-  // 회차: { start, end, place, note, topic?, detail?, beginners? } — beginners: true면 '초보자 필수' 표시
+  // 회차: { start, end, place, note, topic?, detail?, tag?, call? } — tag는 배지, call은 강조 문장으로 표시
   sessions: [
     { start: '2026-10-26T19:00:00+09:00', end: '2026-10-26T20:00:00+09:00', place: null, note: 'Workshop 1이 끝난 뒤' },
     {
       start: '2026-11-02T19:00:00+09:00', end: '2026-11-02T20:00:00+09:00', place: null, note: 'Workshop 2가 끝난 뒤',
-      topic: '바이브 코딩 기초 환경 설정',
-      detail: 'VS Code 설정부터 GitHub, Cloudflare 연결까지 바이브 코딩을 시작하는 데 필요한 환경을 함께 갖춰요.',
-      beginners: true
+      topic: 'VS Code 세팅 · GitHub·Cloudflare 실습 Q&A',
+      detail: 'VS Code를 함께 세팅하고, Workshop 2의 GitHub·Cloudflare 실습 예제를 따라가며 생긴 문제를 질문하고 해결해요.',
+      tag: '처음이라면 추천',
+      call: '코딩이 처음이라면 와서 함께 세팅해 보세요. 실습하다 막힌 화면을 그대로 가져오면 돼요.'
     }
   ],
   bring: [
