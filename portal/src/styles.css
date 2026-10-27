@@ -450,3 +450,39 @@ a.learn-card:hover { border-color: var(--c); }
 .q-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
 .q-more { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
 .q-more h3 { font-size: 1rem; }
+/* 운영진 화면 (admin.js): 넓으면 목록·상세를 나란히, 좁으면 위아래로 */
+.admin { margin: 20px 0; container-type: inline-size; }
+.admin-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.admin-tab { min-height: 44px; padding: 8px 20px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.admin-tab[aria-selected="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+.admin-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; margin-bottom: 14px; }
+.admin-filter { display: grid; gap: 4px; min-width: 0; max-width: 100%; }
+.admin-filter select { min-height: 44px; max-width: 100%; padding: 8px 12px; border: 1px solid #c3cad8; border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.admin-split { display: grid; gap: 20px; align-items: start; }
+.admin-list, .admin-detail { min-width: 0; }
+.admin-count { margin: 0 0 8px; }
+.admin-step { font-weight: 600; font-size: .94rem; }
+.q-item[aria-current="true"] { border-color: var(--navy); box-shadow: inset 4px 0 0 var(--navy); background: var(--navy-soft); }
+.admin-detail { padding-top: 16px; border-top: 1px solid var(--line); }
+.admin-detail .q-head { margin-top: 10px; }
+.admin-detail h2:focus { outline: none; }
+.admin-info { display: grid; gap: 4px; margin: 12px 0 0; padding: 10px 14px; border-radius: 12px; background: #f6f8fc; font-size: .92rem; }
+.admin-info div { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 8px; }
+.admin-info dt { color: var(--muted); font-weight: 700; }
+.admin-info dd { margin: 0; }
+.admin-progress-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
+.admin-progress-head p { margin: 0; }
+.admin-table-wrap { max-width: 100%; overflow-x: auto; margin-top: 18px; }
+.admin-table { width: 100%; max-width: 720px; border-collapse: collapse; font-size: .94rem; }
+.admin-table caption { text-align: left; font-weight: 750; font-size: 1.05rem; margin-bottom: 6px; }
+.admin-table th, .admin-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.admin-table thead th { color: var(--muted); font-size: .84rem; }
+.admin-table tbody th { font-weight: 600; }
+.admin-table td { width: 8em; text-align: right; font-weight: 700; white-space: nowrap; }
+.admin-table thead th:last-child { text-align: right; }
+@container (min-width: 820px) {
+  .admin-split { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+  .admin-list { max-height: 80vh; overflow-y: auto; padding-right: 4px; }
+  .admin-detail { padding-top: 0; border-top: 0; }
+  .admin-back { display: none; }
+}
