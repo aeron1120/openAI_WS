@@ -70,7 +70,11 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
     const url = new URL(request.url);
     const seconds = Math.floor(now() / 1000);
     try {
-      if (url.pathname === '/api/health') return json({ ok: true, configured: config.ok });
+      if (url.pathname === '/api/health') {
+        // 열린 회차 번호도 알려줘서, 로그인 없이 WORKSHOP_OPEN_AT 반영 여부를 확인할 수 있게 합니다.
+        const openWorkshops = [...config.workshopOpenAt].filter(([, at]) => now() >= at).map(([number]) => number).sort((a, b) => a - b);
+        return json({ ok: true, configured: config.ok, openWorkshops });
+      }
       if (!config.ok) throw new HttpError(503, 'LEARN_NOT_CONFIGURED', '수업 서버를 준비하고 있어요.');
       if (!safeEqual(request.headers.get('x-proxy-secret') ?? '', config.proxySecret)) throw new HttpError(403, 'DIRECT_ACCESS', '포털 주소로 접속해 주세요.');
       if (url.pathname === '/api/progress' || url.pathname.startsWith('/api/progress/')) {

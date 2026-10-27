@@ -8,9 +8,11 @@ const errorOf = response => new URL(response.headers.get('location')).searchPara
 
 test('health answers without the proxy secret and reports configuration', async () => {
   const { app } = makeApp();
-  assert.deepEqual(await (await app(api('/api/health', { proxy: false }))).json(), { ok: true, configured: true });
+  assert.deepEqual(await (await app(api('/api/health', { proxy: false }))).json(), { ok: true, configured: true, openWorkshops: [] });
+  const scheduled = makeApp({}, { ...ENV, WORKSHOP_OPEN_AT: '{"1":"2026-10-26T18:00:00+09:00","2":"2026-11-02T18:00:00+09:00"}' }).app;
+  assert.deepEqual((await (await scheduled(api('/api/health'))).json()).openWorkshops, [1]);
   const bare = makeApp({}, { ...ENV, GOOGLE_CLIENT_SECRET: '' }).app;
-  assert.deepEqual(await (await bare(api('/api/health'))).json(), { ok: true, configured: false });
+  assert.deepEqual(await (await bare(api('/api/health'))).json(), { ok: true, configured: false, openWorkshops: [] });
   assert.equal((await bare(api('/api/me'))).status, 503);
 });
 
