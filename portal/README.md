@@ -154,6 +154,16 @@ npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-stud
 
 `LEARN_API_ORIGIN`은 Render 서비스 주소(예: `https://snu-learn-server.onrender.com`, 끝에 / 없음), `PROXY_SECRET`은 Render 환경값과 같은 32자 이상 값입니다. 비밀값을 넣거나 바꾼 뒤에는 `npm run deploy:portal`로 다시 배포해야 적용됩니다.
 
+### 수업 화면 만들기·고치기
+
+- `/learn/`은 열린 수업 목록과 내 진도, `/learn/<회차>/`는 학생용 슬라이드와 단계를 나란히 보여줍니다. 둘 다 로그인을 확인한 뒤에 내용이 열립니다(`src/learn.js`).
+- 수업 화면은 **자료가 열렸고 학생용 슬라이드(`kind: 'slides'`)와 미션이 있는 회차**에만 만들어집니다. 공개 시각(`materialsOpenAt`) 전에는 페이지 자체가 없습니다.
+- 단계 내용은 `content/workshops.mjs`의 `missions`를 그대로 씁니다. 각 미션에 시작 슬라이드를 적습니다:
+  - `slide`: 학생용 슬라이드 번호(1부터, 사람이 확인하는 용도)
+  - `slideId`: Google Slides 페이지 ID. 슬라이드를 연 주소 끝의 `#slide=id.<페이지 ID>`에서 `<페이지 ID>` 부분입니다.
+  - 기능 선택지(`options`)에도 같은 값을 넣으면, 학생이 그 선택지를 펼칠 때 해당 슬라이드로 넘어갑니다.
+- 단계를 바꾸거나 회차 공개 시각을 바꾸면 수업 서버의 `WORKSHOP_OPEN_AT`(Render 설정, `render.yaml`)도 같은 시각으로 맞춥니다. 서버는 열린 회차의 진도만 저장합니다.
+
 ## 워크숍 2 예제 화면
 
 자료가 열린 시점의 페이지 묶음에만 `../workshop2/starter`와 `../workshop2/complete`의 `index.html`·`app.js`·`styles.css`를 `/examples/workshop2/`로 복사합니다(Workshop 2는 2026-11-02 18:00부터). 기존 Workshop 2 공개 Worker(`openai-ws`)는 2026-10-27 확인 시 삭제된 상태여서, 포털이 이 예제의 공개 위치를 맡습니다.
