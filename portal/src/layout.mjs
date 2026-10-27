@@ -29,7 +29,7 @@ function navList(content, path) {
 </div>`);
 }
 
-const brand = h`<a class="brand" href="/"><span class="brand-mark" aria-hidden="true">SC</span><span class="brand-text"><strong>Student Collective</strong><small>OpenAI · SNU</small></span></a>`;
+const brand = h`<a class="brand" href="/"><img class="brand-mark" src="/images/brand/logo-192.png" alt="" width="36" height="36"><span class="brand-text"><strong>Student Collective</strong><small>OpenAI · SNU</small></span></a>`;
 
 export function layout({ site, content, path, title, description, body, assets }) {
   const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.promise}`;
@@ -55,7 +55,8 @@ ${h`<html lang="ko">
 <meta property="og:image:alt" content="${site.name} — ${site.promise}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#eef2fb">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/images/brand/icon-64.png" type="image/png">
+<link rel="apple-touch-icon" href="/images/brand/apple-touch-icon.png">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="/styles.css?v=${assets.css}">

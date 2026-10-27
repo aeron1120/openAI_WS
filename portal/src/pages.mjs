@@ -78,7 +78,8 @@ export function homePage(content) {
   const { site, workshops, projects } = content;
   const primary = primaryAction(workshops);
   const featured = projects.find(p => p.kind === 'student' && p.published) ?? projects.find(p => p.kind === 'operator' && p.published);
-  return h`<section class="hero">
+  return h`<figure class="banner"><img src="/images/brand/banner-2000.jpg" srcset="/images/brand/banner-1000.jpg 1000w, /images/brand/banner-2000.jpg 2000w" sizes="(min-width: 1024px) calc(100vw - 340px), 100vw" width="2000" height="770" alt="OpenAI Student Collective, Seoul National University 배너" fetchpriority="high"></figure>
+<section class="hero">
   ${featured ? h`<figure class="hero-shot">
     <div class="shot-frame"><img src="${featured.image}" alt="${featured.alt}" width="1280" height="800" loading="lazy" decoding="async"></div>
     <figcaption>${featured.kind === 'operator' ? h`<span class="tag-operator">운영진 예제</span> ` : ''}${featured.title}</figcaption>
