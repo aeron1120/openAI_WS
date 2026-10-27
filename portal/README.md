@@ -140,6 +140,20 @@ portal/
 
 `public/images/examples/`의 화면은 2026-10-27에 실제 예제를 캡처한 것입니다. 예제가 바뀌면 `node portal/scripts/screenshot.mjs <주소> portal/public/images/examples/<파일>.png 1280,800`으로 다시 캡처합니다.
 
+## 수업 듣기 (/learn/)와 수업 서버
+
+`/learn/`은 서울대 `@snu.ac.kr` 계정으로 로그인하는 수업 화면입니다. 로그인·진도·질문은 Render의 수업 서버(`../learn-server/`)가 처리하고, 이 포털은 화면과 전달만 맡습니다.
+
+- 브라우저는 포털 주소의 `/api/*`로 요청하고, `functions/_middleware.js`가 Render로 그대로 전달합니다. 이때 `x-proxy-secret` 헤더를 붙여 포털을 거친 요청만 Render가 받게 합니다.
+- Pages 비밀값 두 개가 필요합니다. 없으면 `/api/*`는 503(`LEARN_NOT_CONFIGURED`)을 돌려주고 화면은 "준비하고 있어요"를 보여줍니다.
+
+```bash
+npx --yes wrangler@4.152.0 pages secret put LEARN_API_ORIGIN --project-name snu-student-collective
+npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-student-collective
+```
+
+`LEARN_API_ORIGIN`은 Render 서비스 주소(예: `https://snu-learn-server.onrender.com`, 끝에 / 없음), `PROXY_SECRET`은 Render 환경값과 같은 32자 이상 값입니다. 비밀값을 넣거나 바꾼 뒤에는 `npm run deploy:portal`로 다시 배포해야 적용됩니다.
+
 ## 워크숍 2 예제 화면
 
 자료가 열린 시점의 페이지 묶음에만 `../workshop2/starter`와 `../workshop2/complete`의 `index.html`·`app.js`·`styles.css`를 `/examples/workshop2/`로 복사합니다(Workshop 2는 2026-11-02 18:00부터). 기존 Workshop 2 공개 Worker(`openai-ws`)는 2026-10-27 확인 시 삭제된 상태여서, 포털이 이 예제의 공개 위치를 맡습니다.
