@@ -65,16 +65,27 @@ export const workshops = [
         id: 'open-starter',
         slide: 1, slideId: 'h2ea000745df279bf_2_24',
         title: '기초 틀 받고 화면 열기',
-        todo: 'GitHub 저장소에서 Code → Download ZIP을 누르고 압축을 모두 풉니다. starter 폴더 안의 index.html을 브라우저로 엽니다.',
+        todo: `[GitHub 저장소](${repo})에서 Code → Download ZIP을 누르고 압축을 모두 풉니다. starter 폴더 안의 index.html을 브라우저로 엽니다.`,
         expected: '“이곳에 나의 아이디어를 담아보세요.” 제목과 로그인·지도·날씨·나만의 기능 박스가 보여요. 설치와 API 키는 아직 필요 없어요.',
         verify: ['박스마다 “아직 연결 전” 표시가 보인다.', '“Codex에 이렇게 요청해보세요”를 펼치면 요청문이 나온다.'],
-        stuck: ['ZIP 파일 안에서 바로 열면 스타일이 빠질 수 있어요. 압축을 모두 푼 뒤 다시 여세요.', '글자만 보이면 코드 편집기가 아니라 브라우저로 열었는지 확인하세요.']
+        stuck: ['ZIP 파일 안에서 바로 열면 스타일이 빠질 수 있어요. 압축을 모두 푼 뒤 다시 여세요.', '글자만 보이면 코드 편집기가 아니라 브라우저로 열었는지 확인하세요.'],
+        hints: [
+          '초록색 Code 버튼은 저장소 첫 화면의 파일 목록 바로 위, 오른쪽에 있어요. GitHub에 로그인하지 않아도 받을 수 있어요. 압축을 풀면 보통 openAI_WS-main 폴더가 생기고, 그 안에 README.md·package.json·starter가 함께 있어요.',
+          '압축 풀기: Windows는 ZIP 파일을 오른쪽 클릭 → 모두 압축 풀기, Mac은 ZIP 파일을 더블클릭해요. 그다음 openAI_WS-main → starter → index.html을 더블클릭하면 기본 브라우저로 열려요. 메모장이나 코드 편집기가 열리면 index.html 파일을 Chrome 같은 브라우저 창으로 끌어다 놓으세요.',
+          `1. [GitHub 저장소](${repo})를 엽니다.
+2. 파일 목록 위 초록색 Code 버튼 → 맨 아래 Download ZIP을 누릅니다.
+3. 다운로드 폴더에서 openAI_WS-main.zip을 찾습니다.
+4. Windows는 오른쪽 클릭 → 모두 압축 풀기 → 압축 풀기를 누릅니다. Mac은 더블클릭하면 같은 이름의 폴더가 생겨요.
+5. 새로 생긴 openAI_WS-main 폴더(ZIP 파일이 아닌 폴더)를 열고 starter 폴더로 들어갑니다.
+6. index.html을 더블클릭합니다. 파일 확장자가 안 보이면 브라우저 아이콘이 붙은 index 파일을 고르세요.
+7. 브라우저 탭에 “이곳에 나의 아이디어를 담아보세요.”와 기능 박스 네 개가 보이면 성공이에요.`
+        ]
       },
       {
         id: 'run-local',
         slide: 4, slideId: 'h2ea000745df279bf_2_62',
         title: 'Codex에게 내 컴퓨터에서 실행해 달라고 하기',
-        todo: 'Codex 데스크톱 또는 VS Code에서 압축을 푼 저장소 전체 폴더를 열고, 아래 요청문을 붙여 넣습니다.',
+        todo: `[Codex 데스크톱 또는 VS Code](${file('guides/START-HERE.md')})에서 압축을 푼 저장소 전체 폴더를 열고, 아래 요청문을 붙여 넣습니다.`,
         prompt: `이 저장소에서 Workshop 1 기초 틀을 실습하려고 해.
 README.md와 starter/README.md를 읽고 starter 화면을 로컬에서 실행해줘.
 Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해줘.
@@ -82,65 +93,137 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
 아직 로그인·지도·날씨 기능을 구현하지는 마.`,
         expected: 'Codex가 npm run dev로 서버를 켜고 http://localhost:5173/starter/ 주소를 알려줘요. npm install은 필요 없어요.',
         verify: ['브라우저에서 http://localhost:5173/starter/ 를 열면 1단계와 같은 화면이 보인다.', '서버를 끌 때는 서버가 실행 중인 터미널에서 Ctrl+C를 누른다.'],
-        stuck: ['Windows에서 npm.ps1 실행이 막히면 같은 폴더에서 npm.cmd run dev를 사용하세요.', '“5173이 이미 사용 중”이면 먼저 켜 둔 실습 서버를 Ctrl+C로 끄세요. 모르는 프로그램은 끄지 말고 Codex에 다른 포트를 요청하세요.', 'package.json을 찾을 수 없다고 나오면 starter 안이 아니라 README.md가 있는 저장소 폴더를 열었는지 확인하세요.']
+        stuck: ['Windows에서 npm.ps1 실행이 막히면 같은 폴더에서 npm.cmd run dev를 사용하세요.', '“5173이 이미 사용 중”이면 먼저 켜 둔 실습 서버를 Ctrl+C로 끄세요. 모르는 프로그램은 끄지 말고 Codex에 다른 포트를 요청하세요.', 'package.json을 찾을 수 없다고 나오면 starter 안이 아니라 README.md가 있는 저장소 폴더를 열었는지 확인하세요.'],
+        hints: [
+          `“저장소 전체 폴더”는 README.md·package.json·starter가 함께 보이는 openAI_WS-main 폴더예요. starter 폴더만 열면 Codex가 실행 방법을 찾지 못해요. 서버를 켜려면 [Node.js](https://nodejs.org/ko/download) 20 이상이 필요해요.`,
+          'Codex 데스크톱: 로그인 → 프로젝트 추가(앱 버전에 따라 폴더 열기·폴더 추가) → openAI_WS-main 선택 → 새 대화. VS Code: File → Open Folder → openAI_WS-main 선택 → 왼쪽 Extensions에서 OpenAI가 배포한 Codex 확장 설치·로그인 → Codex 아이콘 클릭. 아이콘이 안 보이면 명령 팔레트(Windows Ctrl+Shift+P, Mac ⌘+Shift+P)에서 Codex: Open Codex Sidebar를 실행해요.',
+          `1. [VS Code](https://code.visualstudio.com/)를 설치하고 엽니다.
+2. 메뉴 File → Open Folder에서 openAI_WS-main 폴더를 고릅니다. “이 폴더의 작성자를 신뢰하나요?” 창이 나오면 신뢰한다고 누릅니다.
+3. 왼쪽 막대의 Extensions 아이콘(Windows Ctrl+Shift+X, Mac ⌘+Shift+X)을 누르고 “Codex”를 검색해 OpenAI가 배포한 확장을 설치한 뒤 ChatGPT 계정으로 로그인합니다.
+4. Codex 창 입력칸에 이 단계의 요청문을 붙여 넣고 Enter를 누릅니다.
+5. Codex가 명령 실행 허락을 물으면 내용을 읽고 허용합니다.
+6. Node.js가 없다고 하면 [Node.js](https://nodejs.org/ko/download)에서 LTS를 설치하고 VS Code를 껐다 켠 뒤 다시 요청합니다.
+7. 브라우저 주소창에 http://localhost:5173/starter/ 를 입력합니다.
+8. 끝낼 때는 서버가 실행 중인 터미널을 클릭하고 Ctrl+C를 누릅니다. Mac도 Ctrl+C예요.`
+        ]
       },
       {
         id: 'first-change',
         slide: 4, slideId: 'h2ea000745df279bf_2_62',
         title: '작은 변화 하나 만들기',
-        todo: '내 서비스의 이름과 소개 문구를 바꿔 달라고 요청합니다. 예시 문장은 내 아이디어로 바꿔도 좋아요.',
+        todo: `내 서비스의 [이름과 소개 문구](${file('starter/index.html')})를 바꿔 달라고 요청합니다. 예시 문장은 내 아이디어로 바꿔도 좋아요.`,
         prompt: `starter의 사이트 이름을 ‘나의 캠퍼스’로 바꾸고,
 소개 문구를 ‘학교생활에 필요한 정보를 한곳에 모으는 서비스’로 바꿔줘.
 다른 기능 박스는 그대로 두고, 바뀐 파일과 확인 방법을 짧게 알려줘.`,
         expected: '새로고침하면 사이트 이름과 소개 문구가 바뀌어 있어요.',
         verify: ['바꾸려던 문구만 바뀌고 다른 박스는 그대로다.', '브라우저 창을 좁혀도 글자가 잘리지 않는다.'],
-        stuck: ['바꿨는데 화면이 그대로면 파일 저장 후 새로고침했는지, 운영진 예제가 아니라 내 localhost 화면을 보고 있는지 확인하세요.']
+        stuck: ['바꿨는데 화면이 그대로면 파일 저장 후 새로고침했는지, 운영진 예제가 아니라 내 localhost 화면을 보고 있는지 확인하세요.'],
+        hints: [
+          `사이트 이름은 화면 왼쪽 위 “내 아이디어”와 브라우저 탭 제목이고, 소개 문구는 큰 제목 아래 문장이에요. 모두 [starter/index.html](${file('starter/index.html')})에 있어요. 요청문의 ‘나의 캠퍼스’와 소개 문장만 내 아이디어로 바꿔 보내도 돼요.`,
+          'Codex가 고친 파일은 바로 저장돼요. 브라우저에서 새로고침(Windows Ctrl+R 또는 F5, Mac ⌘+R)만 하면 돼요. VS Code 왼쪽 파일 목록에서 starter/index.html을 열면 바뀐 줄을 직접 볼 수 있어요. 글자 잘림은 브라우저 창 가장자리를 끌어 휴대폰 너비만큼 좁혀서 확인해요.',
+          `1. 앞 단계에서 쓰던 Codex 대화로 돌아갑니다.
+2. 이 단계의 요청문을 복사해 ‘나의 캠퍼스’와 소개 문장을 내 아이디어로 고칩니다.
+3. Codex에 붙여 넣고 Enter를 누릅니다. 파일 수정 허락을 물으면 허용합니다.
+4. Codex 답변에서 바뀐 파일 이름(보통 starter/index.html)을 확인합니다.
+5. http://localhost:5173/starter/ 탭을 새로고침합니다.
+6. 이름과 소개 문구만 바뀌고 로그인·지도·날씨 박스는 그대로인지 봅니다.
+7. 창을 좁혀 글자가 잘리지 않는지 확인합니다.
+8. 마음에 들지 않으면 “방금 바꾼 문구를 원래대로 돌려줘”라고 요청해도 돼요.`
+        ]
       },
       {
         id: 'connect-feature',
         slide: 9, slideId: 'h2ea000745df279bf_2_126',
         title: '내 서비스에 필요한 기능 하나 연결하기',
-        todo: '로그인·지도·날씨 중 내 서비스에 필요한 것 하나만 고릅니다. 각 기능은 외부 서비스의 계정·키 설정이 필요하므로, Codex가 먼저 준비 항목을 설명하게 하세요.',
+        todo: `[로그인](${file('guides/LOGIN.md')})·[지도](${file('guides/MAP.md')})·[날씨](${file('guides/WEATHER.md')}) 중 내 서비스에 필요한 것 하나만 고릅니다. 각 기능은 외부 서비스의 계정·키 설정이 필요하므로, Codex가 먼저 준비 항목을 설명하게 하세요.`,
         options: [
           {
             label: '날씨 — 기상청 단기예보',
             slide: 9, slideId: 'h2ea000745df279bf_2_126',
-            needs: '공공데이터포털 기상청 단기예보 이용 신청과 본인 인증키',
+            needs: '[공공데이터포털 기상청 단기예보](https://www.data.go.kr/data/15084084/openapi.do) 이용 신청과 본인 인증키',
             prompt: `starter의 날씨 영역에 기상청 단기예보 API를 연결해줘.
 관악구 대학동의 내일 오후 6시 기온과 강수확률을 보여줘.
 docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 추가해줘.
 인증키는 서버의 KMA_SERVICE_KEY로 관리하고, 내가 직접 입력할 위치를 안내해줘.
 로딩·조회 실패·예보 없음 상태와 재시도를 넣어줘.
 실제 API 응답과 화면에 표시된 날짜·시간·값을 비교하는 방법도 알려줘.`,
-            guide: file('guides/WEATHER.md')
+            guide: file('guides/WEATHER.md'),
+            hints: [
+              '필요한 것은 공공데이터포털의 ‘기상청_단기예보 조회서비스’ 인증키예요. 기상청 API허브의 키와는 다른 키라서, 꼭 [공공데이터포털 서비스 페이지](https://www.data.go.kr/data/15084084/openapi.do)에서 받으세요.',
+              '서비스 페이지에서 활용신청 → 활용 목적 입력 → 신청을 누릅니다. 그다음 마이페이지 → 데이터활용 → Open API → 활용신청 현황에서 이 서비스를 누르면 일반 인증키가 보여요. Decoding 값을 쓰는 걸 권장해요. 메뉴 이름은 사이트 개편에 따라 조금 다를 수 있고, 승인 직후에는 키가 바로 동작하지 않을 수 있어요.',
+              `1. [공공데이터포털](https://www.data.go.kr/)에 회원가입하고 로그인합니다.
+2. [기상청_단기예보 조회서비스](https://www.data.go.kr/data/15084084/openapi.do) 페이지에서 활용신청을 누르고, 활용 목적에 “워크숍 실습”처럼 적어 신청합니다.
+3. 마이페이지 → 데이터활용 → Open API → 활용신청 현황에서 신청한 서비스를 엽니다.
+4. 일반 인증키(Decoding)를 복사합니다. 이 키는 Codex 채팅창에 붙여 넣지 않아요.
+5. 날씨 요청문을 Codex에 보내고, 내가 설정할 항목을 확인합니다.
+6. Codex가 알려준 로컬 설정 파일을 VS Code에서 열어 KMA_SERVICE_KEY 자리에 키를 붙여 넣고 저장합니다.
+7. 서버를 Ctrl+C로 끄고 다시 켠 뒤 화면을 새로고침합니다.
+8. Codex가 알려준 방법으로 실제 API 응답의 날짜·시간·값과 화면을 비교합니다.`
+            ]
           },
           {
             label: '로그인 — Google 계정',
             slide: 15, slideId: 'h2ea000745df279bf_2_267',
-            needs: 'Google 앱 등록과 클라이언트 ID, 로그인 결과를 확인할 서버',
+            needs: 'Google 앱 등록과 [클라이언트 ID](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid), 로그인 결과를 확인할 서버',
             prompt: `starter의 로그인 영역에 Google 로그인 기능을 구현해줘.
 로그인하면 이름과 프로필 사진을 보여주고,
 새로고침해도 로그인 상태가 유지되게 해줘. 로그아웃도 추가해줘.
 기존 docs/AUTH.md를 참고하고, 필요한 서버와 Google 설정을 설명해줘.
 내가 직접 설정해야 할 항목과 순서를 먼저 알려줘.
 실제 로그인 확인 없이 완료됐다고 표시하지 마.`,
-            guide: file('guides/LOGIN.md')
+            guide: file('guides/LOGIN.md'),
+            hints: [
+              `Google 로그인에는 Google Cloud에서 만든 ‘OAuth 클라이언트 ID(웹 애플리케이션)’가 필요해요. Google이 돌려준 로그인 결과를 확인할 서버도 필요해서 Codex가 서버 기능을 함께 추가해요. 기존 예제의 설정은 [로그인 설정 문서](${file('docs/AUTH.md')})에 있어요.`,
+              '[Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 만들기 → Google Auth Platform → 동의 화면(대상은 외부, 테스트 사용자에 내 계정 추가) → Clients → 클라이언트 만들기 → 웹 애플리케이션. 승인된 JavaScript 원본에는 지금 접속한 주소의 앞부분만 넣어요. 로컬이면 http://localhost:5173 처럼 경로와 마지막 / 없이 적어요.',
+              `1. [Google Cloud Console](https://console.cloud.google.com/)에 내 Google 계정으로 로그인합니다.
+2. 위쪽 프로젝트 선택 → 새 프로젝트를 만들고 그 프로젝트를 고릅니다.
+3. 위쪽 검색창에 Google Auth Platform을 입력해 엽니다. 시작하기를 눌러 앱 이름과 이메일을 넣고, 대상은 외부를 고릅니다.
+4. 대상(Audience) 메뉴의 테스트 사용자에 로그인해 볼 내 Gmail을 추가합니다.
+5. 클라이언트(Clients) → 클라이언트 만들기 → 애플리케이션 유형은 웹 애플리케이션을 고릅니다.
+6. 승인된 JavaScript 원본에 http://localhost:5173 과 http://localhost 를 추가하고 만들기를 누릅니다.
+7. …apps.googleusercontent.com으로 끝나는 클라이언트 ID를 복사해 Codex가 알려준 설정 위치에 넣습니다.
+8. 서버를 다시 켜고 내 계정으로 로그인 → 새로고침 → 로그아웃까지 직접 확인합니다.`
+            ]
           },
           {
             label: '지도 — Google Maps',
             slide: 21, slideId: 'h2ea000745df279bf_2_421',
-            needs: 'Google Maps JavaScript API 사용 설정과 지도 키. 결제 계정 설정과 사용량에 따른 비용을 먼저 확인하세요.',
+            needs: '[Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/load-maps-js-api) 사용 설정과 지도 키. 결제 계정 설정과 사용량에 따른 비용을 먼저 확인하세요.',
             prompt: `starter의 지도·위치정보 영역에 Google 지도를 구현해줘.
 서울대학교 정문 위치에 마커를 표시하고,
 마커를 누르면 장소 이름이 보이게 해줘.
 docs/MAPS.md를 참고해서 필요한 API 설정과 비용 발생 가능성을 먼저 설명해줘.
 좌표는 확인한 실제 위치를 사용하고, 설정할 항목과 확인 방법을 안내해줘.`,
-            guide: file('guides/MAP.md')
+            guide: file('guides/MAP.md'),
+            hints: [
+              `지도에는 Google Cloud 프로젝트, 결제 계정, Maps JavaScript API 사용 설정, 브라우저용 지도 키가 필요해요. 결제 계정을 연결해야 하고 사용량에 따라 비용이 생길 수 있으니, 시작 전에 [지도 설정 문서](${file('docs/MAPS.md')})를 확인하세요.`,
+              '[Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 선택 → 결제 계정 연결 → API 및 서비스 → 라이브러리에서 Maps JavaScript API 사용 → 사용자 인증 정보 → API 키 만들기. 키를 만든 뒤 꼭 제한을 걸어요. 애플리케이션 제한은 웹사이트(HTTP 리퍼러)에 http://localhost:5173/*, API 제한은 Maps JavaScript API만 고릅니다.',
+              `1. [Google Cloud Console](https://console.cloud.google.com/)에 로그인하고 새 프로젝트를 만듭니다.
+2. 왼쪽 메뉴 결제에서 결제 계정을 연결합니다. 예산 알림도 함께 설정해 두면 좋아요.
+3. API 및 서비스 → 라이브러리에서 “Maps JavaScript API”를 검색해 사용을 누릅니다.
+4. API 및 서비스 → 사용자 인증 정보 → 사용자 인증 정보 만들기 → API 키를 누릅니다.
+5. 만든 키를 열어 웹사이트 제한에 http://localhost:5173/* 를 넣고, API 제한은 Maps JavaScript API만 고른 뒤 저장합니다.
+6. 지도 요청문을 Codex에 보내고, Codex가 알려준 로컬 설정 파일에 키를 넣고 저장합니다.
+7. 서버를 다시 켜고 지도, 마커 위치, 마커를 눌렀을 때 나오는 이름을 확인합니다.
+8. 회색 화면이나 오류가 나오면 개발자 도구(Windows F12, Mac ⌥⌘I)의 Console 오류 문구를 Codex에 보여주세요.`
+            ]
           }
         ],
         expected: '예시 숫자나 가짜 계정이 아니라 실제 서비스의 응답이 화면에 보여요. 처음 받은 기초 틀에는 연결이 없으니, 키와 설정을 마친 뒤에만 결과가 나와요.',
         verify: ['실제 응답을 받았는지 확인한다 — 날씨는 요청한 지역·날짜·시간, 로그인은 내 계정 이름, 지도는 의도한 위치의 마커.', '실패했을 때 실패 상태가 보인다.'],
-        stuck: ['인증키·비밀번호는 AI 대화, 공개 HTML/JavaScript, GitHub에 넣지 마세요. Codex가 안내한 로컬 설정 파일에 직접 입력합니다.', '로그인·지도는 지금 접속한 주소가 외부 서비스에 등록한 주소와 같은지 확인하세요.']
+        stuck: ['인증키·비밀번호는 AI 대화, 공개 HTML/JavaScript, GitHub에 넣지 마세요. Codex가 안내한 로컬 설정 파일에 직접 입력합니다.', '로그인·지도는 지금 접속한 주소가 외부 서비스에 등록한 주소와 같은지 확인하세요.'],
+        hints: [
+          `처음 받은 기초 틀에는 서버 기능이 없어요. 그래서 어떤 기능이든 외부 서비스에서 키 만들기 → Codex가 서버와 화면 코드 추가 → 키를 내 컴퓨터의 비공개 설정 파일에 직접 입력 → 실제 응답 확인 순서로 진행돼요. 지도는 결제 계정 연결이 필요하다는 점도 고를 때 참고하세요.`,
+          `키는 대화창에 붙여 넣지 말고, Codex가 알려준 설정 파일을 VS Code에서 열어 직접 입력·저장해요. .env나 .dev.vars처럼 [.gitignore](${file('.gitignore')})에 들어 있어 GitHub에 올라가지 않는 파일인지 Codex에 확인해 달라고 하세요. 설정을 바꾼 뒤에는 서버를 Ctrl+C로 끄고 다시 켜야 새 값이 적용되는 경우가 많아요.`,
+          `1. 기능 하나를 펼쳐 ‘먼저 필요한 것’을 읽습니다.
+2. ‘자세한 안내’ 링크에서 준비 항목과 동작 확인 순서를 확인합니다.
+3. 요청문을 복사해 Codex에 보냅니다. 지역이나 장소는 내 서비스에 맞게 바꿔도 돼요.
+4. Codex가 알려준 순서대로 외부 사이트에서 키나 클라이언트 ID를 만듭니다.
+5. Codex가 알려준 로컬 설정 파일에 키를 직접 붙여 넣고 저장합니다.
+6. 터미널에서 Ctrl+C로 서버를 끄고, Codex가 알려준 명령으로 다시 켭니다.
+7. 브라우저를 새로고침해 실제 결과가 나오는지 봅니다.
+8. 안 되면 [문제 해결](${file('guides/TROUBLESHOOTING.md')})을 보고, 화면과 터미널의 오류 문구를 키는 가린 채 Codex에 보여주세요.`
+        ]
       }
     ],
     apply: {
@@ -283,16 +366,20 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
         id: 'compare',
         slide: 1, slideId: 'ws2_activity_20261019_01',
         title: '완성본 먼저 눌러보기',
-        todo: '위 ‘완성본 예제’에서 카드 두 개를 선택한 뒤 하나만 해제하고, 새로고침해 봅니다.',
+        todo: '[완성본 예제](/examples/workshop2/complete/)에서 카드 두 개를 선택한 뒤 하나만 해제하고, 새로고침해 봅니다.',
         expected: '카드마다 따로 선택·해제되고, 새로고침하면 모두 초기화돼요. 이번 실습의 즐겨찾기는 저장되지 않는 게 정상이에요.',
         verify: ['두 카드를 선택하면 둘 다 선택 상태다.', '하나를 해제해도 다른 하나는 그대로다.'],
-        stuck: []
+        stuck: [],
+        hints: [
+          '카드마다 ☆ 즐겨찾기 버튼이 있어요. 누르면 ★ 선택됨으로 바뀌고, 다시 누르면 ☆ 즐겨찾기로 돌아와요. 설치나 로그인 없이 브라우저만 있으면 돼요.',
+          '새로고침은 Windows Ctrl+R 또는 F5, Mac ⌘+R이에요. 새로고침 후 모두 ☆로 돌아오면 정상이에요. 내가 고칠 [시작본 예제](/examples/workshop2/starter/)도 열어 보세요. 시작본에는 아직 즐겨찾기 버튼이 없어요.'
+        ]
       },
       {
         id: 'add-favorite',
         slide: 7, slideId: 'ws2_activity_20261019_07',
         title: 'Codex에게 즐겨찾기 추가 요청하기',
-        todo: '내 Fork를 연 VS Code에서 Codex에 아래 요청문을 붙여 넣습니다. 수정은 starter 폴더에서만 진행하고, complete는 비교용으로만 봅니다.',
+        todo: `[내 Fork](${file('docs/PARTICIPANT.md')})를 연 VS Code에서 Codex에 아래 요청문을 붙여 넣습니다. 수정은 starter 폴더에서만 진행하고, [complete](/examples/workshop2/complete/)는 비교용으로만 봅니다.`,
         prompt: `workshop2/starter/의 모임 카드에 즐겨찾기 버튼을 추가해줘.
 클릭하면 선택되고, 다시 누르면 해제해줘.
 카드별로 독립적으로 동작하게 해줘.
@@ -301,26 +388,50 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
 수정할 파일과 확인 방법을 알려줘.`,
         expected: 'Codex가 workshop2/starter의 파일을 수정하고, 바뀐 파일과 확인 방법을 알려줘요.',
         verify: ['카드 A 선택 → 선택 표시가 보인다.', '카드 B 선택 → A와 B 모두 선택 상태다.', '카드 A 다시 클릭 → A만 해제되고 B는 유지된다.', '새로고침 → 둘 다 초기화된다.', '카드 제목·시간·장소가 그대로이고 브라우저 오류가 없다.'],
-        stuck: ['화면이 바뀌지 않으면 http://localhost:5173/workshop2/starter/ (내 로컬 화면)를 보고 있는지 확인하세요.']
+        stuck: ['화면이 바뀌지 않으면 http://localhost:5173/workshop2/starter/ (내 로컬 화면)를 보고 있는지 확인하세요.'],
+        hints: [
+          'Fork·Clone을 아직 안 했다면 이 페이지의 ‘시작 전 확인’ 도움말부터 따라 하세요. VS Code에서 연 폴더가 내 Fork를 Clone한 openAI_WS 폴더여야 Codex가 workshop2/starter를 찾을 수 있어요.',
+          '보통 workshop2/starter/app.js가 바뀌고, 버튼 모양 때문에 styles.css도 바뀔 수 있어요. npm run dev로 서버를 켠 상태에서 http://localhost:5173/workshop2/starter/ 를 새로고침해 확인해요. 결과가 헷갈리면 [완성본 예제](/examples/workshop2/complete/)와 같은 순서로 눌러 비교해요.',
+          `1. VS Code에서 File → Open Folder로 Clone한 openAI_WS 폴더를 엽니다.
+2. 메뉴 Terminal → New Terminal을 열고 npm run dev를 입력합니다. Windows에서 스크립트 오류가 나면 npm.cmd run dev를 입력해요.
+3. 브라우저에서 http://localhost:5173/workshop2/starter/ 를 열어 카드 3개를 확인합니다.
+4. Codex 아이콘을 눌러 대화창을 엽니다. 안 보이면 명령 팔레트(Windows Ctrl+Shift+P, Mac ⌘+Shift+P)에서 Codex: Open Codex Sidebar를 실행해요.
+5. 이 단계의 요청문을 그대로 붙여 넣고 Enter를 누릅니다.
+6. Codex가 파일 수정 허락을 물으면 workshop2/starter 안의 파일인지 보고 허용합니다.
+7. 브라우저를 새로고침하고 이 단계의 ‘확인’ 다섯 가지를 차례로 눌러 봅니다.
+8. 다르게 동작하면 무엇이 달랐는지 그대로 Codex에 말하고 고쳐 달라고 합니다.`
+        ]
       },
       {
         id: 'record',
         slide: 14, slideId: 'ws2_activity_20261019_14',
         title: '변경을 기록하고 GitHub에 올리기',
-        todo: 'VS Code Source Control에서 바뀐 파일을 열어 비교하고, 이번 기능의 파일만 Stage해서 Commit한 뒤 Push합니다. 터미널을 쓴다면 git status로 실제 파일명을 먼저 확인하세요.',
+        todo: 'VS Code [Source Control](https://code.visualstudio.com/docs/sourcecontrol/overview)에서 바뀐 파일을 열어 비교하고, 이번 기능의 파일만 Stage해서 Commit한 뒤 Push합니다. 터미널을 쓴다면 git status로 실제 파일명을 먼저 확인하세요.',
         commands: `git status
 git add workshop2/starter/app.js
 git commit -m "Add favorites to meetup cards"
 git push`,
         expected: '내 GitHub Fork의 같은 브랜치에서 방금 쓴 commit 메시지와 바뀐 파일이 보여요.',
         verify: ['HTML/CSS도 바꿨다면 그 파일도 함께 추가했다.', '원본 운영진 저장소가 아니라 내 Fork에 올렸다.'],
-        stuck: ['Push 인증이 실패하면 로그인 계정, origin 주소, 브랜치를 확인하세요. 강제 Push는 하지 않습니다.', '인터넷이 안 되면 로컬 commit과 화면까지 남기고, 온라인 확인은 Studio Session에서 마무리하세요.']
+        stuck: ['Push 인증이 실패하면 로그인 계정, origin 주소, 브랜치를 확인하세요. 강제 Push는 하지 않습니다.', '인터넷이 안 되면 로컬 commit과 화면까지 남기고, 온라인 확인은 Studio Session에서 마무리하세요.'],
+        hints: [
+          'Source Control은 VS Code 왼쪽 막대의 갈림길 모양 아이콘이에요(Windows Ctrl+Shift+G, Mac ⌃⇧G). 바뀐 파일 이름을 누르면 바꾸기 전과 후를 나란히 비교해 보여줘요. Stage는 이번 기록에 넣을 파일 고르기, Commit은 기록하기, Push는 GitHub에 올리기예요.',
+          '파일 이름에 마우스를 올리면 나오는 + 를 눌러 Stage해요. 위쪽 메시지 칸에 무엇을 바꿨는지 쓰고 Commit을 누른 뒤, 나타나는 Sync Changes(또는 … 메뉴 → Push)를 눌러요. “Stage된 변경이 없다”는 창이 뜨면 아직 + 를 누르지 않은 거예요. 취소하고 파일부터 Stage하세요.',
+          `1. VS Code 왼쪽 Source Control 아이콘을 누릅니다.
+2. Changes 아래 파일을 하나씩 눌러 바뀐 줄을 읽어 봅니다.
+3. 이번 기능 파일(workshop2/starter 안의 파일) 옆 + 를 눌러 Staged Changes로 옮깁니다. 다른 파일은 그대로 둡니다.
+4. 위쪽 메시지 칸에 “Add favorites to meetup cards”처럼 한 줄로 씁니다.
+5. Commit 버튼을 누릅니다.
+6. Sync Changes 또는 … → Push를 누릅니다. 처음이면 브라우저에서 GitHub 로그인과 허용을 요청할 수 있어요.
+7. github.com/내아이디/openAI_WS 를 열고 파일 목록 위 최근 commit 메시지를 눌러 방금 기록과 바뀐 파일을 확인합니다.
+8. 주소에 내 아이디 대신 aeron1120이 보이면 원본이에요. 멈추고 ‘시작 전 확인’의 Fork 단계를 다시 보세요.`
+        ]
       },
       {
         id: 'recover',
         slide: 17, slideId: 'ws2_activity_20261019_17',
         title: '5분 복구 연습 — 실수를 되돌리기',
-        todo: '저장소 루트에서 연습용 저장소를 만들고, 일부러 망가뜨린 마지막 commit을 되돌립니다. 이 연습은 원본 GitHub에 올라가지 않는 별도 폴더에서만 진행해요.',
+        todo: `저장소 루트에서 [연습용 저장소](${file('docs/RECOVERY.md')})를 만들고, 일부러 망가뜨린 마지막 commit을 되돌립니다. 이 연습은 원본 GitHub에 올라가지 않는 별도 폴더에서만 진행해요.`,
         commands: `node scripts/prepare-recovery.mjs
 cd workshop2/recovery-practice
 git status
@@ -329,7 +440,19 @@ git revert --no-edit HEAD
 git log --oneline -3`,
         expected: 'http://localhost:5173/workshop2/recovery-practice/ 에서 눌리지 않던 즐겨찾기 버튼이 새로고침 후 다시 작동해요. 과거 commit 두 개는 남고 Revert commit이 하나 추가돼요.',
         verify: ['되돌리기 전 최신 commit 메시지가 practice: accidentally disable favorites 였다.', 'git log에 새 Revert commit이 보인다.'],
-        stuck: ['충돌이 나면 멈추고 도움을 요청하세요. git reset --hard나 강제 Push로 해결하지 않습니다.', '이미 연습 폴더가 있으면 준비 스크립트가 덮어쓰지 않고 멈춰요. 다시 하려면 새 Clone에서 준비하세요.']
+        stuck: ['충돌이 나면 멈추고 도움을 요청하세요. git reset --hard나 강제 Push로 해결하지 않습니다.', '이미 연습 폴더가 있으면 준비 스크립트가 덮어쓰지 않고 멈춰요. 다시 하려면 새 Clone에서 준비하세요.'],
+        hints: [
+          '“저장소 루트”는 package.json이 있는 openAI_WS 폴더예요. VS Code에서 그 폴더를 열고 터미널을 열면 바로 루트예요. git revert는 마지막 commit을 지우지 않고, 그 변경을 되돌리는 새 commit을 하나 더 만드는 명령이에요. [공식 설명](https://git-scm.com/docs/git-revert)도 있어요.',
+          '화면 확인용 서버(npm run dev)는 한 터미널에 켜 두고, 이 단계의 명령은 터미널 패널의 + 로 연 새 터미널에서 입력해요. cd 다음 명령은 모두 recovery-practice 폴더 안에서 실행돼야 해요. Git이 이름·이메일을 요구하면 이 폴더 안에서 git config user.name과 user.email을 설정한 뒤 다시 실행해요.',
+          `1. VS Code에서 openAI_WS 폴더를 열고, 터미널에서 npm run dev를 실행해 둡니다.
+2. 터미널 패널 오른쪽 위 + 를 눌러 새 터미널을 엽니다.
+3. node scripts/prepare-recovery.mjs 를 입력합니다. “Recovery exercise ready”가 나오면 준비 완료예요.
+4. 브라우저에서 http://localhost:5173/workshop2/recovery-practice/ 를 열고 즐겨찾기 버튼이 눌리지 않는지 확인합니다.
+5. 새 터미널에 cd workshop2/recovery-practice 를 입력합니다.
+6. git status 에 nothing to commit이, git log --oneline -2 맨 위에 practice: accidentally disable favorites가 보이는지 확인합니다.
+7. git revert --no-edit HEAD 를 입력하고, git log --oneline -3 에 Revert로 시작하는 줄이 생겼는지 봅니다.
+8. 브라우저를 새로고침해 버튼이 다시 눌리면 성공이에요. 끝나면 cd ../.. 로 저장소 루트에 돌아옵니다.`
+        ]
       }
     ],
     apply: {
