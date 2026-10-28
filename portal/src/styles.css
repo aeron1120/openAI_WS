@@ -478,6 +478,20 @@ body.study { background: #f3f5f8; }
 .lesson-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
 .lesson-status { margin: 8px 0 0; color: #b42318; font-weight: 600; }
 .lesson-status:empty { display: none; }
+/* 완료 화면: 모든 단계를 끝내면 슬라이드·설명 자리를 대신합니다. */
+.step-tab-finish { gap: 8px; }
+.lesson-finish { max-width: 640px; margin: 8px auto 0; padding: 36px 32px 32px; border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 18px; background: var(--surface); text-align: center; }
+.lesson-finish:focus { outline: none; }
+.finish-mark { margin: 0; font-size: 3.2rem; line-height: 1; animation: finish-pop .5s ease-out both; }
+.lesson-finish h2 { margin: 14px 0 6px; font-size: 1.5rem; }
+.lesson-finish .lead { margin: 0 0 20px; color: var(--muted); }
+.finish-steps { display: grid; gap: 6px; list-style: none; margin: 0 auto 20px; padding: 16px 20px; max-width: 420px; border-radius: 14px; background: var(--c-soft); text-align: left; }
+.finish-step { display: flex; gap: 6px; }
+.finish-step span { flex: none; color: var(--c-btn); font-weight: 700; }
+.finish-next { margin: 0 0 16px; color: var(--muted); font-size: .92rem; }
+.finish-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+@keyframes finish-pop { from { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .finish-mark { animation: none; } }
 @media (max-width: 1099px) {
   .lesson-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
   .lesson-steps { padding: 20px 22px; }
@@ -493,6 +507,7 @@ body.study { background: #f3f5f8; }
   .lesson-body { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .lesson-slides { position: static; }
   .lesson-steps { padding: 18px 16px; }
+  .lesson-finish { padding: 28px 16px 24px; }
 }
 @media (max-width: 719px) {
   .study-bar-inner { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand user" "nav nav"; gap: 0 12px; padding: 0 16px; min-height: 0; }

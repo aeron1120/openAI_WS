@@ -121,8 +121,30 @@ function lessonStep(m, i, total) {
 </section>`;
 }
 
+// 완료 화면: 모든 단계를 끝내면 learn.js가 슬라이드·설명 대신 이 화면을 엽니다(#done).
+// 다음 회차가 열려 있으면 바로가기 버튼을, 아직 잠겨 있으면 여는 시각을 보여줍니다.
+function finishScreen(content, w) {
+  const next = content.workshops.find(x => x.number > w.number && (x.materials === 'locked' || lessonWorkshops(content).includes(x)));
+  const locked = next?.materials === 'locked';
+  return h`<section class="lesson-finish" data-finish tabindex="-1" hidden>
+  <p class="finish-mark" aria-hidden="true">🎉</p>
+  <h2>Workshop ${pad(w.number)}을 모두 마쳤어요!</h2>
+  <p class="lead">${w.missions.length}단계를 끝까지 따라왔어요.</p>
+  <ol class="finish-steps">
+    ${w.missions.map((m, i) => h`<li class="finish-step"><span aria-hidden="true">✔</span> ${pad(i + 1)} ${m.title}</li>`)}
+  </ol>
+  ${locked ? h`<p class="finish-next">다음 수업 Workshop ${pad(next.number)}는 ${next.opensLabel}에 열려요.</p>` : ''}
+  <div class="finish-actions">
+    <a class="btn btn-fill" href="/learn/">수업 목록으로</a>
+    ${next && !locked ? h`<a class="btn btn-ghost" href="${lessonPath(next)}">Workshop ${pad(next.number)}로 →</a>` : ''}
+    <button type="button" class="btn btn-ghost" data-restart>단계 다시 보기</button>
+  </div>
+</section>`;
+}
+
 // 수업 화면: 위 머리말(목록으로·제목·진도) + 단계 탭 줄 + 왼쪽 슬라이드(고정)와 오른쪽 지금 단계 설명.
 // 좁은 화면(900px 이하)에서는 슬라이드가 위, 설명이 아래로 쌓입니다. 탭 표시는 learn.js가 바꿉니다.
+// 모든 단계를 끝내면 슬라이드·설명 자리에 완료 화면이 나오고, 탭 줄 끝에 "완료" 탭이 생깁니다.
 export function lessonPage(content, w) {
   const slides = slidesOf(w);
   const base = embedBase(slides.url);
@@ -140,6 +162,7 @@ export function lessonPage(content, w) {
   <nav class="lesson-tabs" aria-label="단계">
     <ol class="step-tabs">
       ${w.missions.map((m, i) => h`<li><button type="button" class="step-tab" data-goto="${m.id}" title="${pad(i + 1)} ${m.title}">${stepRow(m, i)}</button></li>`)}
+      <li data-finish-tab hidden><button type="button" class="step-tab step-tab-finish" data-finish-open><span aria-hidden="true">🏁</span> 완료</button></li>
     </ol>
   </nav>
   <div class="lesson-body">
@@ -149,5 +172,6 @@ export function lessonPage(content, w) {
     </div>
     <div class="lesson-steps">${w.missions.map((m, i) => lessonStep(m, i, total))}</div>
   </div>
+  ${finishScreen(content, w)}
 </div>`;
 }

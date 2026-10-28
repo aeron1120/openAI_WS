@@ -542,6 +542,25 @@ test('the lesson page has a step tab bar, then the slides beside the current ste
   assert.doesNotMatch(script, /lesson-toc|toc-count/);
 });
 
+test('the lesson page has a finish screen that opens once every step is done', async t => {
+  const { read } = await build(t);
+  const html = await read('/learn/01/');
+  const ws1 = defaultContent.workshops[0];
+  // 완료 탭은 모든 단계를 끝내기 전에는 숨겨 둡니다.
+  assert.match(html, /<li data-finish-tab hidden><button type="button" class="step-tab step-tab-finish" data-finish-open>/);
+  const finish = html.match(/<section class="lesson-finish" data-finish tabindex="-1" hidden>[\s\S]*?<\/section>/)[0];
+  assert.match(html, /<\/div>\s*<\/div>\s*<section class="lesson-finish"/);
+  assert.match(finish, /Workshop 01을 모두 마쳤어요!/);
+  assert.equal((finish.match(/class="finish-step"/g) ?? []).length, ws1.missions.length);
+  assert.match(finish, /<a class="btn btn-fill" href="\/learn\/">수업 목록으로<\/a>/);
+  assert.match(finish, /<button type="button" class="btn btn-ghost" data-restart>단계 다시 보기<\/button>/);
+  // 다음 회차가 아직 잠겨 있으면 여는 시각을, 열려 있으면 바로가기를 보여줍니다.
+  assert.match(finish, /Workshop 02는 11\/2 \(월\) 18:00에 열려요/);
+  assert.doesNotMatch(finish, /href="\/learn\/02\/"/);
+  const script = await readFile(new URL('../src/learn.js', import.meta.url), 'utf8');
+  assert.match(script, /function showFinish\(/);
+});
+
 test('the signed-in preview only turns on at localhost', async () => {
   const source = await readFile(new URL('../src/learn.js', import.meta.url), 'utf8');
   assert.match(source, /const preview = location\.hostname === 'localhost' && params\.has\('preview'\);/);

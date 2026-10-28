@@ -258,8 +258,13 @@
     const frame = content.querySelector('[data-slides]');
     const tabs = content.querySelector('.step-tabs');
     const meter = content.querySelector('.lesson-head [data-progress]');
+    const body = content.querySelector('.lesson-body');
+    const finish = content.querySelector('[data-finish]');
+    const finishTab = content.querySelector('[data-finish-tab]');
     const done = new Set();
     let current = 0;
+    let finished = false; // 완료 화면을 보는 중인지
+    const allDone = () => steps.every(step => done.has(step.dataset.step));
 
     const showSlide = slideId => {
       const src = frame.dataset.embedBase + slideId;
@@ -268,30 +273,51 @@
     function render() {
       steps.forEach((step, i) => {
         const id = step.dataset.step;
-        const finished = done.has(id);
+        const ok = done.has(id);
+        const here = !finished && i === current;
         step.hidden = i !== current;
         const item = items.get(id);
         if (item) {
-          markStep(item, finished, i === current);
-          if (i === current) item.setAttribute('aria-current', 'step');
+          markStep(item, ok, here);
+          if (here) item.setAttribute('aria-current', 'step');
           else item.removeAttribute('aria-current');
         }
         const toggle = step.querySelector('[data-done]');
-        toggle.textContent = finished ? '완료함 · 취소하기' : '이 단계 완료';
-        toggle.setAttribute('aria-pressed', String(finished));
+        toggle.textContent = ok ? '완료함 · 취소하기' : '이 단계 완료';
+        toggle.setAttribute('aria-pressed', String(ok));
+        // 마지막 단계의 "다음 →"은 다 끝냈을 때 완료 화면으로 갑니다.
+        if (i === steps.length - 1) step.querySelector('[data-next]').disabled = !allDone();
       });
       const count = steps.filter(step => done.has(step.dataset.step)).length;
       setProgress(meter, count, steps.length, `${count}/${steps.length} 완료`);
+      // 완료 화면·완료 탭은 모든 단계를 끝냈을 때만 씁니다.
+      if (finished && !allDone()) finished = false;
+      body.hidden = finished;
+      finish.hidden = !finished;
+      finishTab.hidden = !allDone();
+      const tab = finishTab.querySelector('button');
+      tab.classList.toggle('is-current', finished);
+      if (finished) tab.setAttribute('aria-current', 'step');
+      else tab.removeAttribute('aria-current');
+    }
+    function showFinish({ focus = true } = {}) {
+      finished = true;
+      history.replaceState(null, '', '#done');
+      render();
+      revealTab(finishTab);
+      if (!focus) return;
+      finish.focus();
+      finish.scrollIntoView({ block: 'start' });
     }
     // 탭 줄이 가로로 넘치면(좁은 화면) 지금 단계 탭이 보이도록 탭 줄 안에서만 옮깁니다.
-    function revealTab() {
-      const tab = items.get(steps[current].dataset.step);
+    function revealTab(tab = items.get(steps[current].dataset.step)) {
       if (!tabs || !tab || tabs.scrollWidth <= tabs.clientWidth) return;
       const left = tab.getBoundingClientRect().left - tabs.getBoundingClientRect().left + tabs.scrollLeft;
       tabs.scrollLeft = left - (tabs.clientWidth - tab.offsetWidth) / 2;
     }
     function go(index, { focus = true } = {}) {
       current = Math.max(0, Math.min(steps.length - 1, index));
+      finished = false;
       const step = steps[current];
       history.replaceState(null, '', `#step-${step.dataset.step}`);
       showSlide(step.dataset.slideId);
@@ -301,11 +327,13 @@
     }
 
     content.addEventListener('click', async event => {
-      const target = event.target.closest('[data-goto], [data-prev], [data-next], [data-done], [data-ask-open]');
+      const target = event.target.closest('[data-goto], [data-prev], [data-next], [data-done], [data-ask-open], [data-finish-open], [data-restart]');
       if (!target) return;
       if (target.dataset.goto) return go(steps.findIndex(step => step.dataset.step === target.dataset.goto));
+      if (target.hasAttribute('data-finish-open')) return showFinish();
+      if (target.hasAttribute('data-restart')) return go(0);
       if (target.hasAttribute('data-prev')) return go(current - 1);
-      if (target.hasAttribute('data-next')) return go(current + 1);
+      if (target.hasAttribute('data-next')) return current === steps.length - 1 ? showFinish() : go(current + 1);
       if (target.hasAttribute('data-ask-open')) {
         // 질문 칸은 questions.js가 만듭니다.
         const section = target.closest('[data-step]');
@@ -325,8 +353,11 @@
         status.textContent = '';
         if (marking) done.add(id); else done.delete(id);
         // 저장하는 동안 다른 단계로 옮겼다면 그 자리에 둡니다.
-        if (marking && current === index && index < steps.length - 1) go(index + 1);
-        else render();
+        // 다 끝냈으면 완료 화면, 아니면 다음 단계(마지막 단계였다면 아직 안 끝낸 첫 단계)로 갑니다.
+        if (!marking || current !== index) render();
+        else if (allDone()) showFinish();
+        else if (index < steps.length - 1) go(index + 1);
+        else go(steps.findIndex(s => !done.has(s.dataset.step)));
       } catch (error) {
         status.textContent = error.message || '저장하지 못했어요. 잠시 후 다시 눌러 주세요.';
       } finally {
@@ -342,7 +373,12 @@
     const start = steps.findIndex(step => location.hash === `#step-${step.dataset.step}`);
     go(start >= 0 ? start : 0, { focus: false });
     loadProgress()
-      .then(map => { for (const id of map.get(workshop) ?? []) done.add(id); render(); })
+      .then(map => {
+        for (const id of map.get(workshop) ?? []) done.add(id);
+        // #done 주소로 들어왔고 다 끝낸 상태면 완료 화면부터 보여줍니다.
+        if (location.hash === '#done' && allDone()) showFinish({ focus: false });
+        else render();
+      })
       .catch(() => { /* 진도를 못 불러와도 단계는 볼 수 있어요. */ });
   }
 
