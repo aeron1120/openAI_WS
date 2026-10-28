@@ -121,8 +121,8 @@ function lessonStep(m, i, total) {
 </section>`;
 }
 
-// 수업 화면: 위 머리말(목록으로·제목·진도) + 왼쪽 단계 목록 + 오른쪽 슬라이드와 지금 단계.
-// 휴대폰에서는 단계 목록이 접히는 칸(details)이 되어 슬라이드 위에 놓입니다(learn.js가 접고 폅니다).
+// 수업 화면: 위 머리말(목록으로·제목·진도) + 단계 탭 줄 + 왼쪽 슬라이드(고정)와 오른쪽 지금 단계 설명.
+// 좁은 화면(900px 이하)에서는 슬라이드가 위, 설명이 아래로 쌓입니다. 탭 표시는 learn.js가 바꿉니다.
 export function lessonPage(content, w) {
   const slides = slidesOf(w);
   const base = embedBase(slides.url);
@@ -137,22 +137,17 @@ export function lessonPage(content, w) {
     </div>
     ${progress(`0/${total} 완료`, 'lesson-progress')}
   </header>
+  <nav class="lesson-tabs" aria-label="단계">
+    <ol class="step-tabs">
+      ${w.missions.map((m, i) => h`<li><button type="button" class="step-tab" data-goto="${m.id}" title="${pad(i + 1)} ${m.title}">${stepRow(m, i)}</button></li>`)}
+    </ol>
+  </nav>
   <div class="lesson-body">
-    <nav class="lesson-nav" aria-label="단계 목록">
-      <details class="lesson-toc" data-lesson-toc open>
-        <summary>단계 목록 (<span data-toc-count>0/${total}</span>)</summary>
-        <ol class="toc">
-          ${w.missions.map((m, i) => h`<li><button type="button" class="toc-step" data-goto="${m.id}">${stepRow(m, i)}</button></li>`)}
-        </ol>
-      </details>
-    </nav>
-    <div class="lesson-main">
-      <div class="lesson-slides">
-        <div class="slides-frame"><iframe data-slides data-embed-base="${base}" src="${base}${w.missions[0].slideId}" title="Workshop ${w.number} 학생용 슬라이드" allowfullscreen></iframe></div>
-        <p class="hint">${link(slides.url, '슬라이드 새 창으로 열기')}</p>
-      </div>
-      <div class="lesson-steps">${w.missions.map((m, i) => lessonStep(m, i, total))}</div>
+    <div class="lesson-slides">
+      <div class="slides-frame"><iframe data-slides data-embed-base="${base}" src="${base}${w.missions[0].slideId}" title="Workshop ${w.number} 학생용 슬라이드" allowfullscreen></iframe></div>
+      <p class="hint">${link(slides.url, '슬라이드 새 창으로 열기')}</p>
     </div>
+    <div class="lesson-steps">${w.missions.map((m, i) => lessonStep(m, i, total))}</div>
   </div>
 </div>`;
 }

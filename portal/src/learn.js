@@ -1,6 +1,6 @@
 // 학습실(/learn/…)·내 질문·운영진 화면의 공통 스크립트: 로그인 확인 → 화면 열기.
 // 로그인하면 로그인 카드(data-learn-login)를 숨기고 상단 바 사용자 칸(data-learn-user)과 답변 수를 채웁니다.
-// 수업 목록은 진도 막대·이어서 하기를, 수업 화면은 단계 목록·단계 이동·슬라이드 맞추기·완료 표시를 여기서 맡습니다.
+// 수업 목록은 진도 막대·이어서 하기를, 수업 화면은 단계 탭·단계 이동·슬라이드 맞추기·완료 표시를 여기서 맡습니다.
 // 질문 칸·대화(questions.js)와 운영진 화면(admin.js)은 window.Learn을 써서 이 위에 얹힙니다.
 // 수업 서버는 Render 무료 요금제라 잠들어 있을 수 있어요. 응답이 없으면 최대 1분 동안 5초마다 다시 시도합니다.
 (() => {
@@ -256,14 +256,8 @@
     const steps = [...content.querySelectorAll('[data-step]')];
     const items = new Map([...content.querySelectorAll('[data-goto]')].map(item => [item.dataset.goto, item]));
     const frame = content.querySelector('[data-slides]');
-    const toc = content.querySelector('[data-lesson-toc]');
-    const tocCount = content.querySelector('[data-toc-count]');
+    const tabs = content.querySelector('.step-tabs');
     const meter = content.querySelector('.lesson-head [data-progress]');
-    // 휴대폰(900px 이하)에서는 단계 목록을 접어 두고, 넓은 화면에서는 늘 펼쳐 둡니다(넓은 화면은 접는 줄이 숨겨져 있어요).
-    const phone = window.matchMedia('(max-width: 900px)');
-    const fitToc = () => { if (toc) toc.open = !phone.matches; };
-    fitToc();
-    phone.addEventListener('change', fitToc);
     const done = new Set();
     let current = 0;
 
@@ -288,7 +282,13 @@
       });
       const count = steps.filter(step => done.has(step.dataset.step)).length;
       setProgress(meter, count, steps.length, `${count}/${steps.length} 완료`);
-      if (tocCount) tocCount.textContent = `${count}/${steps.length}`;
+    }
+    // 탭 줄이 가로로 넘치면(좁은 화면) 지금 단계 탭이 보이도록 탭 줄 안에서만 옮깁니다.
+    function revealTab() {
+      const tab = items.get(steps[current].dataset.step);
+      if (!tabs || !tab || tabs.scrollWidth <= tabs.clientWidth) return;
+      const left = tab.getBoundingClientRect().left - tabs.getBoundingClientRect().left + tabs.scrollLeft;
+      tabs.scrollLeft = left - (tabs.clientWidth - tab.offsetWidth) / 2;
     }
     function go(index, { focus = true } = {}) {
       current = Math.max(0, Math.min(steps.length - 1, index));
@@ -296,17 +296,14 @@
       history.replaceState(null, '', `#step-${step.dataset.step}`);
       showSlide(step.dataset.slideId);
       render();
+      revealTab();
       if (focus) step.querySelector('h2').focus();
     }
 
     content.addEventListener('click', async event => {
       const target = event.target.closest('[data-goto], [data-prev], [data-next], [data-done], [data-ask-open]');
       if (!target) return;
-      if (target.dataset.goto) {
-        // 휴대폰에서는 단계를 고르면 목록을 접어 슬라이드·내용이 바로 보이게 합니다.
-        if (toc && phone.matches) toc.open = false;
-        return go(steps.findIndex(step => step.dataset.step === target.dataset.goto));
-      }
+      if (target.dataset.goto) return go(steps.findIndex(step => step.dataset.step === target.dataset.goto));
       if (target.hasAttribute('data-prev')) return go(current - 1);
       if (target.hasAttribute('data-next')) return go(current + 1);
       if (target.hasAttribute('data-ask-open')) {

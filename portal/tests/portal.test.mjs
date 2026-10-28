@@ -523,19 +523,23 @@ test('the course list links every step of an open workshop and shows locked ones
   assert.doesNotMatch(html, /class="learn-links"/);
 });
 
-test('the lesson page has a step list in a collapsible sidebar and a progress header', async t => {
+test('the lesson page has a step tab bar, then the slides beside the current step, and a progress header', async t => {
   const { read } = await build(t);
   const html = await read('/learn/01/');
   const ws1 = defaultContent.workshops[0];
-  const nav = html.match(/<nav class="lesson-nav"[\s\S]*?<\/nav>/)[0];
-  assert.match(nav, /<details class="lesson-toc" data-lesson-toc open>/);
-  assert.ok(nav.includes(`<summary>단계 목록 (<span data-toc-count>0/${ws1.missions.length}</span>)</summary>`));
-  const gotos = [...nav.matchAll(/<button type="button" class="toc-step" data-goto="([^"]+)">/g)].map(m => m[1]);
+  const nav = html.match(/<nav class="lesson-tabs" aria-label="단계">[\s\S]*?<\/nav>/)[0];
+  const gotos = [...nav.matchAll(/<button type="button" class="step-tab" data-goto="([^"]+)" title="(\d\d) [^"]+">/g)].map(m => m[1]);
   assert.deepEqual(gotos, ws1.missions.map(m => m.id));
   assert.equal((html.match(/data-goto=/g) ?? []).length, ws1.missions.length);
+  assert.match(nav, /<span class="step-mark" aria-hidden="true">○<\/span><span class="step-no">01<\/span><span class="step-title">/);
+  assert.doesNotMatch(html, /data-lesson-toc|data-toc-count|class="lesson-nav"|class="toc/);
+  // 탭 줄 다음에 슬라이드(왼쪽)와 단계 설명(오른쪽)이 같은 줄에 놓입니다.
+  assert.match(html, /<\/nav>\s*<div class="lesson-body">\s*<div class="lesson-slides">[\s\S]*?<\/div>\s*<div class="lesson-steps">/);
   assert.match(html, /<a class="lesson-back" href="\/learn\/">← 수업 목록<\/a>/);
   assert.match(html, /<header class="lesson-head">[\s\S]*?data-progress-text>0\/4 완료</);
   assert.doesNotMatch(html, /lesson-dots/);
+  const script = await readFile(new URL('../src/learn.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(script, /lesson-toc|toc-count/);
 });
 
 test('the signed-in preview only turns on at localhost', async () => {
