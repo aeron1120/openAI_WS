@@ -403,3 +403,15 @@ test('the question list page carries the step names', async t => {
   const steps = JSON.parse(raw.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
   assert.deepEqual(steps[0].steps.map(s => s.id), ['open-starter', 'run-local', 'first-change', 'connect-feature']);
 });
+
+test('lesson ask buttons point at their ask boxes', async t => {
+  const { read } = await build(t);
+  const lesson = await read('/learn/01/');
+  const buttons = [...lesson.matchAll(/<button[^>]*data-ask-open[^>]*>/g)].map(m => m[0]);
+  assert.equal(buttons.length, defaultContent.workshops[0].missions.length);
+  for (const tag of buttons) {
+    assert.match(tag, /aria-expanded="false"/);
+    const target = /aria-controls="([^"]+)"/.exec(tag)[1];
+    assert.match(lesson, new RegExp(`<div class="ask" data-ask id="${target}" hidden>`));
+  }
+});

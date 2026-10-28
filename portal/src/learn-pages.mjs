@@ -76,9 +76,9 @@ function lessonStep(m, i, total) {
     <button type="button" class="btn btn-ghost" data-prev ${i === 0 ? raw('disabled') : ''}>← 이전</button>
     <button type="button" class="btn btn-fill" data-done aria-pressed="false">이 단계 완료</button>
     <button type="button" class="btn btn-ghost" data-next ${i === total - 1 ? raw('disabled') : ''}>다음 →</button>
-    <button type="button" class="btn btn-ghost" data-ask-open>막혔어요 · 질문하기</button>
+    <button type="button" class="btn btn-ghost" data-ask-open aria-expanded="false" aria-controls="ask-${m.id}">막혔어요 · 질문하기</button>
   </div>
-  <div class="ask" data-ask hidden></div>
+  <div class="ask" data-ask id="ask-${m.id}" hidden></div>
   <p class="lesson-status" data-done-status role="status" aria-live="polite"></p>
 </section>`;
 }

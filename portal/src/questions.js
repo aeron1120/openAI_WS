@@ -208,6 +208,18 @@ ${q.step}`) || q.step}`;
       form.classList.remove('is-dragging');
       addFiles([...event.dataTransfer.files]);
     });
+    // 칸 밖에 이미지를 떨어뜨리면 브라우저가 그 파일을 열어 버려요(쓰던 내용이 사라짐). 칸이 열려 있는 동안 막습니다.
+    // 칸이 화면에서 없어지면(닫힘·다시 그림) 다음 드래그 때 스스로 떼어 냅니다.
+    const guard = event => {
+      if (!form.isConnected) {
+        document.removeEventListener('dragover', guard);
+        document.removeEventListener('drop', guard);
+        return;
+      }
+      if (form.getClientRects().length && hasFiles(event)) event.preventDefault(); // 접어 둔 칸이면 막지 않습니다.
+    };
+    document.addEventListener('dragover', guard);
+    document.addEventListener('drop', guard);
     // 붙여넣기: 이미지가 있을 때만 가로채고, 글자는 평소처럼 붙여 넣습니다.
     // Word·PowerPoint에서 복사하면 글자와 함께 그림도 들어오므로, 글자가 있으면 글자로 붙여 넣습니다.
     form.addEventListener('paste', event => {

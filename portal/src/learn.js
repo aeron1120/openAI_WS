@@ -120,8 +120,12 @@
     const page = content.dataset;
     if (page.lesson) return initLesson(content, user);
     if ('admin' in page && !user.operator) return content.replaceChildren(el('p', 'learn-status', '운영진만 볼 수 있어요.'));
-    if ('questions' in page) return inits.get('questions')?.(content, user);
-    if ('admin' in page) return inits.get('admin')?.(content, user);
+    // 화면 스크립트가 불러와지지 않았으면 빈 화면 대신 안내를 보여줍니다.
+    const run = name => inits.has(name)
+      ? inits.get(name)(content, user)
+      : content.replaceChildren(el('p', 'learn-error', '화면을 불러오지 못했어요. 새로고침해 주세요.'));
+    if ('questions' in page) return run('questions');
+    if ('admin' in page) return run('admin');
     initList(content, user);
   }
 

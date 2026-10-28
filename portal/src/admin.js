@@ -260,15 +260,19 @@
     }
 
     // ── 진도 탭 ──
+    let progressToken = 0;
     async function loadProgress() {
+      const token = ++progressToken;
       const box = panels.progress;
       box.replaceChildren(el('p', 'learn-status', '진도를 불러오는 중이에요…'));
       let data;
       try {
         data = await Learn.call('/api/admin/progress', { fallback: '진도를 불러오지 못했어요.' });
       } catch (error) {
+        if (token !== progressToken) return;
         return box.replaceChildren(el('p', 'learn-error', error.message), button('다시 시도', 'btn btn-ghost', loadProgress));
       }
+      if (token !== progressToken) return; // 새로고침을 또 눌렀으면 늦게 온 결과는 버립니다.
       const counts = new Map((data.progress ?? []).map(row => [`${row.workshop}\n${row.step}`, row.count]));
       const nodes = [el('div', 'admin-progress-head')];
       nodes[0].append(el('p', 'hint', '단계마다 "이 단계 완료"를 누른 학생 수예요.'), button('새로고침', 'btn btn-ghost', loadProgress));
