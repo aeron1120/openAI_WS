@@ -42,27 +42,29 @@ ${gate}
 <p class="hint">@snu.ac.kr Google 계정만 로그인할 수 있어요. 이메일·이름과 작성한 질문은 수업 운영에만 사용합니다.</p>`;
 }
 
-// 내 질문(/learn/questions/): 목록·대화는 questions.js가 채웁니다.
-export function questionsPage() {
+// 단계 이름 전달용 data-steps 값: [{ number, title, steps: [{ id, title }] }] (열린 회차만)
+const stepsOf = content => JSON.stringify(lessonWorkshops(content).map(w => ({ number: w.number, title: w.title, steps: w.missions.map(m => ({ id: m.id, title: m.title })) })));
+
+// 내 질문(/learn/questions/): 목록·대화는 questions.js가 채웁니다. 단계 이름은 data-steps로 전달합니다.
+export function questionsPage(content) {
   return h`<nav class="crumbs" aria-label="현재 위치"><a href="/learn/">수업 듣기</a> › 내 질문</nav>
 <header class="page-head">
   <h1>내 질문</h1>
   <p class="lead">수업 중에 남긴 질문과 운영진의 답을 모아 보여줘요.</p>
 </header>
 ${gate}
-<div class="questions" data-learn-content data-questions hidden></div>
+<div class="questions" data-learn-content data-questions hidden data-steps="${stepsOf(content)}"></div>
 <p class="hint">질문과 첨부한 이미지는 운영진만 볼 수 있어요. 비밀번호나 개인정보가 보이는 화면은 가려서 올려 주세요.</p>`;
 }
 
 // 운영진(/admin/): 질문 답변·진도 화면은 admin.js가 채웁니다. 단계 이름은 data-steps로 전달합니다.
 export function adminPage(content) {
-  const steps = lessonWorkshops(content).map(w => ({ number: w.number, title: w.title, steps: w.missions.map(m => ({ id: m.id, title: m.title })) }));
   return h`<header class="page-head">
   <h1>운영진</h1>
   <p class="lead">학생 질문에 답하고 수업 진행 상황을 확인해요. 운영진 계정만 쓸 수 있어요.</p>
 </header>
 ${gate}
-<div class="admin" data-learn-content data-admin hidden data-steps="${JSON.stringify(steps)}"></div>`;
+<div class="admin" data-learn-content data-admin hidden data-steps="${stepsOf(content)}"></div>`;
 }
 
 function lessonStep(m, i, total) {

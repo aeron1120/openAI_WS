@@ -28,7 +28,17 @@
     const [label, tone] = STATUS[status] ?? [String(status ?? ''), 'badge-done'];
     return el('span', `badge ${tone}`, label);
   };
-  const stepLabel = q => `Workshop ${pad(q.workshop)} · ${q.step}`;
+  // 단계 이름: 화면의 data-steps에서 찾고, 없으면 단계 id를 보여줍니다.
+  let stepNames = new Map();
+  const loadStepNames = content => {
+    try {
+      const list = JSON.parse(content.dataset.steps || '[]');
+      stepNames = new Map((Array.isArray(list) ? list : []).flatMap(w => (w.steps ?? []).map(s => [`${w.number}
+${s.id}`, s.title])));
+    } catch { stepNames = new Map(); }
+  };
+  const stepLabel = q => `Workshop ${pad(q.workshop)} · ${stepNames.get(`${q.workshop}
+${q.step}`) || q.step}`;
   const link = (href, text) => {
     const node = el('a', null, text);
     node.href = href;
@@ -444,6 +454,7 @@
   Object.assign(Learn, { openAsk, composer, thread, statusBadge, statusLabels: Object.fromEntries(Object.entries(STATUS).map(([key, [label]]) => [key, label])), when });
 
   Learn.register('questions', content => {
+    loadStepNames(content);
     const id = new URLSearchParams(location.search).get('id');
     if (id) showQuestion(content, id);
     else showList(content);

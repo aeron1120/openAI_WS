@@ -396,3 +396,10 @@ test('question and operator pages load their scripts in order and the lesson has
   const routes = JSON.parse(await readFile(path.join(outDir, '_routes.json'), 'utf8'));
   assert.ok(routes.exclude.includes('/questions.js') && routes.exclude.includes('/admin.js'));
 });
+
+test('the question list page carries the step names', async t => {
+  const { read } = await build(t);
+  const raw = /data-steps=(["'])(.*?)\1/.exec(await read('/learn/questions/'))[2];
+  const steps = JSON.parse(raw.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
+  assert.deepEqual(steps[0].steps.map(s => s.id), ['open-starter', 'run-local', 'first-change', 'connect-feature']);
+});
