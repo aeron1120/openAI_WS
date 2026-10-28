@@ -1,7 +1,16 @@
-import { h, raw, link, richText, isUsableUrl, isRecruiting, eventBadge, formatSchedule, copyBlock, figure, video } from './render.mjs';
+import { h, raw, link, richText, isUsableUrl, isExternal, isRecruiting, eventBadge, formatSchedule, copyBlock, figure, video } from './render.mjs';
+import { monthCalendar, googleCalendarUrl, mapLinks } from './calendar.mjs';
 
 const pad = n => String(n).padStart(2, '0');
 const workshopPath = w => `/workshops/${w.slug}/`;
+// 버튼 글 끝의 화살표: 마우스를 올리면 살짝 움직입니다.
+const arrow = (dir = '→') => h` <span class="arrow" aria-hidden="true">${dir}</span>`;
+// 캘린더에 넣을 행사 이름과 캘린더 파일(.ics) 주소. 파일은 build.mjs가 회차 폴더에 만듭니다.
+export const eventTitle = w => `Workshop ${w.number} · ${w.title}`;
+export const icsPath = w => `${workshopPath(w)}event.ics`;
+export const eventDetails = (site, w) => `${w.summary}\n\n자세히 보기: ${site.url}${workshopPath(w)}`;
+// 홈에 보여줄 다음 워크숍: 진행 중이거나 날짜가 정해진 다가오는 회차
+export const upcomingWorkshop = workshops => workshops.find(w => ['live', 'scheduled'].includes(w.event.status) && w.event.start);
 const checks = items => items?.length ? h`<ul class="checks">${items.map(item => h`<li>${item}</li>`)}</ul>` : '';
 export const slidesOf = w => w.resources.find(r => r.kind === 'slides' && isUsableUrl(r.url));
 const demoOf = w => w.resources.find(r => r.kind === 'demo' && isUsableUrl(r.url));
@@ -59,7 +68,7 @@ function trackCard(w) {
   const open = w.materials === 'open';
   const locked = w.materials === 'locked';
   const slides = slidesOf(w);
-  return h`<article class="track c-${open || locked ? w.color : 'muted'}${open || locked ? '' : ' is-planning'}">
+  return h`<article class="track c-${open || locked ? w.color : 'muted'}${open || locked ? '' : ' is-planning'} reveal">
   <div class="track-top">
     <span class="track-icon" aria-hidden="true"><span></span></span>
     <div class="track-name"><p class="track-kicker">Workshop ${pad(w.number)}</p><h3><a href="${workshopPath(w)}">${w.shortTitle}</a></h3></div>
@@ -70,14 +79,14 @@ function trackCard(w) {
   ${locked ? lockNote(w) : ''}
   <div class="track-actions">
     ${isRecruiting(w) ? link(w.recruitment.url, '신청하기', 'btn btn-fill') : ''}
-    ${open ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="${workshopPath(w)}">실습 시작하기 →</a>` : h`<a class="btn btn-ghost" href="${workshopPath(w)}">${locked ? '준비물 보기' : '회차 소개'}</a>`}
+    ${open ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="${workshopPath(w)}">실습 시작하기${arrow()}</a>` : h`<a class="btn btn-ghost" href="${workshopPath(w)}">${locked ? '준비물 보기' : '회차 소개'}</a>`}
     ${open && slides ? link(slides.url, '슬라이드', 'btn btn-ghost') : ''}
   </div>
 </article>`;
 }
 
 function showcaseCard(showcase) {
-  return h`<article class="track track-wide c-${showcase.color}">
+  return h`<article class="track track-wide c-${showcase.color} reveal">
   <div class="track-top">
     <span class="track-icon" aria-hidden="true"><span></span></span>
     <div class="track-name"><p class="track-kicker">Showcase · 학기 마무리</p><h3><a href="/showcase/">${showcase.korean}</a></h3></div>
@@ -89,7 +98,7 @@ function showcaseCard(showcase) {
 }
 
 function studioStrip(studio) {
-  return h`<a class="strip" href="/studio/">
+  return h`<a class="strip reveal" href="/studio/">
   <span class="dot dot-navy" aria-hidden="true"></span>
   <span><strong>${studio.title}</strong> ${studio.next?.topic
     ? h`다음 ${studio.next.badge} · ${studio.next.topic}${studio.next.tag ? h` <span class="badge badge-open">${studio.next.tag}</span>` : ''}`
@@ -103,11 +112,58 @@ function tracks(content) {
 ${studioStrip(content.studio)}`;
 }
 
+// 홈의 다음 워크숍: 날짜는 달력, 장소는 지도로 보여줍니다. 남은 날(D-day)은 main.js가 그날 기준으로 채웁니다.
+function nextWorkshop(content) {
+  const { site, workshops } = content;
+  const w = upcomingWorkshop(workshops);
+  if (!w) {
+    return h`<section class="next-ws reveal" aria-labelledby="next-ws-title">
+  <p class="track-kicker">다음 워크숍</p>
+  <h2 id="next-ws-title">다음 워크숍 일정을 준비하고 있어요</h2>
+  <p class="track-desc">날짜와 장소가 정해지면 이곳에 달력과 지도로 안내해요. 그동안 지난 회차 실습을 혼자 따라 해 보세요.</p>
+  <div class="actions"><a class="btn btn-ghost" href="/workshops/">전체 워크숍 보기${arrow()}</a></div>
+</section>`;
+  }
+  const live = w.event.status === 'live';
+  const map = w.event.mapQuery ? mapLinks(w.event.mapQuery) : null;
+  return h`<section class="next-ws c-${w.color} reveal" aria-labelledby="next-ws-title">
+  <div class="next-ws-head">
+    <p class="track-kicker">다음 워크숍 ${eventBadge(w)}<span class="dday" data-dday="${w.event.start}" hidden></span></p>
+    <h2 id="next-ws-title"><a href="${workshopPath(w)}">Workshop ${pad(w.number)} · ${w.title}</a></h2>
+    <p class="track-desc">${w.summary}</p>
+  </div>
+  <div class="next-ws-grid">
+    <div class="next-card cal-card">
+      <p class="next-card-label"><span aria-hidden="true">📅</span> 언제</p>
+      <p class="next-card-main">${scheduleText(w, site.timeZone)}</p>
+      ${monthCalendar(w.event, site.timeZone, eventTitle(w))}
+      <div class="next-card-actions">
+        ${link(googleCalendarUrl({ title: eventTitle(w), event: w.event, details: eventDetails(site, w) }), 'Google 캘린더에 추가', 'btn btn-ghost btn-sm')}
+        <a class="btn btn-ghost btn-sm" href="${icsPath(w)}" download="workshop-${w.slug}.ics">캘린더 파일 (아이폰·아웃룩)</a>
+      </div>
+    </div>
+    <div class="next-card map-card">
+      <p class="next-card-label"><span aria-hidden="true">📍</span> 어디서</p>
+      <p class="next-card-main">${placeText(w)}</p>
+      ${map ? h`<div class="map-frame"><iframe src="${map.embed}" title="${placeText(w)} 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>
+      <div class="next-card-actions">${link(map.naver, '네이버 지도', 'btn btn-ghost btn-sm')}${link(map.kakao, '카카오맵', 'btn btn-ghost btn-sm')}${link(map.google, 'Google 지도', 'btn btn-ghost btn-sm')}</div>` : ''}
+    </div>
+  </div>
+  <div class="actions">
+    ${isRecruiting(w) ? link(w.recruitment.url, h`신청하기${arrow()}`, 'btn btn-fill') : ''}
+    ${live && w.materials === 'open'
+      ? h`<a class="btn btn-fill" href="${workshopPath(w)}">실습 시작하기${arrow()}</a>`
+      : h`<a class="btn btn-ghost" href="${workshopPath(w)}">준비물·자세히 보기${arrow()}</a>`}
+  </div>
+</section>`;
+}
+
 export function homePage(content) {
   const { site, workshops, projects } = content;
   const primary = primaryAction(workshops);
   const featured = projects.find(p => p.kind === 'student' && p.published) ?? projects.find(p => p.kind === 'operator' && p.published);
-  return h`<figure class="banner"><img src="/images/brand/banner-2000.jpg" srcset="/images/brand/banner-1000.jpg 1000w, /images/brand/banner-2000.jpg 2000w" sizes="(min-width: 1024px) calc(100vw - 340px), 100vw" width="2000" height="770" alt="OpenAI Student Collective, Seoul National University 배너" fetchpriority="high"></figure>
+  // 배너 그림의 지구 자리에 돌아가는 지구(home.js)를 겹칩니다. 스크립트가 없으면 그림만 보여요.
+  return h`<figure class="banner" data-globe><img src="/images/brand/banner-2000.jpg" srcset="/images/brand/banner-1000.jpg 1000w, /images/brand/banner-2000.jpg 2000w" sizes="(min-width: 1024px) calc(100vw - 340px), 100vw" width="2000" height="770" alt="OpenAI Student Collective, Seoul National University 배너" fetchpriority="high"><canvas class="globe" aria-hidden="true"></canvas><p class="globe-tip" aria-hidden="true" hidden>끌어서 돌려 보세요</p></figure>
 <section class="hero">
   ${featured ? h`<figure class="hero-shot">
     <div class="shot-frame"><img src="${featured.image}" alt="${featured.alt}" width="1280" height="800" loading="lazy" decoding="async"></div>
@@ -119,14 +175,13 @@ export function homePage(content) {
   <p class="hero-lead">ChatGPT·Codex로 한 학기 동안 내 서비스를 만들어요.</p>
   <ul class="tags" aria-label="프로그램 특징"><li>전공 무관</li><li>코딩 경험 없어도 OK</li><li>워크숍 4회 + Showcase</li></ul>
   <div class="actions">
-    ${link(primary.url, `${primary.label} →`, 'btn btn-primary')}
+    ${link(primary.url, h`${primary.label}${arrow()}`, 'btn btn-primary')}
     <a class="btn btn-ghost" href="/roadmap/">학기 과정 한눈에 보기</a>
   </div>
   </div>
 </section>
-<section aria-label="학기 과정">
-${tracks(content)}
-</section>`;
+${nextWorkshop(content)}
+${studioStrip(content.studio)}`;
 }
 
 export function workshopsPage(content) {
@@ -149,7 +204,7 @@ export function roadmapPage(content) {
   <p class="lead">워크숍 4번과 매주 월요일 Studio Session, 마지막에 Showcase. 중간에 합류해도 괜찮아요.</p>
 </header>
 <ol class="timeline">
-  ${steps.map((s, i) => h`${i > 0 && i < steps.length ? h`<li class="tl-studio"><a href="/studio/">${studio.title}</a></li>` : ''}<li class="tl c-${s.color}${s.item === next ? ' is-next' : ''}">
+  ${steps.map((s, i) => h`${i > 0 && i < steps.length ? h`<li class="tl-studio"><a href="/studio/">${studio.title}</a></li>` : ''}<li class="tl reveal c-${s.color}${s.item === next ? ' is-next' : ''}">
     <span class="tl-dot" aria-hidden="true"></span>
     <div class="tl-body">
       <p class="track-kicker">${s.kicker} ${s.status}${s.item === next ? h` <span class="badge badge-next">다음 단계</span>` : ''}</p>
@@ -209,13 +264,16 @@ function missionBlock(m, index) {
 </details>`;
 }
 
-function resourceRow(r) {
+// 자료는 눌러 보고 싶은 카드로: 종류별 아이콘, 마우스를 올리면 떠오르고 화살표가 움직입니다.
+const resourceIcons = { demo: '🖥️', starter: '📦', guide: '📘', slides: '📑' };
+function resourceCard(r) {
   if (!isUsableUrl(r.url)) return '';
-  return h`<li>
-  ${link(r.url, r.label, 'res-link')}
-  ${r.audience === 'presenter' ? h`<span class="badge badge-presenter">발표 자료</span>` : ''}
-  ${r.note ? h`<small>${r.note}</small>` : ''}
-</li>`;
+  const external = isExternal(r.url);
+  return h`<li><a class="res-card${r.kind === 'demo' ? ' is-demo' : ''}" href="${r.url}"${external ? raw(' target="_blank" rel="noopener"') : ''}>
+  <span class="res-icon" aria-hidden="true">${resourceIcons[r.kind] ?? '🔗'}</span>
+  <span class="res-text"><strong>${r.label}</strong>${r.audience === 'presenter' ? h` <span class="badge badge-presenter">발표 자료</span>` : ''}${r.note ? h`<small>${r.note}</small>` : ''}</span>
+  <span class="res-go" aria-hidden="true">${external ? '↗' : '→'}</span>${external ? raw('<span class="sr-only"> (새 창)</span>') : ''}
+</a></li>`;
 }
 
 export function workshopPage(content, w) {
@@ -240,7 +298,7 @@ export function workshopPage(content, w) {
   <p class="lead">${w.summary}</p>
   ${open || isRecruiting(w) ? h`<div class="actions">
     ${isRecruiting(w) ? link(w.recruitment.url, '신청하기', 'btn btn-fill') : ''}
-    ${open ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="#missions">실습 시작하기 ↓</a>` : ''}
+    ${open ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="#missions">실습 시작하기${arrow('↓')}</a>` : ''}
     ${demo ? link(demo.url, '예제 열기', 'btn btn-ghost') : ''}
     ${slides ? link(slides.url, '슬라이드', 'btn btn-ghost') : ''}
   </div>` : ''}
@@ -259,7 +317,7 @@ ${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
   <h2><span aria-hidden="true">🔒</span> 실습과 슬라이드는 ${w.opensLabel}에 열려요</h2>
   <p class="hint">워크숍이 시작하면 이 페이지에서 단계별 미션과 예제, 슬라이드를 바로 볼 수 있어요. 그 전에 아래 준비만 끝내 오세요.</p>
 </section>
-<section class="block two">
+<section class="block reveal two">
   ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
   ${checkBox(w)}
 </section>
@@ -282,22 +340,22 @@ ${pager}</div>`;
   return h`<div class="c-${color}">${head}
 ${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
 
-<section class="block">
+<section class="block reveal">
   ${video(w) || figure(w.preview)}
 </section>
 
-<section class="block two">
+<section class="block reveal two">
   ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
   ${checkBox(w)}
 </section>
 
-${w.missions.length ? h`<section class="block" id="missions">
+${w.missions.length ? h`<section class="block reveal" id="missions">
   <h2>단계별 미션</h2>
   <p class="hint">단계를 눌러 펼쳐요. 요청문은 복사해서 Codex에 붙여 넣으세요.</p>
   ${w.missions.map(missionBlock)}
 </section>` : ''}
 
-<section class="block">
+<section class="block reveal">
   ${w.apply ? h`<details class="mission more">
     <summary><span class="mission-no">+</span><span class="mission-title">${w.apply.title}</span></summary>
     <div class="mission-body"><p>${w.apply.body}</p>${w.apply.prompt ? copyBlock(w.apply.prompt, '빈칸을 내 아이디어로 바꿔 쓰세요') : ''}</div>
@@ -312,15 +370,15 @@ ${w.missions.length ? h`<section class="block" id="missions">
   </details>
 </section>
 
-${resources.length ? h`<section class="block" id="materials">
+${resources.length ? h`<section class="block reveal" id="materials">
   <h2>자료</h2>
-  <ul class="res-list">${resources.map(resourceRow)}</ul>
+  <ul class="res-cards">${resources.map(resourceCard)}</ul>
 </section>` : ''}
 
-${w.share ? h`<section class="block next-box">
+${w.share ? h`<section class="block reveal next-box">
   <h2>다 했다면</h2>
   <p>${w.share}</p>
-  <div class="actions"><a class="btn btn-ghost" href="/studio/">Studio Session</a>${next ? h`<a class="btn btn-ghost" href="${workshopPath(next)}">다음 회차 →</a>` : ''}</div>
+  <div class="actions"><a class="btn btn-ghost" href="/studio/">Studio Session</a>${next ? h`<a class="btn btn-ghost" href="${workshopPath(next)}">다음 회차${arrow()}</a>` : ''}</div>
 </section>` : ''}
 ${pager}</div>`;
 }
@@ -344,14 +402,14 @@ export function studioPage(content) {
   <p class="hint">${studio.timingNote}</p>
   ${isUsableUrl(site.links.openChat) ? h`<div class="actions">${link(site.links.openChat, '오픈채팅에서 일정 받기', 'btn btn-primary')}</div>` : ''}
 </header>
-${next?.topic ? h`<section class="block next-session">
+${next?.topic ? h`<section class="block reveal next-session">
   <p class="next-label">다음 세션 · ${next.badge}${next.tag ? h` <span class="badge badge-open">${next.tag}</span>` : ''}</p>
   <h2>${next.topic}</h2>
   <p>${next.detail}</p>
   ${next.call ? h`<p class="next-call">${next.call}</p>` : ''}
   <p class="hint">${formatSchedule(next, site.timeZone)} · ${[next.note, next.place ?? '장소 추후 안내'].filter(Boolean).join(' · ')}</p>
 </section>` : ''}
-<section class="block two">
+<section class="block reveal two">
   <div class="box">
     <h2>일정 <small class="hint">${studio.cadence}</small></h2>
     ${sessions.length
@@ -360,7 +418,7 @@ ${next?.topic ? h`<section class="block next-session">
   </div>
   <div class="box"><h2>가져올 것</h2>${checks(studio.bring)}</div>
 </section>
-<section class="block">
+<section class="block reveal">
   <h2>질문 정리 틀</h2>
   ${copyBlock(studio.question, '이 틀에 맞춰 적어 오세요')}
   <p class="hint">${studio.caution}</p>
@@ -368,7 +426,7 @@ ${next?.topic ? h`<section class="block next-session">
 }
 
 export function projectCard(p) {
-  return h`<article class="project">
+  return h`<article class="project reveal">
   ${p.image ? h`<div class="shot-frame"><img src="${p.image}" alt="${p.alt}" width="1280" height="800" loading="lazy" decoding="async"></div>` : ''}
   <div class="project-body">
     <p>${p.kind === 'operator' ? h`<span class="tag-operator">운영진 예제</span>` : h`<span class="badge badge-materials">학생 프로젝트</span>`}</p>
@@ -390,13 +448,13 @@ export function showcasePage(content) {
   <p class="lead">${showcase.description}</p>
   <p class="hint">${showcase.timingNote}</p>
 </header>
-<section class="block">
+<section class="block reveal">
   <h2>학생 프로젝트</h2>
   ${student.length
     ? h`<div class="projects">${student.map(projectCard)}</div>`
     : h`<div class="empty"><strong>학생 프로젝트는 준비되는 대로 소개합니다.</strong><p class="hint">공개하고 싶다면 Studio Session에서 알려주세요. 동의한 프로젝트만 올려요.</p></div>`}
 </section>
-<section class="block">
+<section class="block reveal">
   <h2>운영진 예제</h2>
   <div class="projects">${operator.map(projectCard)}</div>
 </section>`;
@@ -409,7 +467,7 @@ export function aboutPage(content) {
   <h1>운영·협력 안내</h1>
   <p class="lead">${site.name}는 서울대학교 학생이 직접 만들고 공유하는 경험을 돕는 학생 프로그램이에요.</p>
 </header>
-<section class="block two">
+<section class="block reveal two">
   <div class="box">
     <h2>운영</h2>
     <p>${site.operators.role} ${site.operators.names.join('·')}</p>
@@ -422,11 +480,11 @@ export function aboutPage(content) {
       : h`<p class="hint">첫 회차를 준비하고 있어요.</p>`}
   </div>
 </section>
-<section class="block">
+<section class="block reveal">
   <h2>함께하는 팀</h2>
   <ul class="collab">${collaboration.map(c => h`<li><strong>${c.who}</strong><span>${c.what}</span></li>`)}</ul>
 </section>
-<section class="block">
+<section class="block reveal">
   <h2>문의</h2>
   ${isUsableUrl(site.links.contact)
     ? h`<div class="actions">${link(site.links.contact, '협력 문의하기', 'btn btn-primary')}</div>`

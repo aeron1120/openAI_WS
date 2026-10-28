@@ -43,8 +43,9 @@ document.addEventListener('click', async event => {
   if (!copied) copied = legacyCopy(target);
   if (copied) {
     report(status, button.closest('.help-card') ? '복사했어요. 터미널에 붙여 넣으세요.' : '복사했어요. Codex 입력창에 붙여 넣으세요.', true);
-    button.textContent = '복사됨';
-    setTimeout(() => { button.textContent = '복사'; }, 2000);
+    button.textContent = '복사됨 ✓';
+    button.classList.add('is-copied');
+    setTimeout(() => { button.textContent = '복사'; button.classList.remove('is-copied'); }, 2000);
   } else {
     selectText(target);
     report(status, '자동 복사가 되지 않았어요. 글을 선택해 두었으니 Ctrl+C(⌘C)를 누르거나 길게 눌러 복사하세요.', false);
@@ -150,4 +151,47 @@ for (const box of document.querySelectorAll('[data-check-guide]')) {
   const opener = box.querySelector('.help-start');
   opener.hidden = false;
   opener.addEventListener('click', () => startGuide(box));
+}
+
+// 움직임: 스크롤하면 섹션이 아래에서 떠오르고, 버튼을 누르면 누른 자리에서 물결이 퍼집니다.
+// '동작 줄이기' 설정이거나 IntersectionObserver가 없으면 처음부터 모두 보입니다.
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reveals = document.querySelectorAll('.reveal');
+if ('IntersectionObserver' in window && !reduceMotion) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      entry.target.classList.add('is-in');
+      observer.unobserve(entry.target);
+    }
+  }, { rootMargin: '0px 0px -6% 0px' });
+  reveals.forEach(element => observer.observe(element));
+} else {
+  reveals.forEach(element => element.classList.add('is-in'));
+}
+
+document.addEventListener('pointerdown', event => {
+  const target = event.target.closest('.btn, .copy-button, .res-card, .help-start');
+  if (!target || reduceMotion) return;
+  const box = target.getBoundingClientRect();
+  const size = Math.max(box.width, box.height) * 2;
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple';
+  ripple.setAttribute('aria-hidden', 'true');
+  Object.assign(ripple.style, { width: `${size}px`, height: `${size}px`, left: `${event.clientX - box.left - size / 2}px`, top: `${event.clientY - box.top - size / 2}px` });
+  target.append(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+});
+
+// 홈의 다음 워크숍: 남은 날(D-day)과 달력의 오늘 표시는 보는 날 기준(한국 시간)으로 계산합니다.
+// 페이지 묶음은 행사 시각에만 바뀌므로 날짜 계산은 브라우저가 맡습니다.
+const seoulDay = date => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(date);
+const today = seoulDay(new Date());
+document.querySelector(`.cal td[data-date="${today}"]`)?.classList.add('is-today');
+for (const badge of document.querySelectorAll('[data-dday]')) {
+  const start = new Date(badge.dataset.dday);
+  if (Number.isNaN(start.getTime()) || Date.now() >= start.getTime()) continue;
+  const days = Math.round((Date.parse(seoulDay(start)) - Date.parse(today)) / 86400000);
+  badge.textContent = days === 0 ? 'D-DAY · 오늘' : `D-${days}`;
+  badge.hidden = false;
 }

@@ -70,5 +70,7 @@ export async function onRequest({ request, env, next }) {
   }
   const headers = new Headers(response.headers);
   headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+  // 캘린더 파일은 휴대폰이 '캘린더에 추가'로 열 수 있도록 형식을 분명히 알려줍니다.
+  if (url.pathname.endsWith('.ics')) headers.set('Content-Type', 'text/calendar; charset=utf-8');
   return new Response(response.body, { status: response.status, headers });
 }

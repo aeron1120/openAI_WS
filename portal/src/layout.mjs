@@ -58,6 +58,7 @@ function head({ site, path, title, description, assets, script }) {
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="/styles.css?v=${assets.css}">
+<script>document.documentElement.classList.add('js')</script>
 <script src="/main.js?v=${assets.js}" defer></script>
 ${[script ?? []].flat().map(name => h`<script src="/${name}?v=${assets[name]}" defer></script>`)}
 </head>`;

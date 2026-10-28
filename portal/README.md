@@ -123,20 +123,27 @@ portal/
 │  ├─ layout.mjs      ← 공통 머리말·메뉴·바닥글·공유 메타데이터, 학습실 상단 바(learnLayout)
 │  ├─ render.mjs      ← 상태 표시, 링크 검사, 요청문 복사 블록 등 공통 조각
 │  ├─ schedule.mjs    ← 시각에 따른 행사·자료 상태 계산
+│  ├─ calendar.mjs    ← 홈 '다음 워크숍'의 달력, 캘린더 추가(Google·.ics), 지도 링크
 │  ├─ styles.css      ← 디자인
-│  └─ main.js         ← 요청문 복사 (클립보드 실패 시 글 선택 + 안내)
+│  ├─ main.js         ← 요청문 복사, 스크롤 떠오르기·버튼 물결, 다음 워크숍 D-day
+│  └─ home.js         ← 홈 배너의 돌아가는 지구 (끌어서 돌리기)
 ├─ public/            ← 그대로 복사되는 파일 (이미지, og.png, favicon, _headers)
 ├─ scripts/
 │  ├─ build.mjs       ← 콘텐츠 검사 후 dist/ 생성 (WS2 예제 화면도 복사)
 │  ├─ serve.mjs       ← 로컬 미리보기 서버
 │  ├─ check-links.mjs ← 외부 링크 확인
 │  ├─ screenshot.mjs  ← 예제 화면·공유 이미지 캡처 (운영진용)
-│  └─ og-image.html   ← 공유 이미지 원본
+│  ├─ og-image.html   ← 공유 이미지 원본
+│  └─ earth-mask.mjs  ← 지구에 쓰는 육지 지도(earth-mask.png) 만들기 (운영진용)
 ├─ tests/             ← 상태별 버튼 노출, 내부 링크, 누락 처리 검사
 ├─ functions/
 │  └─ _middleware.js  ← 요청 시각에 맞는 페이지 묶음을 보여주는 Pages 함수
 └─ wrangler.jsonc     ← 포털 전용 Pages 설정
 ```
+
+홈의 **다음 워크숍**은 진행 중이거나 날짜가 정해진 첫 회차를 달력과 지도로 보여줍니다. 지도는 회차의 `event.mapQuery`(예: `'서울대학교 56동'`)로 찾으니, Google 지도에서 맞는 건물이 나오는지 확인하고 적으세요. 값이 없으면 지도 없이 장소 글만 보입니다. 날짜가 정해진 회차마다 `/workshops/<번호>/event.ics` 캘린더 파일이 함께 만들어집니다.
+
+홈 배너의 지구는 배너 그림 속 지구 자리(가로 49.5%, 세로 50%, 지름 42.6%)를 덮어 그립니다. 배너 그림을 바꾸면 `src/home.js`와 `src/styles.css`의 `.globe` 위치를 새 그림에 맞추세요.
 
 `public/images/examples/`의 화면은 2026-10-27에 실제 예제를 캡처한 것입니다. 예제가 바뀌면 `node portal/scripts/screenshot.mjs <주소> portal/public/images/examples/<파일>.png 1280,800`으로 다시 캡처합니다.
 

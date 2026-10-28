@@ -53,7 +53,7 @@ test('internal links resolve, no placeholder links, and share metadata uses the 
       for (const [, href] of html.matchAll(/(?:href|src)="(\/[^"]*)"/g)) {
         const clean = href.split(/[?#]/)[0];
         // 공용 파일(css·js·이미지)은 루트에, 페이지와 예제는 같은 묶음 안에 있어야 합니다.
-        const shared = /^\/(styles\.css|main\.js|learn\.js|questions\.js|admin\.js|favicon\.svg|og\.png|images\/)/.test(clean);
+        const shared = /^\/(styles\.css|main\.js|home\.js|learn\.js|questions\.js|admin\.js|favicon\.svg|og\.png|images\/)/.test(clean);
         const file = path.join(shared ? outDir : root, clean, clean.endsWith('/') ? 'index.html' : '');
         assert.ok(await exists(file), `${path.relative(outDir, root) || '/'}${page} → ${href} does not exist`);
       }
@@ -69,8 +69,8 @@ test('before Workshop 2 starts, its missions, slides and examples are not publis
   // 시작 전 확인 도움말(template)은 행사 전에도 보여야 하므로 빼고 검사합니다.
   const outsideHelp = page.replace(/<template>[\s\S]*?<\/template>/g, '');
   assert.doesNotMatch(outsideHelp, /class="mission"|copy-block|docs\.google\.com\/presentation|\/examples\//);
-  const home = await read('/');
-  const ws2Card = home.match(/<article class="track c-blue[\s\S]*?<\/article>/)[0];
+  const list = await read('/workshops/');
+  const ws2Card = list.match(/<article class="track c-blue[\s\S]*?<\/article>/)[0];
   assert.match(ws2Card, /11\/2 \(월\) 18:00/);
   assert.doesNotMatch(ws2Card, /실습 시작하기|슬라이드<|docs\.google/);
   assert.equal(await exists(path.join(outDir, 'examples/workshop2/complete/index.html')), false);
@@ -86,7 +86,7 @@ test('at the start time Workshop 2 opens, and after it ends it is marked done', 
   assert.ok(await exists(path.join(opened.outDir, 'examples/workshop2/complete/index.html')));
   assert.match(await opened.read('/showcase/'), /즐겨찾기 추가/);
   const ended = await build(t, defaultContent, WS2_ENDS);
-  assert.match((await ended.read('/')).match(/<article class="track c-blue[\s\S]*?<\/article>/)[0], /진행 완료/);
+  assert.match((await ended.read('/workshops/')).match(/<article class="track c-blue[\s\S]*?<\/article>/)[0], /진행 완료/);
 });
 
 test('the deployed function serves the page set for the request time and hides future pages', async t => {
@@ -125,7 +125,7 @@ test('the deployed function serves the page set for the request time and hides f
 test('undated items say 준비 중, never 미정', async t => {
   const { pages, read } = await build(t);
   for (const page of pages) assert.doesNotMatch(await read(page), /미정/, `${page} still says 미정`);
-  const home = await read('/');
+  const home = await read('/workshops/');
   for (const kicker of ['Workshop 03</p>', 'Workshop 04</p>', 'Showcase · 학기 마무리</p>']) {
     const card = home.split(kicker)[1].split('</article>')[0];
     assert.match(card, /badge-planning">준비 중/, `${kicker} should be 준비 중`);
@@ -164,7 +164,7 @@ test('workshops link the student slides, never the presenter deck', async t => {
   const presenterDecks = ['1OYbhNdlJFerD-LumLyBXP3SUZKata9K1m_avNXCvUvM', '17PScZeZtImAaSqLmmq5VUY9kSDZb60RTFyzo1U8ReQg', '1rUCvsJvfaKOH13tPIRh-ZlsAGvh3S_zWljE84p_BakQ'];
   for (const page of ['/workshops/01/', '/workshops/02/']) {
     const html = await read(page);
-    const rows = html.match(/<li>\s*<a class="res-link"[\s\S]*?<\/li>/g) ?? [];
+    const rows = html.match(/<li><a class="res-card[\s\S]*?<\/li>/g) ?? [];
     const slides = rows.filter(row => row.includes('docs.google.com/presentation'));
     assert.equal(slides.length, 1, `${page} lists the slides once`);
     assert.match(slides[0], /실습 슬라이드/);
@@ -582,4 +582,36 @@ test('the signed-in preview only turns on at localhost', async () => {
   // 가짜 응답은 preview일 때만 씁니다.
   assert.equal((source.match(/previewApi\(/g) ?? []).length, 2);
   assert.match(source, /if \(preview\) return previewApi\(path\);/);
+});
+
+test('home shows the next workshop with a calendar, a map and calendar links instead of every workshop', async t => {
+  const { outDir, read } = await build(t);
+  const home = await read('/');
+  assert.doesNotMatch(home, /<article class="track/, 'all workshop cards live on /workshops/');
+  const next = home.match(/<section class="next-ws[\s\S]*?<\/section>/)[0];
+  assert.match(next, /Workshop 02 · 고치고, 기록하고, 공개하기/);
+  assert.match(next, /<caption>2026년 11월/);
+  assert.match(next, /<td data-date="2026-11-02" class="is-event"><span>2<\/span><\/td>/);
+  assert.match(next, /data-dday="2026-11-02T18:00:00\+09:00"/);
+  assert.match(next, /<iframe src="https:\/\/www\.google\.com\/maps\?q=%EC%84%9C%EC%9A%B8%EB%8C%80%ED%95%99%EA%B5%90%2056%EB%8F%99&amp;hl=ko/);
+  assert.match(next, /href="https:\/\/map\.naver\.com\/p\/search\/[^"]+"[^>]*>네이버 지도/);
+  assert.match(next, /href="https:\/\/map\.kakao\.com\/link\/search\/[^"]+"[^>]*>카카오맵/);
+  assert.match(next, /href="https:\/\/calendar\.google\.com\/calendar\/render\?action=TEMPLATE[^"]*dates=20261102T090000Z%2F20261102T100000Z/);
+  assert.match(next, /href="\/workshops\/02\/event\.ics" download/);
+  assert.match(next, /href="https:\/\/luma\.com\/54mgt7n8"[^>]*>신청하기/);
+  assert.match(home, /data-globe/);
+  assert.match(home, /<script src="\/home\.js\?v=/);
+
+  const ics = await readFile(path.join(outDir, 'workshops/02/event.ics'), 'utf8');
+  assert.match(ics, /^BEGIN:VCALENDAR\r\n/);
+  assert.match(ics, /\r\nDTSTART:20261102T090000Z\r\nDTEND:20261102T100000Z\r\n/);
+  assert.ok(ics.includes('\r\nSUMMARY:Workshop 2 · 고치고\\, 기록하고\\, 공개하기\r\n'), 'commas in the title are escaped');
+  for (const line of ics.split('\r\n')) assert.ok(new TextEncoder().encode(line).length <= 75, `ics line too long: ${line}`);
+});
+
+test('after the last dated workshop ends, home says the next one is being prepared', async t => {
+  const { read } = await build(t, defaultContent, WS2_ENDS);
+  const home = await read('/');
+  assert.match(home, /다음 워크숍 일정을 준비하고 있어요/);
+  assert.doesNotMatch(home, /<iframe|class="cal"/);
 });

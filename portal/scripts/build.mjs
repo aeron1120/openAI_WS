@@ -8,6 +8,7 @@ import { workshops } from '../content/workshops.mjs';
 import { studio, showcase, projects, collaboration } from '../content/program.mjs';
 import { layout, learnLayout } from '../src/layout.mjs';
 import { isUsableUrl, inlineLinkUrls } from '../src/render.mjs';
+import { icsFile } from '../src/calendar.mjs';
 import * as pages from '../src/pages.mjs';
 import * as learnPages from '../src/learn-pages.mjs';
 import { resolveContent, boundaries } from '../src/schedule.mjs';
@@ -98,7 +99,7 @@ export function validateContent(content) {
 
 export function routes(content) {
   return [
-    { path: '/', render: pages.homePage, description: content.site.description },
+    { path: '/', render: pages.homePage, description: content.site.description, script: 'home.js' },
     { path: '/roadmap/', title: '학기 로드맵', render: pages.roadmapPage, description: '워크숍 4회와 Studio Session, Showcase로 이어지는 한 학기 과정과 단계별 결과물.' },
     { path: '/workshops/', title: '워크숍과 실습 자료', render: pages.workshopsPage, description: '회차별 주제, 진행 상태, 실습 자료를 한곳에서 확인하세요.' },
     ...content.workshops.map(w => ({ path: `/workshops/${w.slug}/`, title: `Workshop ${w.slug} · ${w.title}`, render: c => pages.workshopPage(c, w), description: `${w.message} — ${w.summary}` })),
@@ -127,6 +128,12 @@ async function writePages(dir, content, assets) {
     await writeFile(file, wrap({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets, script: route.script }));
     written.push(route.path);
   }
+  // 날짜가 정해진 회차는 '캘린더에 추가'용 파일(/workshops/<slug>/event.ics)을 함께 만듭니다.
+  for (const w of content.workshops.filter(w => w.event?.start)) {
+    const file = path.join(dir, pages.icsPath(w));
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, icsFile({ uid: `workshop-${w.slug}@${new URL(content.site.url).host}`, title: pages.eventTitle(w), event: w.event, details: pages.eventDetails(content.site, w), url: `${content.site.url}/workshops/${w.slug}/`, now: content.now }));
+  }
   await writeFile(path.join(dir, '404.html'), layout({ site: content.site, content, path: '/404', title: '페이지를 찾을 수 없어요', description: content.site.description, body: String(pages.notFoundPage()), assets }));
   // 자료가 열린 회차의 예제 화면만 복사합니다(저장소의 정적 화면 파일만).
   for (const w of content.workshops.filter(w => w.materials === 'open')) {
@@ -152,7 +159,7 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
   const css = await readFile(path.join(portal, 'src/styles.css'), 'utf8');
   const js = await readFile(path.join(portal, 'src/main.js'), 'utf8');
   const extra = {};
-  for (const name of ['learn.js', 'questions.js', 'admin.js']) extra[name] = await readFile(path.join(portal, 'src', name), 'utf8');
+  for (const name of ['home.js', 'learn.js', 'questions.js', 'admin.js']) extra[name] = await readFile(path.join(portal, 'src', name), 'utf8');
   const assets = { css: hash(css), js: hash(js), ...Object.fromEntries(Object.entries(extra).map(([name, text]) => [name, hash(text)])) };
   await writeFile(path.join(out, 'styles.css'), css);
   await writeFile(path.join(out, 'main.js'), js);
@@ -172,7 +179,7 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
   await writeFile(path.join(out, '_routes.json'), JSON.stringify({
     version: 1,
     include: ['/*'],
-    exclude: ['/styles.css', '/main.js', '/learn.js', '/questions.js', '/admin.js', '/favicon.svg', '/og.png', '/images/*', '/sitemap.xml', '/robots.txt']
+    exclude: ['/styles.css', '/main.js', '/home.js', '/learn.js', '/questions.js', '/admin.js', '/favicon.svg', '/og.png', '/images/*', '/sitemap.xml', '/robots.txt']
   }));
 
   // 로그인해야 쓰는 개인 화면(내 질문·운영진)은 검색에 내보내지 않습니다.

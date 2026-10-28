@@ -6,6 +6,7 @@
 // - materialsOpenAt: 이 시각 전에는 미션·슬라이드·예제를 숨기고 '○월 ○일 ○시에 열려요'를 보여줍니다.
 //   배포된 사이트가 요청마다 현재 시각을 확인하므로, 이 시각에 다시 배포하지 않아도 자동으로 열립니다.
 // - exampleDirs: 자료가 열릴 때 /examples/ 아래에 함께 공개할 저장소 폴더.
+// - event.mapQuery: 홈의 지도에서 찾을 장소 이름(예: '서울대학교 56동'). Google 지도에서 맞는 건물이 나오는지 확인하고 적으세요. 없으면 지도를 그리지 않습니다.
 // - 확정되지 않은 값은 null로 둡니다. 임의의 주소나 '#'을 넣지 마세요.
 // - missions[].slide / slideId: 수업 화면에서 이 단계가 시작되는 학생용 슬라이드 번호(1부터)와 Google Slides 페이지 ID.
 
@@ -29,7 +30,8 @@ export const workshops = [
       status: 'done',
       start: '2026-10-26T18:00:00+09:00',
       end: '2026-10-26T19:00:00+09:00',
-      place: '서울대학교 관악캠퍼스 56동(자연과학관10) 105호'
+      place: '서울대학교 관악캠퍼스 56동(자연과학관10) 105호',
+      mapQuery: '서울대학교 56동'
     },
     recruitment: { open: false, url: null },
     materials: 'open',
@@ -258,7 +260,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     outcome: '기록하고 공개까지 한 내 서비스',
     summary: '기능 하나를 Codex로 추가하고, Git·GitHub로 기록한 뒤 Cloudflare로 친구가 쓸 수 있게 공개해요.',
     doing: '기능을 직접 추가해 확인하고, Git·GitHub로 기록·되돌리기를 익힌 뒤 Cloudflare로 배포해요.',
-    event: { status: 'scheduled', start: '2026-11-02T18:00:00+09:00', end: '2026-11-02T19:00:00+09:00', place: '서울대학교 관악캠퍼스 56동(자연과학관10) 105호' },
+    event: { status: 'scheduled', start: '2026-11-02T18:00:00+09:00', end: '2026-11-02T19:00:00+09:00', place: '서울대학교 관악캠퍼스 56동(자연과학관10) 105호', mapQuery: '서울대학교 56동' },
     recruitment: { open: true, url: 'https://luma.com/54mgt7n8' }, // 행사가 시작되면 자동으로 닫혀요.
     materials: 'open',
     materialsOpenAt: '2026-11-02T18:00:00+09:00',
