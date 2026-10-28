@@ -8,7 +8,7 @@ const SPIN = 0.22;   // 스스로 도는 속도(라디안/초) ≈ 28초에 한 
 const MAX_SIZE = 640;
 // 지구 자리(배너 너비 기준): 가운데 x 49.5%, y는 배너 높이의 50%, 지름 42.6% (styles.css의 .globe와 같게)
 const GLOBE_X = 0.495, GLOBE_D = 0.426;
-const TEXT_RIGHT = 0.35; // 배너 왼쪽 글씨가 끝나는 곳. 이보다 왼쪽의 흰 글씨는 지구 위로 그대로 보이게 둡니다.
+const TEXT_RIGHT = 0.35; // 배너 왼쪽 글씨가 끝나는 곳. 이보다 왼쪽의 흰 글씨는 지구 위에 다시 그려 줍니다.
 
 const banner = document.querySelector('[data-globe]');
 if (banner) startGlobe(banner);
@@ -17,7 +17,10 @@ function startGlobe(banner) {
   const canvas = banner.querySelector('.globe');
   const tip = banner.querySelector('.globe-tip');
   const picture = banner.querySelector('img');
-  const cutout = document.createElement('canvas');
+  // 지구와 겹치는 배너 글씨("Student"의 끝)는 지구 위 별도 층에 화면 해상도로 다시 그립니다.
+  const lettering = document.createElement('canvas');
+  lettering.className = 'globe-text';
+  lettering.setAttribute('aria-hidden', 'true');
   const ctx = canvas?.getContext('2d');
   if (!ctx) return;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
@@ -61,15 +64,16 @@ function startGlobe(banner) {
     gloss = ctx.createRadialGradient(r * 0.7, r * 0.55, 0, r * 0.7, r * 0.55, r);
     gloss.addColorStop(0, 'rgba(255, 255, 255, .2)');
     gloss.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    makeCutout();
   }
 
-  // 배너 글씨("OpenAI Student")가 지구와 겹치는 곳: 그림에서 흰 글씨만 골라 지구에서 비워 둡니다.
-  function makeCutout() {
-    cutout.width = cutout.height = size;
-    const c = cutout.getContext('2d', { willReadFrequently: true });
+  // 배너 그림에서 흰 글씨만 골라(밝기 → 투명도) 흰색으로 그립니다. 글씨 뒤 그림 속 지구 색은 가져오지 않습니다.
+  function makeLettering() {
+    const box = Math.min(1600, Math.round(lettering.getBoundingClientRect().width * Math.min(devicePixelRatio || 1, 2)));
     const w = picture.naturalWidth, h = picture.naturalHeight;
-    if (!w) return;
+    if (!box || !w) return;
+    lettering.width = lettering.height = box;
+    const c = lettering.getContext('2d', { willReadFrequently: true });
+    const size = box;
     const k = size / (GLOBE_D * w);
     const left = (GLOBE_X - GLOBE_D / 2) * w, top = h / 2 - GLOBE_D * w / 2;
     c.drawImage(picture, -left * k, -top * k, w * k, h * k);
@@ -79,7 +83,8 @@ function startGlobe(banner) {
     const d = shot.data;
     for (let p = 0; p < d.length; p += 4) {
       const white = (p / 4) % size < text ? Math.min(d[p], d[p + 1], d[p + 2]) : 0;
-      d[p + 3] = Math.min(255, Math.max(0, (white - 150) * 3.2));
+      d[p] = d[p + 1] = d[p + 2] = 255;
+      d[p + 3] = Math.min(255, Math.max(0, (white - 125) * 2.2));
     }
     c.putImageData(shot, 0, 0);
   }
@@ -106,8 +111,6 @@ function startGlobe(banner) {
     ctx.fillRect(0, 0, size, size);
     ctx.fillStyle = gloss;
     ctx.fillRect(0, 0, size, size);
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.drawImage(cutout, 0, 0);
     ctx.globalCompositeOperation = 'source-over';
   }
 
@@ -162,7 +165,7 @@ function startGlobe(banner) {
   new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); }).observe(banner);
   document.addEventListener('visibilitychange', schedule);
   reduce.addEventListener?.('change', schedule);
-  new ResizeObserver(() => { if (mask) { layout(); draw(); } }).observe(canvas);
+  new ResizeObserver(() => { if (mask) { layout(); draw(); makeLettering(); } }).observe(canvas);
 
   const img = new Image();
   img.src = '/images/brand/earth-mask.png';
@@ -175,8 +178,10 @@ function startGlobe(banner) {
     const pixels = sctx.getImageData(0, 0, maskW, maskH).data;
     mask = new Uint8Array(maskW * maskH);
     for (let i = 0; i < mask.length; i++) mask[i] = pixels[i * 4];
+    canvas.after(lettering);
     layout();
     draw();
+    makeLettering();
     banner.classList.add('is-ready');
     tip.hidden = false;
     velocity = reduce.matches ? 0 : -SPIN;

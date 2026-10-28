@@ -123,10 +123,11 @@ small { color: var(--muted); }
 .banner { position: relative; margin: 0 0 24px; border-radius: 18px; overflow: hidden; background: #5b2fe0; aspect-ratio: 2000 / 770; animation: banner-in .9s cubic-bezier(.2, .7, .2, 1) both; }
 .banner img { display: block; width: 100%; height: 100%; object-fit: cover; }
 /* 돌아가는 지구(home.js): 그림 속 지구(가로 49.5%, 세로 50%, 지름 = 배너 너비의 42%)를 정확히 덮습니다. */
-.globe { position: absolute; left: 49.5%; top: 50%; width: 42.6%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; opacity: 0; transition: opacity .8s, scale .3s; touch-action: pan-y; cursor: grab; }
-.banner.is-ready .globe { opacity: 1; }
-.banner.is-ready .globe:hover { scale: 1.015; }
-.banner.is-dragging .globe { cursor: grabbing; scale: 1.025; }
+.globe, .globe-text { position: absolute; left: 49.5%; top: 50%; width: 42.6%; aspect-ratio: 1; translate: -50% -50%; opacity: 0; transition: opacity .8s; }
+.globe { border-radius: 50%; touch-action: pan-y; cursor: grab; }
+.globe-text { pointer-events: none; }
+.banner.is-ready .globe, .banner.is-ready .globe-text { opacity: 1; }
+.banner.is-dragging .globe { cursor: grabbing; }
 .globe-tip { position: absolute; right: 12px; bottom: 10px; margin: 0; padding: 3px 10px; border-radius: 999px; background: rgba(20, 8, 70, .35); color: #fff; font-size: .72rem; font-weight: 700; pointer-events: none; animation: tip-bob 2.4s ease-in-out infinite; }
 .globe-tip::before { content: "↔ "; }
 @keyframes banner-in { from { opacity: 0; transform: scale(.98); } }
