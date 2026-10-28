@@ -27,6 +27,15 @@ test('the limiter allows a number of hits per window and per key', () => {
   assert.equal(allow('a', 1001), true);
 });
 
+test('the limiter forgets keys that have been idle for a whole window', () => {
+  const allow = createLimiter({ limit: 2, windowMs: 1000 });
+  for (let i = 0; i < 50; i++) allow(`old-${i}`, 0);
+  assert.equal(allow.size(), 50);
+  for (let i = 0; i < 100; i++) allow('busy', 5000 + i);
+  assert.equal(allow.size(), 1);
+  assert.equal(allow('old-1', 5100), true);
+});
+
 test('image types come from the file bytes', () => {
   assert.equal(imageType(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0])), 'image/png');
   assert.equal(imageType(Buffer.from([0xff, 0xd8, 0xff, 0xe0])), 'image/jpeg');
