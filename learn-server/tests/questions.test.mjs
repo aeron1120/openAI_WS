@@ -200,5 +200,8 @@ test('a message whose image was claimed by a racing request is rejected', async 
   flow.db.claimableAttachments = async ({ ids }) => ids.map(id => ({ id }));
   const follow = () => send(flow.app, `/api/questions/${created.question.id}/messages`, cookie, { body: { body: '이미지예요', attachmentIds: [attachment.id] } });
   assert.equal((await follow()).status, 201);
+  const before = flow.db.tables.messages.filter(m => m.question_id === created.question.id).length;
   assert.equal((await follow()).status, 400);
+  // 진 요청의 메시지는 남기지 않습니다.
+  assert.equal(flow.db.tables.messages.filter(m => m.question_id === created.question.id).length, before);
 });

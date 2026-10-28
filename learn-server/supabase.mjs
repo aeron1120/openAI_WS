@@ -60,6 +60,9 @@ export function supabaseClient({ url, key, fetchImpl = fetch }) {
       });
       return rows[0].id;
     },
+    async deleteMessage(id) {
+      await request(`messages?id=eq.${enc(id)}`, { method: 'DELETE', headers: { prefer: 'return=minimal' } });
+    },
     async updateQuestion(id, fields) {
       await request(`questions?id=eq.${enc(id)}`, { method: 'PATCH', headers: { prefer: 'return=minimal' }, body: JSON.stringify(fields) });
     },

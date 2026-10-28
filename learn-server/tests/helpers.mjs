@@ -142,6 +142,10 @@ export function memoryDb() {
       t.attachments = t.attachments.filter(a => !gone.includes(a.message_id));
       t.questions = t.questions.filter(q => q.id !== id);
     },
+    async deleteMessage(id) {
+      t.messages = t.messages.filter(m => m.id !== id);
+      t.attachments = t.attachments.filter(a => a.message_id !== id);
+    },
     async updateQuestion(id, fields) { Object.assign(t.questions.find(q => q.id === id), fields); },
     async getQuestion(id) { return detail(t.questions.find(q => q.id === id)) ?? null; },
     async listQuestions({ studentId, status, workshop } = {}) {

@@ -83,6 +83,7 @@ test('question queries use PostgREST filters, embeds and ordering', async () => 
   await db.deleteAttachments(['a1', 'a2']);
   await db.listAllProgress();
   await db.deleteQuestion('q 1');
+  await db.deleteMessage('m 1');
   const urls = calls.map(c => `${c.method} ${c.url.replace('https://db.test/rest/v1/', '')}`);
   assert.deepEqual(urls, [
     'POST questions?select=id',
@@ -96,7 +97,8 @@ test('question queries use PostgREST filters, embeds and ordering', async () => 
     'GET attachments?message_id=is.null&created_at=lt.2026-10-26T12%3A00%3A00.000Z&select=id,path&limit=500',
     'DELETE attachments?id=in.(a1,a2)&message_id=is.null',
     'GET progress?select=workshop,step_id&limit=10000',
-    'DELETE questions?id=eq.q%201'
+    'DELETE questions?id=eq.q%201',
+    'DELETE messages?id=eq.m%201'
   ]);
   assert.deepEqual(JSON.parse(calls[0].body), { student_id: 's1', workshop: 1, step_id: 'run-local', mode: 'own', status: 'escalated', created_at: 't', updated_at: 't' });
   assert.equal(calls[0].headers.prefer, 'return=representation');

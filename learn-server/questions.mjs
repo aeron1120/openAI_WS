@@ -44,7 +44,10 @@ export async function postMessage({ db, questionId, author, operatorEmail = null
   if (input.attachmentIds.length) {
     // 동시에 같은 이미지를 붙이려 한 요청은 하나만 성공합니다.
     const attached = await db.attachToMessage({ ids: input.attachmentIds, messageId, uploaderId });
-    if (attached !== input.attachmentIds.length) throw new HttpError(400, 'ATTACHMENT_INVALID', '이미지를 다시 올려 주세요.');
+    if (attached !== input.attachmentIds.length) {
+      await db.deleteMessage(messageId).catch(() => {});
+      throw new HttpError(400, 'ATTACHMENT_INVALID', '이미지를 다시 올려 주세요.');
+    }
   }
   return messageId;
 }
