@@ -66,6 +66,16 @@ ${q.step}`) || q.step}`;
     return data.attachment.id;
   }
 
+  // 질문·추가 질문 보내기: 30초 안에 답이 없거나 연결이 끊기면, 이미 보내졌을 수 있어 확인을 안내합니다.
+  async function send(path, options) {
+    try {
+      return await Learn.call(path, { ...options, signal: AbortSignal.timeout(30000) });
+    } catch (error) {
+      if (error.code === 'NETWORK') error.message = "응답이 늦어요. '내 질문'에서 보내졌는지 확인한 뒤 다시 보내 주세요.";
+      throw error;
+    }
+  }
+
   // 입력 칸. 보내기를 누르면 이미지를 먼저 올리고 onSubmit({ body, errorText, attachmentIds, mode })를 부릅니다.
   // onSubmit이 Error를 던지면 그 문구를 보여주고 입력은 그대로 둡니다. 성공하면 칸을 비웁니다.
   // 더 고를 수 있는 것: bodyLabel(내용 칸 이름), withMode(진행 방식), withErrorText(오류 문구 칸, 기본 켬),
@@ -262,8 +272,9 @@ ${q.step}`) || q.step}`;
         say('');
       } catch (error) {
         // 서버가 첨부를 쓸 수 없다고 하면(시간이 지남 등) 다음에 다시 올립니다.
-        if (error.code === 'ATTACHMENT_INVALID') for (const item of items) item.id = null;
-        say(error.message || '보내지 못했어요. 잠시 후 다시 시도해 주세요.', true);
+        const expired = error.code === 'ATTACHMENT_INVALID';
+        if (expired) for (const item of items) item.id = null;
+        say(expired ? '이미지를 새로 올려야 해요. 보내기를 한 번 더 누르면 다시 올라가요.' : error.message || '보내지 못했어요. 잠시 후 다시 시도해 주세요.', true);
       } finally {
         busy = false;
         fields.disabled = false;
@@ -334,7 +345,7 @@ ${q.step}`) || q.step}`;
         draftKey: `learn-ask:${workshop}:${step}`,
         placeholder: '무엇을 하려다 어디서 막혔는지 적어 주세요.',
         async onSubmit(input) {
-          const data = await Learn.call('/api/questions', {
+          const data = await send('/api/questions', {
             method: 'POST', json: { workshop, step, ...input }, fallback: '질문을 보내지 못했어요. 잠시 후 다시 시도해 주세요.'
           });
           const { id, status } = data.question;
@@ -432,7 +443,7 @@ ${q.step}`) || q.step}`;
       submitLabel: '추가 질문 보내기',
       placeholder: '더 궁금한 점이나 해 본 것을 적어 주세요.',
       async onSubmit(input) {
-        await Learn.call(`/api/questions/${encodeURIComponent(id)}/messages`, {
+        await send(`/api/questions/${encodeURIComponent(id)}/messages`, {
           method: 'POST', json: { body: input.body, errorText: input.errorText, attachmentIds: input.attachmentIds },
           fallback: '보내지 못했어요. 잠시 후 다시 시도해 주세요.'
         });
