@@ -452,6 +452,10 @@ a.learn-card:hover { border-color: var(--c); }
 .q-more h3 { font-size: 1rem; }
 /* 운영진 화면 (admin.js): 넓으면 목록·상세를 나란히, 좁으면 위아래로 */
 .admin { margin: 20px 0; container-type: inline-size; }
+.admin-mail { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 14px; }
+.admin-mail-button { min-height: 44px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.admin-mail-button:disabled { opacity: .6; cursor: default; }
+.admin-mail-status { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .admin-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
 .admin-tab { min-height: 44px; padding: 8px 20px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
 .admin-tab[aria-selected="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }

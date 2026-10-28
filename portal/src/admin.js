@@ -304,7 +304,25 @@
       box.replaceChildren(...nodes);
     }
 
-    content.replaceChildren(tabs, panels.questions, panels.progress);
+    // 알림 메일 시험: 눌러서 메일 설정이 되어 있는지, 안 되면 왜 안 되는지 봅니다.
+    const mailBox = el('div', 'admin-mail');
+    const mailStatus = el('p', 'admin-mail-status');
+    mailStatus.setAttribute('role', 'status');
+    const mailButton = button('알림 메일 시험 보내기', 'admin-mail-button', async () => {
+      mailButton.disabled = true;
+      mailStatus.textContent = '보내는 중이에요…';
+      try {
+        const result = await Learn.call('/api/admin/notify-test', { method: 'POST' });
+        mailStatus.textContent = result?.ok ? '시험 메일을 보냈어요. 받은 편지함(스팸함 포함)을 확인해 주세요.' : `보내지 못했어요: ${result?.reason || '이유를 알 수 없어요.'}`;
+      } catch (error) {
+        mailStatus.textContent = `보내지 못했어요: ${error.message}`;
+      } finally {
+        mailButton.disabled = false;
+      }
+    });
+    mailBox.append(mailButton, mailStatus);
+
+    content.replaceChildren(mailBox, tabs, panels.questions, panels.progress);
     select('questions', { focus: false });
     loadList();
     // 메일 링크(/admin/?q=<id>)로 왔으면 그 질문을 바로 엽니다.
