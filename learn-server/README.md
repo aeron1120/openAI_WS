@@ -68,7 +68,7 @@
 
 | 요청 | 하는 일 |
 | --- | --- |
-| `GET /api/health` | 상태 확인 (프록시 없이도 응답) |
+| `GET /api/health` | 상태 확인 (프록시 없이도 응답). `mail`은 메일 설정(키·받는 주소) 유무 |
 | `GET /api/auth/google?next=/learn/…` → `GET /api/auth/google/callback` | SNU 로그인 |
 | `GET /api/me`, `DELETE /api/session` | 내 정보, 로그아웃 |
 | `GET /api/progress` | 내 완료 단계 전체 `{ progress: [{ workshop, step, completedAt }] }` |
@@ -79,6 +79,13 @@
 | `GET /api/admin/questions?status=&workshop=`, `GET /api/admin/questions/<id>` | (운영진) 질문 목록·상세 |
 | `POST /api/admin/questions/<id>/messages`, `PATCH /api/admin/questions/<id>` | (운영진) 답변(최대 4000자, 이미지 가능), 상태 변경 |
 | `GET /api/admin/progress` | (운영진) 회차·단계별 완료 학생 수 |
+| `POST /api/admin/notify-test` | (운영진) 알림 메일 시험 발송 `{ ok }` 또는 `{ ok: false, reason }` (포털 Origin 필요) |
+
+### 알림 메일이 안 올 때
+
+- 운영진 화면(`/admin/`) 위쪽의 "알림 메일 시험 보내기"를 누르면 성공 여부와 실패 이유가 나옵니다. `/api/health`의 `mail`이 `false`면 `RESEND_API_KEY`나 `NOTIFY_EMAIL`이 비어 있는 것입니다.
+- Resend 시험용 보내는 주소(`onboarding@resend.dev`)는 Resend 계정에 가입한 본인 이메일로만 보낼 수 있습니다. `NOTIFY_EMAIL`을 그 주소로 맞추세요(다른 주소는 403).
+- 도착했는데 안 보이면 스팸함을 확인하세요.
 
 ## 확인 기록
 

@@ -68,3 +68,12 @@ test('the workshop filter must be a positive number', async () => {
   const { flow, operator } = await withQuestion();
   for (const value of ['0', '-1', 'x']) assert.equal((await flow.app(api(`/api/admin/questions?workshop=${value}`, { cookie: operator }))).status, 400, value);
 });
+
+test('operators can send a test mail; others cannot', async () => {
+  const { flow, student, operator } = await withQuestion();
+  const ok = await send(flow.app, '/api/admin/notify-test', operator, { body: undefined });
+  assert.equal(ok.status, 200);
+  assert.deepEqual(await ok.json(), { ok: true });
+  assert.equal((await send(flow.app, '/api/admin/notify-test', student, { body: undefined })).status, 403);
+  assert.equal((await send(flow.app, '/api/admin/notify-test', operator, { body: undefined, origin: null })).status, 403);
+});

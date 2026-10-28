@@ -9,8 +9,15 @@ const bad = message => new HttpError(400, 'INVALID_REQUEST', message);
 const methodNotAllowed = () => new HttpError(405, 'METHOD_NOT_ALLOWED', '지원하지 않는 요청입니다.');
 const iso = ms => new Date(ms).toISOString();
 
-export async function handleAdmin({ request, url, session, config, db, storage, nowMs }) {
+export async function handleAdmin({ request, url, session, config, db, storage, notifier, nowMs }) {
   if (!config.operators.has(session.email)) throw new HttpError(403, 'OPERATOR_ONLY', '운영진만 쓸 수 있어요.');
+
+  // 알림 메일 시험: 보낸 결과나 실패 이유를 그대로 돌려줍니다.
+  if (url.pathname === '/api/admin/notify-test') {
+    if (request.method !== 'POST') throw methodNotAllowed();
+    sameOrigin(request, config.publicOrigin);
+    return json(await notifier.test());
+  }
 
   if (url.pathname === '/api/admin/progress') {
     if (request.method !== 'GET') throw methodNotAllowed();

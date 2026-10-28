@@ -8,13 +8,13 @@ const errorOf = response => new URL(response.headers.get('location')).searchPara
 
 test('health answers without the proxy secret and reports configuration', async () => {
   const { app } = makeApp();
-  assert.deepEqual(await (await app(api('/api/health', { proxy: false }))).json(), { ok: true, configured: true, openWorkshops: [], commit: null });
+  assert.deepEqual(await (await app(api('/api/health', { proxy: false }))).json(), { ok: true, configured: true, mail: false, openWorkshops: [], commit: null });
   const scheduled = makeApp({}, { ...ENV, WORKSHOP_OPEN_AT: '{"1":"2026-10-26T18:00:00+09:00","2":"2026-11-02T18:00:00+09:00"}' }).app;
   assert.deepEqual((await (await scheduled(api('/api/health'))).json()).openWorkshops, [1]);
   const deployed = makeApp({}, { ...ENV, RENDER_GIT_COMMIT: 'abcdef1234567890' }).app;
   assert.equal((await (await deployed(api('/api/health'))).json()).commit, 'abcdef1');
   const bare = makeApp({}, { ...ENV, GOOGLE_CLIENT_SECRET: '' }).app;
-  assert.deepEqual(await (await bare(api('/api/health'))).json(), { ok: true, configured: false, openWorkshops: [], commit: null });
+  assert.deepEqual(await (await bare(api('/api/health'))).json(), { ok: true, configured: false, mail: false, openWorkshops: [], commit: null });
   assert.equal((await bare(api('/api/me'))).status, 503);
 });
 

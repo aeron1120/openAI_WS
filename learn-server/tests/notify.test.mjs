@@ -34,3 +34,38 @@ test('a mail failure is reported as false, never thrown', async () => {
   const broken = createNotifier({ apiKey: 're_x', to: 'op@snu.ac.kr', publicOrigin: 'https://portal.test', fetchImpl: async () => { throw new Error('down'); } });
   assert.equal(await broken.questionWaiting(info), false);
 });
+
+test('configured tells whether mail can be sent', () => {
+  const make = (apiKey, to) => createNotifier({ apiKey, to, publicOrigin: 'https://portal.test', fetchImpl: async () => new Response('{}') });
+  assert.equal(make('re_x', 'op@snu.ac.kr').configured, true);
+  assert.equal(make(null, 'op@snu.ac.kr').configured, false);
+  assert.equal(make('re_x', '').configured, false);
+});
+
+test('test() sends a test mail with the admin link', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => { calls.push(JSON.parse(init.body)); return new Response('{"id":"e1"}'); };
+  const notifier = createNotifier({ apiKey: 're_x', to: 'op@snu.ac.kr', publicOrigin: 'https://portal.test', fetchImpl });
+  assert.deepEqual(await notifier.test(), { ok: true });
+  assert.equal(calls[0].subject, '[수업 질문] 알림 메일 시험');
+  assert.deepEqual(calls[0].to, ['op@snu.ac.kr']);
+  assert.match(calls[0].text, /https:\/\/portal\.test\/admin\//);
+});
+
+test('test() explains why Resend refused the mail', async () => {
+  const body = '{"statusCode":403,"message":"You can only send testing emails to your own email address (a@b.c)."}';
+  const notifier = createNotifier({ apiKey: 're_x', to: 'op@snu.ac.kr', publicOrigin: 'https://portal.test', fetchImpl: async () => new Response(body, { status: 403 }) });
+  const result = await notifier.test();
+  assert.equal(result.ok, false);
+  assert.match(result.reason, /Resend 403/);
+  assert.match(result.reason, /You can only send testing emails/);
+  const broken = createNotifier({ apiKey: 're_x', to: 'op@snu.ac.kr', publicOrigin: 'https://portal.test', fetchImpl: async () => { throw new Error('down'); } });
+  assert.deepEqual(await broken.test(), { ok: false, reason: 'down' });
+});
+
+test('test() without configuration says what to set', async () => {
+  const result = await createNotifier({ apiKey: null, to: null, publicOrigin: 'https://portal.test' }).test();
+  assert.equal(result.ok, false);
+  assert.match(result.reason, /RESEND_API_KEY/);
+  assert.match(result.reason, /NOTIFY_EMAIL/);
+});
