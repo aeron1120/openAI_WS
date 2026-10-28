@@ -89,7 +89,9 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
       if (url.pathname === '/api/health') {
         // 열린 회차 번호도 알려줘서, 로그인 없이 WORKSHOP_OPEN_AT 반영 여부를 확인할 수 있게 합니다.
         const openWorkshops = [...config.workshopOpenAt].filter(([, at]) => now() >= at).map(([number]) => number).sort((a, b) => a - b);
-        return json({ ok: true, configured: config.ok, openWorkshops });
+        // Render가 넣어 주는 배포 커밋 앞 7자리. 새 버전이 올라갔는지 밖에서 확인할 때 씁니다.
+        const commit = typeof env.RENDER_GIT_COMMIT === 'string' ? env.RENDER_GIT_COMMIT.slice(0, 7) : null;
+        return json({ ok: true, configured: config.ok, openWorkshops, commit });
       }
       if (!config.ok) throw new HttpError(503, 'LEARN_NOT_CONFIGURED', '수업 서버를 준비하고 있어요.');
       if (!safeEqual(request.headers.get('x-proxy-secret') ?? '', config.proxySecret)) throw new HttpError(403, 'DIRECT_ACCESS', '포털 주소로 접속해 주세요.');
