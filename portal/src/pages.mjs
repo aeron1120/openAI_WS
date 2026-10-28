@@ -35,7 +35,7 @@ function helpStep(c) {
   return h`<section class="help-step">
   <h3>${c.title}</h3>
   <p class="help-why">${c.why}</p>
-  ${c.steps?.length ? h`<ol class="help-steps">${c.steps.map(step => h`<li>${step}</li>`)}</ol>` : ''}
+  ${c.steps?.length ? h`<ol class="help-steps step-list">${c.steps.map(step => h`<li><span>${step}</span></li>`)}</ol>` : ''}
   ${c.command ? copyBlock(c.command, '터미널에 입력', { code: true }) : ''}
   <p class="help-expect"><strong>이렇게 보이면 OK</strong> ${c.expect}</p>
   ${c.fixes?.length ? h`<div class="help-fix"><p><strong>안 될 때</strong></p><ul>${c.fixes.map(fix => h`<li>${fix}</li>`)}</ul></div>` : ''}
@@ -115,7 +115,7 @@ export function homePage(content) {
   </figure>` : ''}
   <div class="hero-copy">
   <p class="hero-pill"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${site.operators.role} · ${site.semester}</p>
-  <h1>아이디어를 만들고 공유하고,<br><em>사람들 앞에서 소개해요.</em></h1>
+  <h1>아이디어를 직접 구현하고,<br><em>사람들에게 공유해요.</em></h1>
   <p class="hero-lead">ChatGPT·Codex로 한 학기 동안 내 서비스를 만들어요.</p>
   <ul class="tags" aria-label="프로그램 특징"><li>전공 무관</li><li>코딩 경험 없어도 OK</li><li>워크숍 4회 + Showcase</li></ul>
   <div class="actions">
@@ -161,6 +161,13 @@ export function roadmapPage(content) {
 </ol>`;
 }
 
+// "1. …" 줄로만 된 힌트(자세한 따라하기)는 Step 1, Step 2… 목록으로 보여줍니다.
+function hintText(text) {
+  const lines = String(text).split('\n');
+  if (!lines.every(line => /^\d+\. /.test(line))) return richText(text);
+  return h`<ol class="step-list">${lines.map(line => h`<li><span>${richText(line.replace(/^\d+\. /, ''))}</span></li>`)}</ol>`;
+}
+
 // 단계별 힌트: 처음에는 힌트 1만 보이고, 앞 힌트를 열면 다음 힌트가 나타납니다(main.js).
 // 스크립트가 없으면 모든 힌트가 접힌 채로 보입니다. 힌트가 3개면 마지막은 자세한 따라하기입니다.
 function hintBox(hints) {
@@ -168,7 +175,7 @@ function hintBox(hints) {
   const label = i => i === 2 ? '힌트 3 · 자세한 따라하기' : h`힌트 ${i + 1} <span class="hint-verb">보기</span>`;
   return h`<div class="hints" data-hints>
       <p class="hints-title"><span aria-hidden="true">💡</span> 막히면 힌트를 열어 보세요</p>
-      ${hints.map((text, i) => h`<details class="hint" data-hint="${i + 1}"><summary>${label(i)}</summary><div class="hint-text">${richText(text)}</div></details>`)}
+      ${hints.map((text, i) => h`<details class="hint" data-hint="${i + 1}"><summary>${label(i)}</summary><div class="hint-text">${hintText(text)}</div></details>`)}
     </div>`;
 }
 

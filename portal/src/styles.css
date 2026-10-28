@@ -224,6 +224,10 @@ small { color: var(--muted); }
 .hints details.hint[open] > summary::before { transform: rotate(90deg); }
 .hints details.hint[open] .hint-verb { display: none; }
 .hint-text { padding: 0 14px 12px; line-height: 1.7; white-space: pre-line; }
+/* 순서대로 따라 하는 목록: 줄마다 Step 1, Step 2… 표시 */
+ol.step-list { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 8px; white-space: normal; }
+ol.step-list > li { counter-increment: step; display: grid; grid-template-columns: 3.8em minmax(0, 1fr); gap: 8px; align-items: baseline; }
+ol.step-list > li::before { content: "Step " counter(step); color: var(--em); font-size: .8em; font-weight: 800; white-space: nowrap; }
 
 /* Copy blocks: 넘치는 코드는 블록 안에서만 가로로 스크롤합니다. */
 .copy-block { margin-top: 12px; border: 1px solid #d4dbea; border-radius: 12px; overflow: hidden; background: #f8faff; }

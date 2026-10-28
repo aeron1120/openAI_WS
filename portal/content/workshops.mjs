@@ -152,7 +152,7 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
               '필요한 것은 공공데이터포털의 ‘기상청_단기예보 조회서비스’ 인증키예요. 기상청 API허브의 키와는 다른 키라서, 꼭 [공공데이터포털 서비스 페이지](https://www.data.go.kr/data/15084084/openapi.do)에서 받으세요.',
               '서비스 페이지에서 활용신청 → 활용 목적 입력 → 신청을 누릅니다. 그다음 마이페이지 → 데이터활용 → Open API → 활용신청 현황에서 이 서비스를 누르면 일반 인증키가 보여요. Decoding 값을 쓰는 걸 권장해요. 메뉴 이름은 사이트 개편에 따라 조금 다를 수 있고, 승인 직후에는 키가 바로 동작하지 않을 수 있어요.',
               `1. [공공데이터포털](https://www.data.go.kr/)에 회원가입하고 로그인합니다.
-2. [기상청_단기예보 조회서비스](https://www.data.go.kr/data/15084084/openapi.do) 페이지에서 활용신청을 누르고, 활용 목적에 “워크숍 실습”처럼 적어 신청합니다.
+2. [기상청_단기예보 조회서비스](https://www.data.go.kr/data/15084084/openapi.do) 페이지에서 활용신청을 누르고, 활용 목적을 적어 신청합니다. 예) 워크숍 실습
 3. 마이페이지 → 데이터활용 → Open API → 활용신청 현황에서 신청한 서비스를 엽니다.
 4. 일반 인증키(Decoding)를 복사합니다. 이 키는 Codex 채팅창에 붙여 넣지 않아요.
 5. 날씨 요청문을 Codex에 보내고, 내가 설정할 항목을 확인합니다.
@@ -174,7 +174,7 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
             guide: file('guides/LOGIN.md'),
             hints: [
               `Google 로그인에는 Google Cloud에서 만든 ‘OAuth 클라이언트 ID(웹 애플리케이션)’가 필요해요. Google이 돌려준 로그인 결과를 확인할 서버도 필요해서 Codex가 서버 기능을 함께 추가해요. 기존 예제의 설정은 [로그인 설정 문서](${file('docs/AUTH.md')})에 있어요.`,
-              '[Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 만들기 → Google Auth Platform → 동의 화면(대상은 외부, 테스트 사용자에 내 계정 추가) → Clients → 클라이언트 만들기 → 웹 애플리케이션. 승인된 JavaScript 원본에는 지금 접속한 주소의 앞부분만 넣어요. 로컬이면 http://localhost:5173 처럼 경로와 마지막 / 없이 적어요.',
+              '[Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 만들기 → Google Auth Platform → 동의 화면(대상은 외부, 테스트 사용자에 내 계정 추가) → Clients → 클라이언트 만들기 → 웹 애플리케이션. 승인된 JavaScript 원본에는 지금 접속한 주소의 앞부분만 경로와 마지막 / 없이 넣어요. 예) http://localhost:5173',
               `1. [Google Cloud Console](https://console.cloud.google.com/)에 내 Google 계정으로 로그인합니다.
 2. 위쪽 프로젝트 선택 → 새 프로젝트를 만들고 그 프로젝트를 고릅니다.
 3. 위쪽 검색창에 Google Auth Platform을 입력해 엽니다. 시작하기를 눌러 앱 이름과 이메일을 넣고, 대상은 외부를 고릅니다.
@@ -302,12 +302,12 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
           '아래 명령을 한 줄씩 입력하고 Enter를 눌러요.'
         ],
         command: 'node --version\nnpm --version\ngit --version',
-        expect: 'v20.11.1, 10.2.4, git version 2.45.1처럼 숫자가 세 줄 나오면 돼요. node는 v20 이상이어야 해요.',
+        expect: '버전 숫자가 세 줄 나오면 돼요. node는 v20 이상이어야 해요. 예) v20.11.1 / 10.2.4 / git version 2.45.1',
         fixes: [
           '“인식되지 않습니다”, “command not found”가 나오면 설치가 안 된 거예요. 아래 링크에서 설치한 뒤 터미널을 껐다가 다시 열어요.',
           'Node.js는 LTS 버전을 받으면 npm도 함께 설치돼요.',
           'Mac에서 git을 입력했을 때 개발자 도구 설치 창이 뜨면 “설치”를 눌러요.',
-          'Windows에서 npm만 “스크립트를 실행할 수 없습니다” 오류가 나면 npm 대신 npm.cmd를 입력해요. (예: npm.cmd --version)'
+          'Windows에서 npm만 “스크립트를 실행할 수 없습니다” 오류가 나면 npm 대신 npm.cmd를 입력해요. 예) npm.cmd --version'
         ],
         links: [
           { label: 'Node.js 설치', url: 'https://nodejs.org/ko/download' },
@@ -326,7 +326,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
           '가져온 폴더가 열린 VS Code에서 터미널을 열고 아래 명령을 입력해요.'
         ],
         command: 'git remote -v',
-        expect: 'origin 줄에 https://github.com/내아이디/openAI_WS.git처럼 내 GitHub 아이디가 보이면 돼요.',
+        expect: 'origin 줄에 내 GitHub 아이디가 보이면 돼요. 예) https://github.com/내아이디/openAI_WS.git',
         fixes: [
           '내 아이디 대신 aeron1120이 보이면 원본을 그대로 가져온 거예요. Fork부터 하고, 내 Fork 주소로 다시 Clone해요.',
           '“not a git repository”가 나오면 가져온 폴더 밖에서 터미널을 연 거예요. VS Code에서 그 폴더를 열고 다시 시도해요.'
@@ -420,7 +420,7 @@ git push`,
           `1. VS Code 왼쪽 Source Control 아이콘을 누릅니다.
 2. Changes 아래 파일을 하나씩 눌러 바뀐 줄을 읽어 봅니다.
 3. 이번 기능 파일(workshop2/starter 안의 파일) 옆 + 를 눌러 Staged Changes로 옮깁니다. 다른 파일은 그대로 둡니다.
-4. 위쪽 메시지 칸에 “Add favorites to meetup cards”처럼 한 줄로 씁니다.
+4. 위쪽 메시지 칸에 바꾼 내용을 한 줄로 씁니다. 예) Add favorites to meetup cards
 5. Commit 버튼을 누릅니다.
 6. Sync Changes 또는 … → Push를 누릅니다. 처음이면 브라우저에서 GitHub 로그인과 허용을 요청할 수 있어요.
 7. github.com/내아이디/openAI_WS 를 열고 파일 목록 위 최근 commit 메시지를 눌러 방금 기록과 바뀐 파일을 확인합니다.
