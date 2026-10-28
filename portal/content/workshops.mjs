@@ -8,7 +8,11 @@
 // - exampleDirs: 자료가 열릴 때 /examples/ 아래에 함께 공개할 저장소 폴더.
 // - event.mapQuery: 홈의 지도에서 찾을 장소 이름(예: '서울대학교 56동'). Google 지도에서 맞는 건물이 나오는지 확인하고 적으세요. 없으면 지도를 그리지 않습니다.
 // - 확정되지 않은 값은 null로 둡니다. 임의의 주소나 '#'을 넣지 마세요.
-// - missions[].slide / slideId: 수업 화면에서 이 단계가 시작되는 학생용 슬라이드 번호(1부터)와 Google Slides 페이지 ID.
+// - missions[].slideId: 이 단계의 강의가 시작되는 학생용 슬라이드 페이지 ID(Google Slides).
+// - missions[].taskSlides: 이 과제의 슬라이드 페이지 ID 목록(과제 페이지). 수업 화면의 '과제' 보기에서 이 페이지만 보여줍니다.
+//   없으면 slideId 한 장만 보여줍니다. 선택지(options)에도 따로 적을 수 있어요. 페이지 ID는 portal/slides/manifest.json에서 찾으세요.
+// - walkthrough: { title, steps: [{ image?, box?, text, note? }] } 힌트 상자의 '화면으로 따라 하기'. 실제 화면 캡처에서 box(%) 자리를 강조합니다.
+//   캡처에 개인정보·인증키가 보이면 안 됩니다. 이미지는 public/images/walk/에 둡니다.
 
 const repo = 'https://github.com/aeron1120/openAI_WS';
 const file = path => `${repo}/blob/main/${path}`;
@@ -65,7 +69,8 @@ export const workshops = [
     missions: [
       {
         id: 'open-starter',
-        slide: 1, slideId: 'h2ea000745df279bf_2_24',
+        slideId: 'h2ea000745df279bf_2_24',
+        taskSlides: ['ws1_task_20261029_open_1', 'ws1_task_20261029_open_2'],
         title: '기초 틀 받고 화면 열기',
         todo: `[GitHub 저장소](${repo})에서 Code → Download ZIP을 누르고 압축을 모두 풉니다. starter 폴더 안의 index.html을 브라우저로 엽니다.`,
         expected: '“이곳에 나의 아이디어를 담아보세요.” 제목과 로그인·지도·날씨·나만의 기능 박스가 보여요. 설치와 API 키는 아직 필요 없어요.',
@@ -85,7 +90,8 @@ export const workshops = [
       },
       {
         id: 'run-local',
-        slide: 4, slideId: 'h2ea000745df279bf_2_62',
+        slideId: 'h2ea000745df279bf_2_62',
+        taskSlides: ['ws1_task_20261029_local_1', 'ws1_task_20261029_local_2', 'ws1_task_20261029_local_3'],
         title: 'Codex에게 내 컴퓨터에서 실행해 달라고 하기',
         todo: `[Codex 데스크톱 또는 VS Code](${file('guides/START-HERE.md')})에서 압축을 푼 저장소 전체 폴더를 열고, 아래 요청문을 붙여 넣습니다.`,
         prompt: `이 저장소에서 Workshop 1 기초 틀을 실습하려고 해.
@@ -111,7 +117,8 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
       },
       {
         id: 'first-change',
-        slide: 4, slideId: 'h2ea000745df279bf_2_62',
+        slideId: 'h2ea000745df279bf_2_62',
+        taskSlides: ['ws1_task_20261029_change_1', 'ws1_task_20261029_change_2'],
         title: '작은 변화 하나 만들기',
         todo: `내 서비스의 [이름과 소개 문구](${file('starter/index.html')})를 바꿔 달라고 요청합니다. 예시 문장은 내 아이디어로 바꿔도 좋아요.`,
         prompt: `starter의 사이트 이름을 ‘나의 캠퍼스’로 바꾸고,
@@ -135,13 +142,15 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
       },
       {
         id: 'connect-feature',
-        slide: 9, slideId: 'h2ea000745df279bf_2_126',
+        slideId: 'h2ea000745df279bf_2_126',
+        taskSlides: ['ws1_task_20261029_choose'],
         title: '내 서비스에 필요한 기능 하나 연결하기',
         todo: `[로그인](${file('guides/LOGIN.md')})·[지도](${file('guides/MAP.md')})·[날씨](${file('guides/WEATHER.md')}) 중 내 서비스에 필요한 것 하나만 고릅니다. 각 기능은 외부 서비스의 계정·키 설정이 필요하므로, Codex가 먼저 준비 항목을 설명하게 하세요.`,
         options: [
           {
             label: '날씨 — 기상청 단기예보',
-            slide: 9, slideId: 'h2ea000745df279bf_2_126',
+            slideId: 'h2ea000745df279bf_2_126',
+            taskSlides: ['ws1_task_20261029_weather_1', 'ws1_task_20261029_weather_2', 'ws1_task_20261029_weather_3'],
             needs: '[공공데이터포털 기상청 단기예보](https://www.data.go.kr/data/15084084/openapi.do) 이용 신청과 본인 인증키',
             prompt: `starter의 날씨 영역에 기상청 단기예보 API를 연결해줘.
 관악구 대학동의 내일 오후 6시 기온과 강수확률을 보여줘.
@@ -150,6 +159,18 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
 로딩·조회 실패·예보 없음 상태와 재시도를 넣어줘.
 실제 API 응답과 화면에 표시된 날짜·시간·값을 비교하는 방법도 알려줘.`,
             guide: file('guides/WEATHER.md'),
+            // 화면 따라 하기: box는 캡처 이미지 기준 [왼쪽, 위, 너비, 높이](%)입니다. 그림이 없는 단계는 글로만 보여요.
+            walkthrough: {
+              title: '기상청 인증키 받기',
+              steps: [
+                { image: '/images/walk/kma/01-login.webp', box: [81.34, 8.81, 8.24, 6.5], text: '[공공데이터포털](https://www.data.go.kr/)에 들어가 오른쪽 위 로그인을 눌러요. 계정이 없으면 옆의 회원가입부터 해요.' },
+                { image: '/images/walk/kma/02-search.webp', box: [18.32, 46.25, 50.94, 7.5], text: '검색창에 기상청_단기예보를 입력하고 Enter를 눌러요. 첫 화면의 큰 검색창에 입력해도 돼요.' },
+                { image: '/images/walk/kma/03-result.webp', box: [13.09, 28.31, 19.96, 5.06], text: '오픈API 목록 맨 위의 ‘기상청_단기예보 조회서비스’를 눌러요. 아래쪽 ‘(기상청API허브 연계)’는 다른 키라서 고르지 않아요.' },
+                { image: '/images/walk/kma/04-apply.webp', box: [14.67, 27, 10.06, 7.5], text: '서비스 페이지에서 활용신청을 눌러요.' },
+                { text: '신청 화면에서 활용 목적을 적고 신청을 눌러요. 예) 워크숍 실습', note: '로그인한 뒤의 화면이라 캡처 대신 글로 안내해요.' },
+                { text: '마이페이지 → 데이터활용 → Open API → 활용신청 현황에서 이 서비스를 열고 일반 인증키(Decoding)를 복사해요. 키는 Codex 대화창에 붙여 넣지 말고, 다음 과제 페이지에서 안내받은 설정 파일에 직접 넣어요.', note: '승인 직후에는 키가 바로 동작하지 않을 수 있어요. 메뉴 이름은 사이트 개편에 따라 조금 다를 수 있어요.' }
+              ]
+            },
             hints: [
               '필요한 것은 공공데이터포털의 ‘기상청_단기예보 조회서비스’ 인증키예요. 기상청 API허브의 키와는 다른 키라서, 꼭 [공공데이터포털 서비스 페이지](https://www.data.go.kr/data/15084084/openapi.do)에서 받으세요.',
               '서비스 페이지에서 활용신청 → 활용 목적 입력 → 신청을 누릅니다. 그다음 마이페이지 → 데이터활용 → Open API → 활용신청 현황에서 이 서비스를 누르면 일반 인증키가 보여요. Decoding 값을 쓰는 걸 권장해요. 메뉴 이름은 사이트 개편에 따라 조금 다를 수 있고, 승인 직후에는 키가 바로 동작하지 않을 수 있어요.',
@@ -165,7 +186,8 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
           },
           {
             label: '로그인 — Google 계정',
-            slide: 15, slideId: 'h2ea000745df279bf_2_267',
+            slideId: 'h2ea000745df279bf_2_267',
+            taskSlides: ['ws1_task_20261029_login_1', 'ws1_task_20261029_login_2', 'ws1_task_20261029_login_3'],
             needs: 'Google 앱 등록과 [클라이언트 ID](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid), 로그인 결과를 확인할 서버',
             prompt: `starter의 로그인 영역에 Google 로그인 기능을 구현해줘.
 로그인하면 이름과 프로필 사진을 보여주고,
@@ -189,7 +211,8 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
           },
           {
             label: '지도 — Google Maps',
-            slide: 21, slideId: 'h2ea000745df279bf_2_421',
+            slideId: 'h2ea000745df279bf_2_421',
+            taskSlides: ['ws1_task_20261029_map_1', 'ws1_task_20261029_map_2', 'ws1_task_20261029_map_3'],
             needs: '[Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/load-maps-js-api) 사용 설정과 지도 키. 결제 계정 설정과 사용량에 따른 비용을 먼저 확인하세요.',
             prompt: `starter의 지도·위치정보 영역에 Google 지도를 구현해줘.
 서울대학교 정문 위치에 마커를 표시하고,
@@ -366,7 +389,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     missions: [
       {
         id: 'compare',
-        slide: 1, slideId: 'ws2_activity_20261019_01',
+        slideId: 'ws2_activity_20261019_01',
         title: '완성본 먼저 눌러보기',
         todo: '[완성본 예제](/examples/workshop2/complete/)에서 카드 두 개를 선택한 뒤 하나만 해제하고, 새로고침해 봅니다.',
         expected: '카드마다 따로 선택·해제되고, 새로고침하면 모두 초기화돼요. 이번 실습의 즐겨찾기는 저장되지 않는 게 정상이에요.',
@@ -379,7 +402,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
       },
       {
         id: 'add-favorite',
-        slide: 7, slideId: 'ws2_activity_20261019_07',
+        slideId: 'ws2_activity_20261019_07',
         title: 'Codex에게 즐겨찾기 추가 요청하기',
         todo: `[내 Fork](${file('docs/PARTICIPANT.md')})를 연 VS Code에서 Codex에 아래 요청문을 붙여 넣습니다. 수정은 starter 폴더에서만 진행하고, [complete](/examples/workshop2/complete/)는 비교용으로만 봅니다.`,
         prompt: `workshop2/starter/의 모임 카드에 즐겨찾기 버튼을 추가해줘.
@@ -406,7 +429,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
       },
       {
         id: 'record',
-        slide: 14, slideId: 'ws2_activity_20261019_14',
+        slideId: 'ws2_activity_20261019_14',
         title: '변경을 기록하고 GitHub에 올리기',
         todo: 'VS Code [Source Control](https://code.visualstudio.com/docs/sourcecontrol/overview)에서 바뀐 파일을 열어 비교하고, 이번 기능의 파일만 Stage해서 Commit한 뒤 Push합니다. 터미널을 쓴다면 git status로 실제 파일명을 먼저 확인하세요.',
         commands: `git status
@@ -431,7 +454,7 @@ git push`,
       },
       {
         id: 'recover',
-        slide: 17, slideId: 'ws2_activity_20261019_17',
+        slideId: 'ws2_activity_20261019_17',
         title: '5분 복구 연습 — 실수를 되돌리기',
         todo: `저장소 루트에서 [연습용 저장소](${file('docs/RECOVERY.md')})를 만들고, 일부러 망가뜨린 마지막 commit을 되돌립니다. 이 연습은 원본 GitHub에 올라가지 않는 별도 폴더에서만 진행해요.`,
         commands: `node scripts/prepare-recovery.mjs

@@ -251,11 +251,72 @@
     }).catch(() => {});
   }
 
+  // 슬라이드 보기: '이 과제만'은 지금 과제의 페이지만, '강의 전체'는 모든 슬라이드를 순서대로 넘깁니다.
+  // 이미지는 다음 장을 미리 받아 두고, 키보드 ←·→로도 넘길 수 있어요.
+  function slideViewer(deck, workshop) {
+    const pages = JSON.parse(deck.dataset.pages);
+    const tasks = JSON.parse(deck.dataset.tasks);
+    const index = new Map(pages.map((page, i) => [page.id, i]));
+    const img = deck.querySelector('[data-deck-img]');
+    const chip = deck.querySelector('[data-deck-chip]');
+    const count = deck.querySelector('[data-deck-count]');
+    const prev = deck.querySelector('[data-deck-prev]');
+    const next = deck.querySelector('[data-deck-next]');
+    let task = [0];
+    let all = false;
+    let at = 0; // '이 과제만'에서는 task 안의 위치, '강의 전체'에서는 전체 슬라이드 번호
+    const list = () => (all ? pages.map((_, i) => i) : task);
+
+    function render() {
+      const items = list();
+      at = Math.max(0, Math.min(items.length - 1, at));
+      const page = pages[items[at]];
+      if (img.getAttribute('src') !== page.src) img.src = page.src;
+      img.alt = `Workshop ${workshop} 슬라이드 ${page.no}`;
+      count.textContent = `${at + 1} / ${items.length}`;
+      prev.disabled = at === 0;
+      next.disabled = at === items.length - 1;
+      chip.hidden = !tasks[page.id];
+      chip.textContent = tasks[page.id] ? `📝 ${tasks[page.id]}` : '';
+      for (const button of deck.querySelectorAll('[data-deck-mode]')) button.setAttribute('aria-pressed', String((button.dataset.deckMode === 'all') === all));
+      const ahead = items[at + 1];
+      if (ahead != null) new Image().src = pages[ahead].src;
+    }
+    function show(ids) {
+      const found = String(ids ?? '').split(' ').map(id => index.get(id)).filter(i => i != null);
+      task = found.length ? found : [0];
+      at = all ? task[0] : 0;
+      render();
+    }
+    function setMode(wantAll) {
+      if (wantAll === all) return;
+      const page = list()[at];
+      all = wantAll;
+      at = all ? page : Math.max(0, task.indexOf(page));
+      render();
+    }
+    deck.addEventListener('click', event => {
+      const target = event.target.closest('[data-deck-prev], [data-deck-next], [data-deck-mode], [data-deck-full]');
+      if (!target) return;
+      if (target.hasAttribute('data-deck-prev')) { at -= 1; render(); }
+      else if (target.hasAttribute('data-deck-next')) { at += 1; render(); }
+      else if (target.dataset.deckMode) setMode(target.dataset.deckMode === 'all');
+      else if (document.fullscreenElement === deck) document.exitFullscreen();
+      else if (deck.requestFullscreen) deck.requestFullscreen().catch(() => window.open(img.src, '_blank', 'noopener'));
+      else window.open(img.src, '_blank', 'noopener');
+    });
+    deck.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft' && at > 0) { at -= 1; render(); }
+      else if (event.key === 'ArrowRight' && at < list().length - 1) { at += 1; render(); }
+    });
+    return { show };
+  }
+
   function initLesson(content) {
     const workshop = Number(content.dataset.lesson);
     const steps = [...content.querySelectorAll('[data-step]')];
     const items = new Map([...content.querySelectorAll('[data-goto]')].map(item => [item.dataset.goto, item]));
-    const frame = content.querySelector('[data-slides]');
+    const viewer = slideViewer(content.querySelector('[data-deck]'), workshop);
     const tabs = content.querySelector('.step-tabs');
     const meter = content.querySelector('.lesson-head [data-progress]');
     const body = content.querySelector('.lesson-body');
@@ -266,10 +327,6 @@
     let finished = false; // 완료 화면을 보는 중인지
     const allDone = () => steps.every(step => done.has(step.dataset.step));
 
-    const showSlide = slideId => {
-      const src = frame.dataset.embedBase + slideId;
-      if (slideId && frame.src !== src) frame.src = src;
-    };
     function render() {
       steps.forEach((step, i) => {
         const id = step.dataset.step;
@@ -321,7 +378,7 @@
       finished = false;
       const step = steps[current];
       history.replaceState(null, '', `#step-${step.dataset.step}`);
-      showSlide(step.dataset.slideId);
+      viewer.show(step.dataset.taskSlides);
       render();
       revealTab();
       if (focus) step.querySelector('h2').focus();
@@ -367,10 +424,13 @@
         target.disabled = false;
       }
     });
-    // 선택지(예: 로그인·지도)를 펼치면 그 기능의 슬라이드로 이동합니다. toggle은 버블링되지 않아 capture로 받습니다.
+    // 선택지(예: 날씨·로그인·지도)를 펼치면 그 기능의 과제 페이지를, 접으면 단계의 과제 페이지를 보여줍니다.
+    // toggle은 버블링되지 않아 capture로 받습니다.
     content.addEventListener('toggle', event => {
       const option = event.target;
-      if (option.open && option.dataset?.slideId) showSlide(option.dataset.slideId);
+      if (!option.matches?.('details.option[data-task-slides]')) return;
+      const open = option.closest('[data-step]').querySelector('details.option[open][data-task-slides]');
+      viewer.show((open ?? option.closest('[data-step]')).dataset.taskSlides);
     }, true);
 
     const start = steps.findIndex(step => location.hash === `#step-${step.dataset.step}`);

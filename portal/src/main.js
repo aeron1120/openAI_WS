@@ -153,6 +153,103 @@ for (const box of document.querySelectorAll('[data-check-guide]')) {
   opener.addEventListener('click', () => startGuide(box));
 }
 
+// 화면으로 따라 하기: 캡처 위에서 누를 곳만 밝게 강조하고 한 단계씩 넘깁니다.
+// 좁은 화면에서는 강조한 곳을 확대해 보여주고, 그림이 없는 단계(로그인 뒤 화면 등)는 글로만 보여줍니다.
+const ZOOM_BELOW = 640;
+const ZOOM = 2.2;
+
+function openWalk(box) {
+  const steps = JSON.parse(box.dataset.walk);
+  const opener = box.querySelector('[data-walk-open]');
+  let index = 0;
+  const layer = document.createElement('div');
+  layer.className = 'walk-layer';
+  layer.innerHTML = `<div class="walk-card" role="dialog" aria-modal="true" aria-labelledby="walk-title" tabindex="-1">
+<div class="walk-head"><span class="walk-title" id="walk-title"></span><span class="walk-count"></span><button type="button" class="walk-close" aria-label="닫기">✕</button></div>
+<div class="walk-progress" aria-hidden="true"><span></span></div>
+<div class="walk-shot"><div class="walk-zoom"><img alt=""><span class="walk-box" aria-hidden="true"></span></div><p class="walk-noimg"><span aria-hidden="true">🔒</span> 로그인한 뒤의 화면이에요</p></div>
+<p class="walk-text"></p>
+<p class="walk-note"></p>
+<div class="walk-actions"><button type="button" class="walk-prev">이전</button><button type="button" class="walk-next">다음</button></div>
+</div>`;
+  layer.querySelector('.walk-title').textContent = `🎬 ${box.dataset.walkTitle}`;
+  document.body.append(layer);
+  document.documentElement.classList.add('walk-lock');
+  const card = layer.querySelector('.walk-card');
+  const shot = layer.querySelector('.walk-shot');
+  const zoom = layer.querySelector('.walk-zoom');
+  const img = zoom.querySelector('img');
+  const mark = zoom.querySelector('.walk-box');
+
+  // 좁은 화면: 강조 상자의 가운데가 보이도록 확대한 뒤, 그림 밖으로 벗어나지 않게 옮깁니다.
+  function fit() {
+    const step = steps[index];
+    const width = shot.clientWidth;
+    const height = shot.clientHeight;
+    if (!step.box || width >= ZOOM_BELOW) { zoom.style.transform = ''; return; }
+    const [x, y, w, h] = step.box;
+    // 넓은 상자(예: 검색창)는 상자 전체가 보이는 만큼만 확대합니다.
+    const scale = Math.max(1, Math.min(ZOOM, 85 / w, 85 / h));
+    const cx = (x + w / 2) / 100 * width * scale;
+    const cy = (y + h / 2) / 100 * height * scale;
+    const tx = Math.min(0, Math.max(width - width * scale, width / 2 - cx));
+    const ty = Math.min(0, Math.max(height - height * scale, height / 2 - cy));
+    zoom.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }
+  function go(next) {
+    if (next < 0 || next >= steps.length) return;
+    index = next;
+    const step = steps[index];
+    layer.querySelector('.walk-count').textContent = `Step ${index + 1} / ${steps.length}`;
+    layer.querySelector('.walk-progress span').style.width = `${((index + 1) / steps.length) * 100}%`;
+    shot.classList.toggle('is-text', !step.image);
+    if (step.image) img.src = step.image;
+    mark.hidden = !step.box;
+    if (step.box) {
+      const [x, y, w, h] = step.box;
+      Object.assign(mark.style, { left: `${x}%`, top: `${y}%`, width: `${w}%`, height: `${h}%` });
+    }
+    layer.querySelector('.walk-text').innerHTML = `<strong>Step ${index + 1}</strong> ${step.text}`;
+    layer.querySelector('.walk-note').textContent = step.note;
+    layer.querySelector('.walk-prev').disabled = index === 0;
+    layer.querySelector('.walk-next').textContent = index === steps.length - 1 ? '다 했어요' : '다음';
+    const ahead = steps[index + 1]?.image;
+    if (ahead) new Image().src = ahead;
+    // 강조 상자는 넘길 때마다 다시 깜빡여 눈이 가게 합니다.
+    mark.classList.remove('is-pulse');
+    void mark.offsetWidth;
+    mark.classList.add('is-pulse');
+    fit();
+  }
+  function close() {
+    layer.remove();
+    document.documentElement.classList.remove('walk-lock');
+    removeEventListener('keydown', onKey);
+    removeEventListener('resize', fit);
+    opener.focus({ preventScroll: true });
+  }
+  function onKey(event) {
+    if (event.key === 'Escape') close();
+    else if (event.key === 'ArrowRight') go(index + 1);
+    else if (event.key === 'ArrowLeft') go(index - 1);
+  }
+  layer.addEventListener('click', event => {
+    if (event.target === layer || event.target.closest('.walk-close')) close();
+    else if (event.target.closest('.walk-prev')) go(index - 1);
+    else if (event.target.closest('.walk-next')) index === steps.length - 1 ? close() : go(index + 1);
+  });
+  addEventListener('keydown', onKey);
+  addEventListener('resize', fit);
+  go(0);
+  card.focus({ preventScroll: true });
+}
+
+for (const box of document.querySelectorAll('[data-walk]')) {
+  const opener = box.querySelector('[data-walk-open]');
+  opener.hidden = false;
+  opener.addEventListener('click', () => openWalk(box));
+}
+
 // 움직임: 스크롤하면 섹션이 아래에서 떠오르고, 버튼을 누르면 누른 자리에서 물결이 퍼집니다.
 // '동작 줄이기' 설정이거나 IntersectionObserver가 없으면 처음부터 모두 보입니다.
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -171,7 +268,7 @@ if ('IntersectionObserver' in window && !reduceMotion) {
 }
 
 document.addEventListener('pointerdown', event => {
-  const target = event.target.closest('.btn, .copy-button, .res-card, .help-start');
+  const target = event.target.closest('.btn, .copy-button, .res-card, .help-start, .walk-open');
   if (!target || reduceMotion) return;
   const box = target.getBoundingClientRect();
   const size = Math.max(box.width, box.height) * 2;

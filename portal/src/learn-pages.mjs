@@ -2,13 +2,13 @@
 // 화면 내용은 로그인 전에는 숨겨 두고(hidden), learn.js가 로그인을 확인한 뒤 엽니다.
 // 상단 바·사용자 칸은 layout.mjs의 learnLayout(학습실 화면)이 그립니다.
 import { h, raw, link } from './render.mjs';
-import { missionBody, slidesOf } from './pages.mjs';
+import { missionBody, slidesOf, taskSlidesOf } from './pages.mjs';
 
 const pad = n => String(n).padStart(2, '0');
 export const lessonPath = w => `/learn/${w.slug}/`;
-const deckId = url => /\/presentation\/d\/([A-Za-z0-9_-]+)/.exec(url)?.[1];
-// Google Slides 임베드 주소. 끝에 슬라이드 페이지 ID를 붙이면 그 슬라이드부터 보여줍니다.
-export const embedBase = url => `https://docs.google.com/presentation/d/${deckId(url)}/embed?start=false&loop=false&delayms=60000&slide=id.`;
+export const deckId = url => /\/presentation\/d\/([A-Za-z0-9_-]+)/.exec(url ?? '')?.[1];
+// 수업 화면의 슬라이드는 한 장씩 받아 둔 이미지(portal/slides/, scripts/slides-snapshot.mjs)로 보여줍니다.
+export const deckOf = (content, w) => content.decks?.[deckId(slidesOf(w)?.url)];
 
 // 학생용 슬라이드와 단계가 있는, 자료가 열린 회차만 수업 화면을 만듭니다.
 export const lessonWorkshops = content => content.workshops.filter(w => w.materials === 'open' && slidesOf(w) && w.missions.length);
@@ -108,7 +108,7 @@ ${loginCard()}
 // 중간 단계는 "다음 →"이 그 단계를 완료로 저장하고 넘어갑니다. 완료 버튼은 마지막 단계에만 있습니다.
 function lessonStep(m, i, total) {
   const last = i === total - 1;
-  return h`<section class="lesson-step" id="step-${m.id}" data-step="${m.id}" data-slide-id="${m.slideId}" ${i ? raw('hidden') : ''}>
+  return h`<section class="lesson-step" id="step-${m.id}" data-step="${m.id}" data-task-slides="${taskSlidesOf(m)}" ${i ? raw('hidden') : ''}>
   <p class="track-kicker">${i + 1} / ${total} 단계</p>
   <h2 tabindex="-1">${m.title}</h2>
   ${missionBody(m)}
@@ -145,12 +145,40 @@ function finishScreen(content, w) {
 </section>`;
 }
 
+// 슬라이드 보기: 처음에는 지금 단계의 과제 페이지(taskSlides)만 넘겨 보고, '강의 전체'를 누르면 모든 슬라이드를 순서대로 봅니다.
+// 넘기기·보기 전환·크게 보기는 learn.js가 맡습니다. 과제 페이지에는 어느 과제인지 표시가 붙습니다.
+function slideViewer(content, w) {
+  const id = deckId(slidesOf(w).url);
+  const deck = deckOf(content, w);
+  const pages = deck.pages.map((p, i) => ({ id: p.id, src: `/slides/${id}/${p.file}`, no: i + 1 }));
+  const tasks = {};
+  w.missions.forEach((m, i) => {
+    for (const item of [m, ...(m.options ?? [])]) for (const page of item.taskSlides ?? []) tasks[page] = `과제 ${i + 1}${item === m ? '' : ` · ${item.label.split(' — ')[0]}`}`;
+  });
+  const first = pages.find(p => p.id === taskSlidesOf(w.missions[0]).split(' ')[0]) ?? pages[0];
+  return h`<div class="deck" data-deck data-pages="${JSON.stringify(pages)}" data-tasks="${JSON.stringify(tasks)}">
+  <div class="deck-stage">
+    <img data-deck-img src="${first.src}" alt="Workshop ${w.number} 슬라이드 ${first.no}" width="1920" height="1080">
+    <span class="deck-chip" data-deck-chip hidden></span>
+  </div>
+  <div class="deck-bar">
+    <button type="button" class="deck-nav" data-deck-prev aria-label="이전 슬라이드">‹</button>
+    <span class="deck-count" data-deck-count aria-live="polite">1 / ${taskSlidesOf(w.missions[0]).split(' ').length}</span>
+    <button type="button" class="deck-nav" data-deck-next aria-label="다음 슬라이드">›</button>
+    <div class="deck-mode" role="group" aria-label="슬라이드 보기">
+      <button type="button" data-deck-mode="task" aria-pressed="true">이 과제만</button>
+      <button type="button" data-deck-mode="all" aria-pressed="false">강의 전체</button>
+    </div>
+    <button type="button" class="deck-nav" data-deck-full aria-label="크게 보기" title="크게 보기">⛶</button>
+  </div>
+</div>`;
+}
+
 // 수업 화면: 위 머리말(목록으로·제목·진도) + 단계 탭 줄 + 왼쪽 슬라이드(고정)와 오른쪽 지금 단계 설명.
 // 좁은 화면(900px 이하)에서는 슬라이드가 위, 설명이 아래로 쌓입니다. 탭 표시는 learn.js가 바꿉니다.
 // 모든 단계를 끝내면 슬라이드·설명 자리에 완료 화면이 나오고, 탭 줄 끝에 "완료" 탭이 생깁니다.
 export function lessonPage(content, w) {
   const slides = slidesOf(w);
-  const base = embedBase(slides.url);
   const total = w.missions.length;
   return h`${loginCard({ kicker: `Workshop ${pad(w.number)}`, title: w.title, lead: '로그인하면 슬라이드를 보며 단계별로 따라 하고, 막힌 부분을 바로 질문할 수 있어요.' })}
 <div class="lesson c-${w.color}" data-learn-content data-lesson="${w.number}" hidden>
@@ -170,8 +198,8 @@ export function lessonPage(content, w) {
   </nav>
   <div class="lesson-body">
     <div class="lesson-slides">
-      <div class="slides-frame"><iframe data-slides data-embed-base="${base}" src="${base}${w.missions[0].slideId}" title="Workshop ${w.number} 학생용 슬라이드" allowfullscreen></iframe></div>
-      <p class="hint">${link(slides.url, '슬라이드 새 창으로 열기')}</p>
+      ${slideViewer(content, w)}
+      <p class="hint">${link(slides.url, '원본 슬라이드 새 창으로 열기')}</p>
     </div>
     <div class="lesson-steps">${w.missions.map((m, i) => lessonStep(m, i, total))}</div>
   </div>

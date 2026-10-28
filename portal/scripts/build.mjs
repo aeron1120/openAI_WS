@@ -1,5 +1,6 @@
 // 포털 정적 빌드: node portal/scripts/build.mjs → portal/dist/
 import { cp, copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
@@ -16,7 +17,12 @@ import { resolveContent, boundaries } from '../src/schedule.mjs';
 const portal = fileURLToPath(new URL('../', import.meta.url));
 const repoRoot = path.resolve(portal, '..');
 
-export const defaultContent = { site, workshops, studio, showcase, projects, collaboration };
+// 수업 화면용 슬라이드 이미지 목록(scripts/slides-snapshot.mjs가 만듭니다): { <슬라이드 ID>: { pages: [{ id, file }] } }
+const slidesDir = path.join(portal, 'slides');
+const manifestFile = path.join(slidesDir, 'manifest.json');
+const decks = existsSync(manifestFile) ? JSON.parse(readFileSync(manifestFile, 'utf8')) : {};
+
+export const defaultContent = { site, workshops, studio, showcase, projects, collaboration, decks };
 
 // 잘못된 링크가 버튼으로 공개되지 않도록 빌드 전에 콘텐츠를 검사합니다.
 export function validateContent(content) {
@@ -48,16 +54,23 @@ export function validateContent(content) {
       const isSlides = r.kind === 'slides' || /docs\.google\.com\/presentation/.test(r.url ?? '');
       if (isSlides && (r.kind !== 'slides' || r.audience !== 'student')) problems.push(`${where} resources[${i}]: 슬라이드는 학생용만 넣어 주세요 (kind: 'slides', audience: 'student').`);
     });
-    // 수업 화면(/learn/)용: 학생용 슬라이드가 있는 회차는 단계마다 시작 슬라이드(번호·ID)가 필요합니다.
+    // 수업 화면(/learn/)용: 학생용 슬라이드가 있는 회차는 받아 둔 슬라이드 이미지(slides-snapshot.mjs)가 있어야 하고,
+    // 단계마다 시작 슬라이드(slideId)가, 과제 페이지(taskSlides)를 적었다면 그 페이지들이 이미지 목록에 있어야 합니다.
     if (w.resources.some(r => r.kind === 'slides')) {
       const deck = w.resources.find(r => r.kind === 'slides');
       if (!/^https:\/\/docs\.google\.com\/presentation\/d\/[A-Za-z0-9_-]{20,}\//.test(deck.url ?? '')) problems.push(`${where}: 학생용 슬라이드는 docs.google.com/presentation/d/<ID>/… 주소여야 화면에 넣을 수 있어요.`);
-      const slideOk = item => Number.isInteger(item.slide) && item.slide >= 1 && /^[A-Za-z0-9_-]+$/.test(item.slideId ?? '');
+      const snapshot = learnPages.deckOf(content, w);
+      if (!snapshot) problems.push(`${where}: 슬라이드 이미지가 없어요. node portal/scripts/slides-snapshot.mjs 를 실행해 주세요.`);
+      const known = new Set(snapshot?.pages.map(p => p.id));
+      const missing = id => snapshot && !known.has(id);
       for (const m of w.missions) {
-        if (!slideOk(m)) problems.push(`${where} ${m.id}: slide(슬라이드 번호)와 slideId(슬라이드 ID)를 적어 주세요.`);
-        m.options?.forEach((o, i) => {
-          if ((o.slide != null || o.slideId != null) && !slideOk(o)) problems.push(`${where} ${m.id}.options[${i}]: slide와 slideId를 함께 적어 주세요.`);
-        });
+        if (!/^[A-Za-z0-9_-]+$/.test(m.slideId ?? '') || missing(m.slideId)) problems.push(`${where} ${m.id}: slideId(시작 슬라이드 ID)를 확인해 주세요. 슬라이드를 고쳤다면 slides-snapshot.mjs를 다시 실행하세요.`);
+        for (const item of [m, ...(m.options ?? [])]) {
+          const at = item === m ? `${where} ${m.id}` : `${where} ${m.id}.options[${m.options.indexOf(item)}]`;
+          if (item !== m && item.slideId != null && missing(item.slideId)) problems.push(`${at}: slideId가 슬라이드에 없어요.`);
+          if (item.taskSlides != null && (!Array.isArray(item.taskSlides) || !item.taskSlides.length)) problems.push(`${at}: taskSlides는 과제 페이지 ID 목록으로 적어 주세요.`);
+          for (const id of item.taskSlides ?? []) if (missing(id)) problems.push(`${at}: taskSlides의 "${id}"가 슬라이드에 없어요. slides-snapshot.mjs를 다시 실행했는지 확인하세요.`);
+        }
       }
     }
     if (w.video) checkUrl(w.video.src, `${where} video.src`);
@@ -69,10 +82,28 @@ export function validateContent(content) {
       for (const value of values) for (const url of inlineLinkUrls(value)) if (!isUsableUrl(url)) problems.push(`${at}.${key}: 글 속 링크 주소 "${url}"를 쓸 수 없어요 ([보이는 글](https://… 또는 /…) 모양으로 적어 주세요)`);
     };
     const checkHints = (item, at) => {
+      checkWalk(item, at);
       if (item.hints == null) return;
       const ok = Array.isArray(item.hints) && item.hints.length >= 1 && item.hints.length <= 3
         && item.hints.every(text => typeof text === 'string' && text.trim() && text.length <= 800);
       if (!ok) problems.push(`${at}.hints: 힌트는 1~3개의 글(각 800자 이하, 빈 글 없이)로 적어 주세요.`);
+    };
+    // 화면 따라 하기: 단계마다 글이 있어야 하고, 그림은 public/에 실제로 있어야 하며, 강조 상자는 그림 안([왼쪽, 위, 너비, 높이] %)이어야 합니다.
+    const checkWalk = (item, at) => {
+      const walk = item.walkthrough;
+      if (walk == null) return;
+      if (!walk.title || !Array.isArray(walk.steps) || !walk.steps.length) return problems.push(`${at}.walkthrough: title과 steps(단계 목록)를 적어 주세요.`);
+      walk.steps.forEach((step, i) => {
+        const where = `${at}.walkthrough.steps[${i}]`;
+        if (typeof step.text !== 'string' || !step.text.trim()) problems.push(`${where}: text(설명)를 적어 주세요.`);
+        for (const url of inlineLinkUrls(step.text)) if (!isUsableUrl(url)) problems.push(`${where}: 글 속 링크 주소 "${url}"를 쓸 수 없어요.`);
+        if (step.image != null && (!/^\/images\/[^\s]+$/.test(step.image) || !existsSync(path.join(portal, 'public', step.image)))) problems.push(`${where}: image "${step.image}"가 public/에 없어요.`);
+        if (step.box != null) {
+          const [x, y, w, h] = Array.isArray(step.box) ? step.box : [];
+          const ok = step.image && step.box.length === 4 && step.box.every(Number.isFinite) && x >= 0 && y >= 0 && w > 0 && h > 0 && x + w <= 100.5 && y + h <= 100.5;
+          if (!ok) problems.push(`${where}: box는 그림이 있을 때 [왼쪽, 위, 너비, 높이] (0~100%)로 적어 주세요.`);
+        }
+      });
     };
     const missionIds = new Set();
     for (const m of w.missions) {
@@ -135,8 +166,10 @@ async function writePages(dir, content, assets) {
     await writeFile(file, icsFile({ uid: `workshop-${w.slug}@${new URL(content.site.url).host}`, title: pages.eventTitle(w), event: w.event, details: pages.eventDetails(content.site, w), url: `${content.site.url}/workshops/${w.slug}/`, now: content.now }));
   }
   await writeFile(path.join(dir, '404.html'), layout({ site: content.site, content, path: '/404', title: '페이지를 찾을 수 없어요', description: content.site.description, body: String(pages.notFoundPage()), assets }));
-  // 자료가 열린 회차의 예제 화면만 복사합니다(저장소의 정적 화면 파일만).
+  // 자료가 열린 회차의 예제 화면과 수업 화면용 슬라이드 이미지만 복사합니다.
   for (const w of content.workshops.filter(w => w.materials === 'open')) {
+    const deck = learnPages.deckId(pages.slidesOf(w)?.url);
+    if (deck && content.decks?.[deck]) await cp(path.join(slidesDir, deck), path.join(dir, 'slides', deck), { recursive: true });
     for (const source of w.exampleDirs ?? []) {
       for (const name of ['index.html', 'app.js', 'styles.css']) {
         const target = path.join(dir, 'examples', source, name);

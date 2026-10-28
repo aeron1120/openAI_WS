@@ -13,6 +13,8 @@ export const eventDetails = (site, w) => `${w.summary}\n\n자세히 보기: ${si
 export const upcomingWorkshop = workshops => workshops.find(w => ['live', 'scheduled'].includes(w.event.status) && w.event.start);
 const checks = items => items?.length ? h`<ul class="checks">${items.map(item => h`<li>${item}</li>`)}</ul>` : '';
 export const slidesOf = w => w.resources.find(r => r.kind === 'slides' && isUsableUrl(r.url));
+// 수업 화면에서 이 단계(또는 선택지)의 '이 과제만' 보기에 넣을 슬라이드 페이지 ID: 과제 페이지, 없으면 시작 슬라이드 한 장
+export const taskSlidesOf = item => (item.taskSlides?.length ? item.taskSlides : [item.slideId]).filter(Boolean).join(' ');
 const demoOf = w => w.resources.find(r => r.kind === 'demo' && isUsableUrl(r.url));
 
 function scheduleText(item, timeZone) {
@@ -225,12 +227,24 @@ function hintText(text) {
 
 // 단계별 힌트: 처음에는 힌트 1만 보이고, 앞 힌트를 열면 다음 힌트가 나타납니다(main.js).
 // 스크립트가 없으면 모든 힌트가 접힌 채로 보입니다. 힌트가 3개면 마지막은 자세한 따라하기입니다.
-function hintBox(hints) {
-  if (!hints?.length) return '';
+// 화면으로 따라 하기: 실제 화면 캡처에서 누를 곳을 강조해 한 단계씩 보여줍니다(main.js가 창을 띄움).
+// 단계 데이터는 data-walk에 담고, 스크립트가 없을 때를 위해 같은 내용을 글 목록으로도 둡니다.
+function walkthrough(walk) {
+  if (!walk?.steps?.length) return '';
+  const steps = walk.steps.map(s => ({ image: s.image ?? null, box: s.box ?? null, text: String(richText(s.text)), note: s.note ?? '' }));
+  return h`<div class="walk" data-walk="${JSON.stringify(steps)}" data-walk-title="${walk.title}">
+      <button type="button" class="walk-open" data-walk-open hidden><span class="walk-icon" aria-hidden="true">🎬</span><span><strong>화면으로 따라 하기</strong><small>${walk.title} · ${walk.steps.length}단계</small></span><span class="arrow" aria-hidden="true">→</span></button>
+      <details class="walk-list"><summary>화면 따라 하기를 글로 보기</summary><ol class="step-list">${walk.steps.map(s => h`<li><span>${richText(s.text)}${s.note ? h` <small>${s.note}</small>` : ''}</span></li>`)}</ol></details>
+    </div>`;
+}
+
+function hintBox(hints, walk) {
+  if (!hints?.length && !walk) return '';
   const label = i => i === 2 ? '힌트 3 · 자세한 따라하기' : h`힌트 ${i + 1} <span class="hint-verb">보기</span>`;
   return h`<div class="hints" data-hints>
       <p class="hints-title"><span aria-hidden="true">💡</span> 막히면 힌트를 열어 보세요</p>
-      ${hints.map((text, i) => h`<details class="hint" data-hint="${i + 1}"><summary>${label(i)}</summary><div class="hint-text">${hintText(text)}</div></details>`)}
+      ${walkthrough(walk)}
+      ${(hints ?? []).map((text, i) => h`<details class="hint" data-hint="${i + 1}"><summary>${label(i)}</summary><div class="hint-text">${hintText(text)}</div></details>`)}
     </div>`;
 }
 
@@ -240,14 +254,14 @@ export function missionBody(m) {
   return h`<p>${richText(m.todo)}</p>
     ${m.prompt ? copyBlock(m.prompt) : ''}
     ${m.commands ? copyBlock(m.commands, '터미널 명령 (한 줄씩 실행)', { code: true }) : ''}
-    ${m.options ? h`<div class="options">${m.options.map(o => h`<details class="option"${o.slideId ? h` data-slide-id="${o.slideId}"` : ''}>
+    ${m.options ? h`<div class="options">${m.options.map(o => h`<details class="option"${taskSlidesOf(o) ? h` data-task-slides="${taskSlidesOf(o)}"` : ''}>
       <summary>${o.label}</summary>
       <p class="hint">먼저 필요한 것: ${richText(o.needs)}</p>
       ${copyBlock(o.prompt)}
       <p>${link(o.guide, '자세한 안내')}</p>
-      ${hintBox(o.hints)}
+      ${hintBox(o.hints, o.walkthrough)}
     </details>`)}</div>` : ''}
-    ${hintBox(m.hints)}
+    ${hintBox(m.hints, m.walkthrough)}
     <div class="result">
       <p><strong>예상 결과</strong>${richText(m.expected)}</p>
       ${m.verify?.length ? h`<div><strong>확인</strong>${checks(m.verify.map(richText))}</div>` : ''}

@@ -214,8 +214,14 @@ test('content validation rejects placeholder or insecure links, missing recruitm
   delete noSlide.workshops[1].missions[0].slideId;
   assert.throws(() => validateContent(noSlide), /slideId/);
   const badOption = clone(defaultContent);
-  badOption.workshops[0].missions.find(m => m.options).options[0].slide = 0;
-  assert.throws(() => validateContent(badOption), /slideId/);
+  badOption.workshops[0].missions.find(m => m.options).options[0].slideId = 'not_in_the_deck';
+  assert.throws(() => validateContent(badOption), /slideId가 슬라이드에 없어요/);
+  const badTask = clone(defaultContent);
+  badTask.workshops[0].missions[0].taskSlides = ['ws1_task_missing'];
+  assert.throws(() => validateContent(badTask), /taskSlides의 "ws1_task_missing"/);
+  const noImages = clone(defaultContent);
+  noImages.decks = {};
+  assert.throws(() => validateContent(noImages), /slides-snapshot\.mjs/);
   const published = clone(defaultContent);
   published.workshops[1].resources.find(r => r.kind === 'slides').url = 'https://docs.google.com/presentation/d/e/2PACX-abc/pub';
   assert.throws(() => validateContent(published), /presentation\/d\/<ID>/);
@@ -281,9 +287,9 @@ test('hints render one details per hint before the result box, with the last of 
     assert.doesNotMatch(step, /data-hint="\d"[^>]*hidden/);
     assert.match(html, /<details class="option"[\s\S]*?<details class="hint" data-hint="1"><summary>힌트 1 <span class="hint-verb">보기<\/span><\/summary><div class="hint-text">선택지 힌트<\/div>/);
   }
-  // 힌트가 없는 미션에는 힌트 상자가 없습니다.
+  // 힌트도 화면 따라 하기도 없는 미션에는 힌트 상자가 없습니다.
   const plain = clone(defaultContent);
-  for (const w of plain.workshops) for (const x of w.missions) { delete x.hints; x.options?.forEach(o => delete o.hints); }
+  for (const w of plain.workshops) for (const x of w.missions) for (const item of [x, ...(x.options ?? [])]) { delete item.hints; delete item.walkthrough; }
   assert.doesNotMatch(await (await build(t, plain)).read('/workshops/01/'), /data-hints/);
 });
 
@@ -425,14 +431,16 @@ test('each open workshop gets a lesson page with the student slides and every st
   const { read } = await build(t, defaultContent, WS2_OPENS);
   const html = await read('/learn/02/');
   const ws2 = defaultContent.workshops[1];
-  assert.match(html, /<iframe data-slides data-embed-base="https:\/\/docs\.google\.com\/presentation\/d\/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE\/embed\?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id\." src="[^"]+slide=id\.ws2_activity_20261019_01"/);
-  for (const m of ws2.missions) assert.match(html, new RegExp(`data-step="${m.id}" data-slide-id="${m.slideId}"`));
+  assert.doesNotMatch(html, /<iframe/);
+  assert.match(html, /<img data-deck-img src="\/slides\/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE\/ws2_activity_20261019_01\.(svg|png)"/);
+  // 과제 페이지가 아직 없는 단계는 시작 슬라이드 한 장을 보여줍니다.
+  for (const m of ws2.missions) assert.match(html, new RegExp(`data-step="${m.id}" data-task-slides="${m.taskSlides?.join(' ') ?? m.slideId}"`));
   assert.equal((html.match(/class="lesson-step"/g) ?? []).length, ws2.missions.length);
   assert.match(html, /data-learn-content data-lesson="2" hidden/);
   assert.match(html, /<script src="\/learn\.js\?v=/);
   assert.match(await read('/learn/'), /href="\/learn\/02\/"/);
   const ws1 = await read('/learn/01/');
-  assert.match(ws1, /<details class="option" data-slide-id="h2ea000745df279bf_2_267">/);
+  assert.match(ws1, /<details class="option" data-task-slides="ws1_task_20261029_login_1 ws1_task_20261029_login_2 ws1_task_20261029_login_3">/);
 });
 
 test('a lesson page does not exist before its workshop opens', async t => {
@@ -614,4 +622,49 @@ test('after the last dated workshop ends, home says the next one is being prepar
   const home = await read('/');
   assert.match(home, /다음 워크숍 일정을 준비하고 있어요/);
   assert.doesNotMatch(home, /<iframe|class="cal"/);
+});
+
+test('the lesson shows only the current task pages, can switch to the whole lecture, and slides open with their workshop', async t => {
+  const { outDir, read } = await build(t);
+  const html = await read('/learn/01/');
+  const deckId = '1pUcnsVa0Ab_z_ZxbVnO6cCHCIcTYVVvz10C9Tt52xuU';
+  const deck = html.match(/<div class="deck" data-deck data-pages="([^"]+)" data-tasks="([^"]+)">/);
+  const unescape = text => text.replaceAll('&quot;', '"').replaceAll('&amp;', '&');
+  const pages = JSON.parse(unescape(deck[1]));
+  const tasks = JSON.parse(unescape(deck[2]));
+  assert.equal(pages.length, defaultContent.decks[deckId].pages.length);
+  assert.equal(tasks.ws1_task_20261029_open_1, '과제 1');
+  assert.equal(tasks.ws1_task_20261029_weather_2, '과제 4 · 날씨');
+  assert.match(html, /data-step="open-starter" data-task-slides="ws1_task_20261029_open_1 ws1_task_20261029_open_2"/);
+  assert.match(html, /<img data-deck-img src="\/slides\/1pUcnsVa0Ab_z_ZxbVnO6cCHCIcTYVVvz10C9Tt52xuU\/ws1_task_20261029_open_1\.(svg|png)"/);
+  assert.match(html, /<span class="deck-count" data-deck-count aria-live="polite">1 \/ 2<\/span>/);
+  assert.match(html, /<button type="button" data-deck-mode="task" aria-pressed="true">이 과제만<\/button>/);
+  assert.match(html, /<button type="button" data-deck-mode="all" aria-pressed="false">강의 전체<\/button>/);
+  // 이미지는 자료가 열린 회차만 사이트에 들어갑니다(Workshop 2는 아직).
+  for (const page of pages) assert.ok(await exists(path.join(outDir, page.src)), `${page.src} is copied`);
+  assert.equal(await exists(path.join(outDir, 'slides/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE')), false);
+  const opened = await build(t, defaultContent, WS2_OPENS);
+  assert.ok(await exists(path.join(opened.outDir, 'slides/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE/ws2_activity_20261019_01.svg')));
+});
+
+test('the weather hint opens a screen-by-screen walkthrough with highlighted spots', async t => {
+  const { outDir, read } = await build(t);
+  for (const page of ['/learn/01/', '/workshops/01/']) {
+    const html = await read(page);
+    const walk = html.match(/<div class="walk" data-walk="([^"]+)" data-walk-title="기상청 인증키 받기">/);
+    assert.ok(walk, `${page} has the walkthrough`);
+    const steps = JSON.parse(walk[1].replaceAll('&quot;', '"').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&#39;', "'").replaceAll('&amp;', '&'));
+    assert.equal(steps.length, 6);
+    assert.deepEqual(steps[0].box, [81.34, 8.81, 8.24, 6.5]);
+    assert.match(steps[0].text, /<a href="https:\/\/www\.data\.go\.kr\/"/);
+    assert.equal(steps[4].image, null);
+    for (const step of steps.filter(s => s.image)) assert.ok(await exists(path.join(outDir, step.image)), `${step.image} exists`);
+    assert.match(html, /<button type="button" class="walk-open" data-walk-open hidden>/);
+    assert.match(html, /<summary>화면 따라 하기를 글로 보기<\/summary>/);
+  }
+  const broken = clone(defaultContent);
+  const weather = broken.workshops[0].missions.find(m => m.options).options[0];
+  weather.walkthrough.steps[0].image = '/images/walk/kma/missing.webp';
+  weather.walkthrough.steps[1].box = [90, 10, 20, 5];
+  assert.throws(() => validateContent(broken), /missing\.webp"가 public\/에 없어요[\s\S]*box는/);
 });
