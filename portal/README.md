@@ -159,6 +159,7 @@ npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-stud
 - `/learn/`·`/learn/<회차>/`·`/learn/questions/`·`/admin/`은 포털 메뉴 없이 **학습실 화면**(얇은 상단 바: ← 포털 · SNU 학습실 · 수업 · 내 질문 · 이름/로그아웃)을 씁니다. `scripts/build.mjs`의 경로에 `layout: 'learn'`을 붙이면 이 화면이 됩니다(`src/layout.mjs`의 `learnLayout`).
 - 로그인 전에는 가운데 로그인 카드만 보이고, 로그인을 확인하면(`src/learn.js`) 카드를 숨기고 내용을 엽니다.
 - `/learn/`은 회차별 진도 막대·단계 목록·"이어서 하기"(처음으로 안 끝낸 단계), `/learn/<회차>/`는 왼쪽 단계 목록과 오른쪽 슬라이드·지금 단계를 보여줍니다. 휴대폰(900px 이하)에서는 단계 목록이 슬라이드 위의 접는 칸이 됩니다.
+- 로그인 뒤 화면을 서버 없이 보려면 `npm run dev:portal`로 띄운 뒤 주소 끝에 `?preview`를 붙입니다(예: `http://localhost:5174/learn/01/?preview`). 가짜 이름·진도로 보여주며, `localhost`에서만 동작합니다.
 - 수업 화면은 **자료가 열렸고 학생용 슬라이드(`kind: 'slides'`)와 미션이 있는 회차**에만 만들어집니다. 공개 시각(`materialsOpenAt`) 전에는 페이지 자체가 없습니다.
 - 단계 내용은 `content/workshops.mjs`의 `missions`를 그대로 씁니다. 각 미션에 시작 슬라이드를 적습니다:
   - `slide`: 학생용 슬라이드 번호(1부터, 사람이 확인하는 용도)

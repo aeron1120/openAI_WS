@@ -468,3 +468,11 @@ test('the lesson page has a step list in a collapsible sidebar and a progress he
   assert.match(html, /<header class="lesson-head">[\s\S]*?data-progress-text>0\/4 완료</);
   assert.doesNotMatch(html, /lesson-dots/);
 });
+
+test('the signed-in preview only turns on at localhost', async () => {
+  const source = await readFile(new URL('../src/learn.js', import.meta.url), 'utf8');
+  assert.match(source, /const preview = location\.hostname === 'localhost' && params\.has\('preview'\);/);
+  // 가짜 응답은 preview일 때만 씁니다.
+  assert.equal((source.match(/previewApi\(/g) ?? []).length, 2);
+  assert.match(source, /if \(preview\) return previewApi\(path\);/);
+});

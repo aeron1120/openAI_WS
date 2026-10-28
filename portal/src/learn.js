@@ -17,6 +17,9 @@
   const errorCode = params.get('error');
   const loginError = Object.hasOwn(messages, errorCode) ? messages[errorCode] : null;
   if (params.has('error')) history.replaceState(null, '', location.pathname);
+  // 미리보기(?preview): 내 컴퓨터(localhost)에서만, 서버 없이 가짜 사용자·진도로 로그인 뒤 화면을 봅니다.
+  // 배포 사이트 주소에서는 꺼져 있어 아무 일도 하지 않습니다.
+  const preview = location.hostname === 'localhost' && params.has('preview');
 
   const el = (tag, className, text) => {
     const node = document.createElement(tag);
@@ -33,9 +36,26 @@
   const showGate = (...nodes) => gate.replaceChildren(...nodes);
 
   async function api(path, init = {}) {
+    if (preview) return previewApi(path);
     const response = await fetch(path, { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(15000), ...init });
     const data = await response.json().catch(() => ({}));
     return { response, data };
+  }
+
+  // 미리보기용 가짜 응답: 회차마다 앞쪽 절반 단계를 끝낸 것으로, 답변 받은 질문 1개로 둡니다.
+  function previewApi(path) {
+    const ok = data => ({ response: { ok: true, status: 200 }, data });
+    if (path === '/api/me') return ok({ user: { name: '김서울 / 학생 / 미리보기', email: 'preview@snu.ac.kr', operator: true } });
+    if (path === '/api/progress') {
+      const progress = [];
+      const add = (workshop, ids) => ids.slice(0, Math.ceil(ids.length / 2)).forEach(step => progress.push({ workshop, step }));
+      for (const course of document.querySelectorAll('[data-course]')) add(Number(course.dataset.course), [...course.querySelectorAll('[data-step-link]')].map(node => node.dataset.stepLink));
+      const lesson = document.querySelector('[data-lesson]');
+      if (lesson) add(Number(lesson.dataset.lesson), [...lesson.querySelectorAll('[data-step]')].map(node => node.dataset.step));
+      return ok({ progress });
+    }
+    if (path === '/api/questions') return ok({ questions: [{ id: 'preview', workshop: 1, step: 'run-local', status: 'answered', preview: '미리보기 질문이에요.', updatedAt: new Date().toISOString() }] });
+    return ok({});
   }
 
   // 서버가 보낸 안내 문구(message)를 그대로 씁니다. 로그인이 풀렸으면 다시 로그인하라고 알립니다.
