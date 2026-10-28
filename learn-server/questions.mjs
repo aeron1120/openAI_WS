@@ -39,9 +39,13 @@ export async function usableAttachments({ db, input, uploaderId, nowMs }) {
   if (usable.length !== input.attachmentIds.length) throw new HttpError(400, 'ATTACHMENT_INVALID', '이미지를 다시 올려 주세요.');
 }
 
-export async function postMessage({ db, questionId, author, operatorEmail = null, input, nowMs }) {
+export async function postMessage({ db, questionId, author, operatorEmail = null, uploaderId, input, nowMs }) {
   const messageId = await db.addMessage({ questionId, author, operatorEmail, body: input.body, errorText: input.errorText, now: iso(nowMs) });
-  if (input.attachmentIds.length) await db.attachToMessage({ ids: input.attachmentIds, messageId });
+  if (input.attachmentIds.length) {
+    // 동시에 같은 이미지를 붙이려 한 요청은 하나만 성공합니다.
+    const attached = await db.attachToMessage({ ids: input.attachmentIds, messageId, uploaderId });
+    if (attached !== input.attachmentIds.length) throw new HttpError(400, 'ATTACHMENT_INVALID', '이미지를 다시 올려 주세요.');
+  }
   return messageId;
 }
 
@@ -83,7 +87,7 @@ export async function handleQuestions({ request, url, session, config, db, stora
     const questionId = await db.createQuestion({ studentId: session.sid, workshop, stepId: step, mode: data.mode ?? null, status: 'escalated', now: iso(nowMs) });
     // 첫 메시지를 못 저장하면 질문만 남지 않도록 지웁니다(지우기 실패는 무시).
     try {
-      await postMessage({ db, questionId, author: 'student', input, nowMs });
+      await postMessage({ db, questionId, author: 'student', uploaderId: session.sid, input, nowMs });
     } catch (error) {
       await db.deleteQuestion(questionId).catch(() => {});
       throw error;
@@ -123,7 +127,7 @@ export async function handleQuestions({ request, url, session, config, db, stora
   const input = messageInput(await readJson(request));
   if (!limiter.messages(session.sid, nowMs)) throw new HttpError(429, 'TOO_MANY', '메시지는 1시간에 30개까지 보낼 수 있어요. 잠시 후 다시 보내 주세요.');
   await usableAttachments({ db, input, uploaderId: session.sid, nowMs });
-  await postMessage({ db, questionId: row.id, author: 'student', input, nowMs });
+  await postMessage({ db, questionId: row.id, author: 'student', uploaderId: session.sid, input, nowMs });
   await db.updateQuestion(row.id, { status: 'escalated', updated_at: iso(nowMs) });
   // 이미 답변 대기 중인 질문에 덧붙인 경우에는 메일을 다시 보내지 않습니다.
   if (row.status !== 'escalated') notifier.questionWaiting({ questionId: row.id, workshop: row.workshop, step: row.step_id, email: session.email, body: input.body, followUp: true });

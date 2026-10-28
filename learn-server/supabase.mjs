@@ -89,8 +89,12 @@ export function supabaseClient({ url, key, fetchImpl = fetch }) {
     claimableAttachments({ ids, uploaderId, since }) {
       return request(`attachments?id=${inList(ids)}&uploader_id=eq.${enc(uploaderId)}&message_id=is.null&created_at=gte.${enc(since)}&select=id`);
     },
-    async attachToMessage({ ids, messageId }) {
-      await request(`attachments?id=${inList(ids)}`, { method: 'PATCH', headers: { prefer: 'return=minimal' }, body: JSON.stringify({ message_id: messageId }) });
+    // 내가 올렸고 아직 비어 있는 첨부만 한 번에 붙이고, 붙은 개수를 돌려줍니다(동시 요청이 같은 이미지를 두 번 붙이지 못하게).
+    async attachToMessage({ ids, messageId, uploaderId }) {
+      const rows = await request(`attachments?id=${inList(ids)}&uploader_id=eq.${enc(uploaderId)}&message_id=is.null&select=id`, {
+        method: 'PATCH', headers: { prefer: 'return=representation' }, body: JSON.stringify({ message_id: messageId })
+      });
+      return rows?.length ?? 0;
     },
     staleAttachments(before) {
       return request(`attachments?message_id=is.null&created_at=lt.${enc(before)}&select=id,path&limit=500`);

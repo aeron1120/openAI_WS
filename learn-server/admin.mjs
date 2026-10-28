@@ -53,7 +53,7 @@ export async function handleAdmin({ request, url, session, config, db, storage, 
   sameOrigin(request, config.publicOrigin);
   const input = messageInput(await readJson(request), { max: 4000, label: '답변' });
   await usableAttachments({ db, input, uploaderId: session.sid, nowMs });
-  await postMessage({ db, questionId: row.id, author: 'operator', operatorEmail: session.email, input, nowMs });
+  await postMessage({ db, questionId: row.id, author: 'operator', operatorEmail: session.email, uploaderId: session.sid, input, nowMs });
   await db.updateQuestion(row.id, { status: 'answered', updated_at: iso(nowMs) });
   return json({ question: { id: row.id, status: 'answered' } }, 201);
 }

@@ -152,7 +152,12 @@ export function memoryDb() {
     async claimableAttachments({ ids, uploaderId, since }) {
       return t.attachments.filter(a => ids.includes(a.id) && a.uploader_id === uploaderId && a.message_id === null && a.created_at >= since).map(({ id }) => ({ id }));
     },
-    async attachToMessage({ ids, messageId }) { for (const a of t.attachments) if (ids.includes(a.id)) a.message_id = messageId; },
+    // 내가 올렸고 아직 비어 있는 첨부만 붙이고, 붙인 개수를 돌려줍니다.
+    async attachToMessage({ ids, messageId, uploaderId }) {
+      const mine = t.attachments.filter(a => ids.includes(a.id) && a.uploader_id === uploaderId && a.message_id === null);
+      for (const a of mine) a.message_id = messageId;
+      return mine.length;
+    },
     async staleAttachments(before) { return t.attachments.filter(a => a.message_id === null && a.created_at < before).map(({ id, path }) => ({ id, path })); },
     async deleteAttachments(ids) { t.attachments = t.attachments.filter(a => !(ids.includes(a.id) && a.message_id === null)); }
   };

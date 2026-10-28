@@ -78,7 +78,7 @@ test('question queries use PostgREST filters, embeds and ordering', async () => 
   await db.listQuestions({ studentId: 's1' });
   await db.listQuestions({ status: 'escalated', workshop: 2 });
   await db.claimableAttachments({ ids: ['a1', 'a2'], uploaderId: 's1', since: '2026-10-27T11:00:00.000Z' });
-  await db.attachToMessage({ ids: ['a1'], messageId: 'm1' });
+  assert.equal(await db.attachToMessage({ ids: ['a1'], messageId: 'm1', uploaderId: 's1' }), 1);
   await db.staleAttachments('2026-10-26T12:00:00.000Z');
   await db.deleteAttachments(['a1', 'a2']);
   await db.listAllProgress();
@@ -92,7 +92,7 @@ test('question queries use PostgREST filters, embeds and ordering', async () => 
     'GET questions?student_id=eq.s1&select=id,workshop,step_id,mode,status,created_at,updated_at,student:students(email,name),messages(author,body,created_at)&messages.order=created_at.asc&order=updated_at.desc&limit=200',
     'GET questions?status=eq.escalated&workshop=eq.2&select=id,workshop,step_id,mode,status,created_at,updated_at,student:students(email,name),messages(author,body,created_at)&messages.order=created_at.asc&order=updated_at.desc&limit=200',
     'GET attachments?id=in.(a1,a2)&uploader_id=eq.s1&message_id=is.null&created_at=gte.2026-10-27T11%3A00%3A00.000Z&select=id',
-    'PATCH attachments?id=in.(a1)',
+    'PATCH attachments?id=in.(a1)&uploader_id=eq.s1&message_id=is.null&select=id',
     'GET attachments?message_id=is.null&created_at=lt.2026-10-26T12%3A00%3A00.000Z&select=id,path&limit=500',
     'DELETE attachments?id=in.(a1,a2)&message_id=is.null',
     'GET progress?select=workshop,step_id&limit=10000',
@@ -102,6 +102,7 @@ test('question queries use PostgREST filters, embeds and ordering', async () => 
   assert.equal(calls[0].headers.prefer, 'return=representation');
   assert.deepEqual(JSON.parse(calls[1].body), { question_id: 'q1', author: 'student', operator_email: null, body: '도와줘', error_text: null, created_at: 't' });
   assert.deepEqual(JSON.parse(calls[7].body), { message_id: 'm1' });
+  assert.equal(calls[7].headers.prefer, 'return=representation');
   assert.equal(calls[11].headers.prefer, 'return=minimal');
 });
 

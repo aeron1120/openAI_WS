@@ -179,3 +179,26 @@ test('a question whose first message cannot be saved is removed', async () => {
   assert.equal((await ask(flow, cookie, question)).status, 201);
   assert.equal(flow.db.tables.questions.length, 1);
 });
+
+test('an image can be claimed by only one message even when two requests race', async () => {
+  const flow = questionApp();
+  const cookie = await loginAs(flow, 1);
+  const { attachment } = await (await upload(flow, cookie)).json();
+  const uploaderId = flow.db.tables.students[0].id;
+  assert.equal(await flow.db.attachToMessage({ ids: [attachment.id], messageId: 'm1', uploaderId: 'someone-else' }), 0);
+  assert.equal(await flow.db.attachToMessage({ ids: [attachment.id], messageId: 'm1', uploaderId }), 1);
+  assert.equal(await flow.db.attachToMessage({ ids: [attachment.id], messageId: 'm2', uploaderId }), 0);
+  assert.equal(flow.db.tables.attachments[0].message_id, 'm1');
+});
+
+test('a message whose image was claimed by a racing request is rejected', async () => {
+  const flow = questionApp();
+  const cookie = await loginAs(flow, 1);
+  const { attachment } = await (await upload(flow, cookie)).json();
+  const created = await (await ask(flow, cookie, question)).json();
+  // 두 요청이 동시에 확인을 통과한 상황을 흉내 냅니다.
+  flow.db.claimableAttachments = async ({ ids }) => ids.map(id => ({ id }));
+  const follow = () => send(flow.app, `/api/questions/${created.question.id}/messages`, cookie, { body: { body: '이미지예요', attachmentIds: [attachment.id] } });
+  assert.equal((await follow()).status, 201);
+  assert.equal((await follow()).status, 400);
+});
