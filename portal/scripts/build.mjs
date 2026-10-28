@@ -6,7 +6,7 @@ import path from 'node:path';
 import { site } from '../content/site.mjs';
 import { workshops } from '../content/workshops.mjs';
 import { studio, showcase, projects, collaboration } from '../content/program.mjs';
-import { layout } from '../src/layout.mjs';
+import { layout, learnLayout } from '../src/layout.mjs';
 import { isUsableUrl } from '../src/render.mjs';
 import * as pages from '../src/pages.mjs';
 import * as learnPages from '../src/learn-pages.mjs';
@@ -87,10 +87,10 @@ export function routes(content) {
     { path: '/studio/', title: 'Studio Session', render: pages.studioPage, description: content.studio.description },
     { path: '/showcase/', title: 'Showcase', render: pages.showcasePage, description: content.showcase.description },
     { path: '/about/', title: '운영 소개와 협력 안내', render: pages.aboutPage, description: `${content.site.name} 운영진, 진행 기록, 협력 방식 안내.` },
-    { path: '/learn/', title: '수업 듣기', render: learnPages.learnPage, description: '서울대 계정으로 로그인하고 슬라이드를 보며 단계별로 실습해요.', script: ['learn.js', 'questions.js'] },
-    { path: '/learn/questions/', title: '내 질문', render: learnPages.questionsPage, description: '수업 중 남긴 질문과 운영진의 답을 확인해요.', script: ['learn.js', 'questions.js'] },
-    { path: '/admin/', title: '운영진', render: learnPages.adminPage, description: '운영진용 질문 답변과 수업 진행 화면.', script: ['learn.js', 'questions.js', 'admin.js'] },
-    ...learnPages.lessonWorkshops(content).map(w => ({ path: learnPages.lessonPath(w), title: `수업 · Workshop ${w.slug}`, render: c => learnPages.lessonPage(c, w), description: `${w.title} — 슬라이드를 보며 단계별로 실습해요.`, script: ['learn.js', 'questions.js'] }))
+    { path: '/learn/', title: '수업 듣기', render: learnPages.learnPage, description: '서울대 계정으로 로그인하고 슬라이드를 보며 단계별로 실습해요.', script: ['learn.js', 'questions.js'], layout: 'learn' },
+    { path: '/learn/questions/', title: '내 질문', render: learnPages.questionsPage, description: '수업 중 남긴 질문과 운영진의 답을 확인해요.', script: ['learn.js', 'questions.js'], layout: 'learn' },
+    { path: '/admin/', title: '운영진', render: learnPages.adminPage, description: '운영진용 질문 답변과 수업 진행 화면.', script: ['learn.js', 'questions.js', 'admin.js'], layout: 'learn' },
+    ...learnPages.lessonWorkshops(content).map(w => ({ path: learnPages.lessonPath(w), title: `수업 · Workshop ${w.slug}`, render: c => learnPages.lessonPage(c, w), description: `${w.title} — 슬라이드를 보며 단계별로 실습해요.`, script: ['learn.js', 'questions.js'], layout: 'learn' }))
   ];
 }
 
@@ -104,7 +104,9 @@ async function writePages(dir, content, assets) {
     const body = String(route.render(content));
     const file = path.join(dir, route.path, 'index.html');
     await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, layout({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets, script: route.script }));
+    // layout: 'learn' → 학습실 화면(포털 사이드바 없이 상단 바만)
+    const wrap = route.layout === 'learn' ? learnLayout : layout;
+    await writeFile(file, wrap({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets, script: route.script }));
     written.push(route.path);
   }
   await writeFile(path.join(dir, '404.html'), layout({ site: content.site, content, path: '/404', title: '페이지를 찾을 수 없어요', description: content.site.description, body: String(pages.notFoundPage()), assets }));

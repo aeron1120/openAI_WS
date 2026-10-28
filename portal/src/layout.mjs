@@ -31,13 +31,11 @@ function navList(content, path) {
 
 const brand = h`<a class="brand" href="/"><img class="brand-mark" src="/images/brand/logo-192.png" alt="" width="36" height="36"><span class="brand-text"><strong>Student Collective</strong><small>OpenAI · SNU</small></span></a>`;
 
-export function layout({ site, content, path, title, description, body, assets, script }) {
+// <head>: 포털과 학습실이 같은 메타·스타일·스크립트를 씁니다.
+function head({ site, path, title, description, assets, script }) {
   const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.promise}`;
   const url = site.url + path;
-  const openChat = site.links.openChat;
-  return `<!doctype html>
-${h`<html lang="ko">
-<head>
+  return h`<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${pageTitle}</title>
@@ -62,7 +60,14 @@ ${h`<html lang="ko">
 <link rel="stylesheet" href="/styles.css?v=${assets.css}">
 <script src="/main.js?v=${assets.js}" defer></script>
 ${[script ?? []].flat().map(name => h`<script src="/${name}?v=${assets[name]}" defer></script>`)}
-</head>
+</head>`;
+}
+
+export function layout({ site, content, path, title, description, body, assets, script }) {
+  const openChat = site.links.openChat;
+  return `<!doctype html>
+${h`<html lang="ko">
+${head({ site, path, title, description, assets, script })}
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
 <div class="shell">
@@ -88,6 +93,40 @@ ${raw(body)}
     </footer>
   </div>
 </div>
+</body>
+</html>`}
+`;
+}
+
+// 학습실(/learn/…, /admin/): 포털 사이드바 없이 얇은 상단 바와 넓은 본문만 둡니다.
+// 오른쪽 사용자 칸(data-learn-user)과 답변 수(data-answer-count)는 learn.js가 로그인 뒤 채웁니다.
+function studyNav(path) {
+  const items = [
+    { href: '/learn/', label: '수업', current: path === '/learn/' ? 'page' : path.startsWith('/learn/') && path !== '/learn/questions/' ? 'true' : null },
+    { href: '/learn/questions/', label: '내 질문', current: path === '/learn/questions/' ? 'page' : null, count: true }
+  ];
+  return h`<nav class="study-nav" aria-label="학습실 메뉴">${items.map(item => h`<a href="${item.href}"${item.current ? h` aria-current="${item.current}"` : ''}>${item.label}${item.count ? raw(' <span data-answer-count></span>') : ''}</a>`)}</nav>`;
+}
+
+export function learnLayout({ site, path, title, description, body, assets, script }) {
+  return `<!doctype html>
+${h`<html lang="ko">
+${head({ site, path, title, description, assets, script })}
+<body class="study">
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="study-bar">
+  <div class="study-bar-inner">
+    <div class="study-brand">
+      <a class="study-back" href="/">← 포털</a>
+      <a class="study-name" href="/learn/"><img src="/images/brand/logo-192.png" alt="" width="28" height="28"><span>SNU 학습실</span></a>
+    </div>
+    ${studyNav(path)}
+    <div class="study-user" data-learn-user></div>
+  </div>
+</header>
+<main id="main" class="study-main">
+${raw(body)}
+</main>
 </body>
 </html>`}
 `;
