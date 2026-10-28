@@ -92,3 +92,4 @@
 - 2026-10-28: 서비스 `https://snu-learn-server.onrender.com`. 직접 접속 403, 포털 경유 `/api/health` `configured: true`, 로그인 전 `/api/me` 401, 로그인 시작 시 Google로 이동 확인. 운영진 SNU 계정으로 실제 로그인 → 이름·이메일·운영진 표시 확인.
 - 2026-10-28: 2·3단계 배포. Render 새 버전(`/api/health` `openWorkshops: [1]`), 포털 `/learn/`·`/learn/01/`·`/learn/questions/`·`/admin/` 배포. 사용자 브라우저 확인: 단계 완료 저장·새로고침 유지, 단계별 슬라이드 이동, 이미지 붙인 질문, 운영진 답변(이미지 포함), 학생 화면 답변 확인·해결 처리, Supabase Storage 저장 모두 정상.
 - 2026-10-28: 정리 작업(빈 질문 삭제, 첨부 동시 사용 방지, 횟수 제한 메모리 정리, 상태 확인에 배포 커밋 표시) 배포. `/api/health`에 `commit` 확인.
+- 2026-10-28: GitHub에 Render 앱 설치 후 자동 배포 확인용 커밋.
