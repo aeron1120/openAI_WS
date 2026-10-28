@@ -136,6 +136,12 @@ export function memoryDb() {
       t.messages.push({ id, question_id: questionId, author, operator_email: operatorEmail, body, error_text: errorText, created_at: now });
       return id;
     },
+    async deleteQuestion(id) {
+      const gone = t.messages.filter(m => m.question_id === id).map(m => m.id);
+      t.messages = t.messages.filter(m => m.question_id !== id);
+      t.attachments = t.attachments.filter(a => !gone.includes(a.message_id));
+      t.questions = t.questions.filter(q => q.id !== id);
+    },
     async updateQuestion(id, fields) { Object.assign(t.questions.find(q => q.id === id), fields); },
     async getQuestion(id) { return detail(t.questions.find(q => q.id === id)) ?? null; },
     async listQuestions({ studentId, status, workshop } = {}) {

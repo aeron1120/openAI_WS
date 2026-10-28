@@ -82,6 +82,7 @@ test('question queries use PostgREST filters, embeds and ordering', async () => 
   await db.staleAttachments('2026-10-26T12:00:00.000Z');
   await db.deleteAttachments(['a1', 'a2']);
   await db.listAllProgress();
+  await db.deleteQuestion('q 1');
   const urls = calls.map(c => `${c.method} ${c.url.replace('https://db.test/rest/v1/', '')}`);
   assert.deepEqual(urls, [
     'POST questions?select=id',
@@ -94,12 +95,14 @@ test('question queries use PostgREST filters, embeds and ordering', async () => 
     'PATCH attachments?id=in.(a1)',
     'GET attachments?message_id=is.null&created_at=lt.2026-10-26T12%3A00%3A00.000Z&select=id,path&limit=500',
     'DELETE attachments?id=in.(a1,a2)&message_id=is.null',
-    'GET progress?select=workshop,step_id&limit=10000'
+    'GET progress?select=workshop,step_id&limit=10000',
+    'DELETE questions?id=eq.q%201'
   ]);
   assert.deepEqual(JSON.parse(calls[0].body), { student_id: 's1', workshop: 1, step_id: 'run-local', mode: 'own', status: 'escalated', created_at: 't', updated_at: 't' });
   assert.equal(calls[0].headers.prefer, 'return=representation');
   assert.deepEqual(JSON.parse(calls[1].body), { question_id: 'q1', author: 'student', operator_email: null, body: '도와줘', error_text: null, created_at: 't' });
   assert.deepEqual(JSON.parse(calls[7].body), { message_id: 'm1' });
+  assert.equal(calls[11].headers.prefer, 'return=minimal');
 });
 
 test('storage uploads privately, signs short-lived URLs and removes files', async () => {

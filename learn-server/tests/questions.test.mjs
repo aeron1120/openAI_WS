@@ -168,3 +168,14 @@ test('follow-ups on a question already waiting send no extra mail, and a broken 
   const detail = await (await flow.app(api(`/api/questions/${q.id}`, { cookie }))).json();
   assert.deepEqual(detail.question.messages[0].images, [{ id: attachment.id, url: null }]);
 });
+
+test('a question whose first message cannot be saved is removed', async () => {
+  const flow = questionApp();
+  const cookie = await loginAs(flow, 1);
+  const addMessage = flow.db.addMessage;
+  flow.db.addMessage = async () => { flow.db.addMessage = addMessage; throw new Error('Supabase 500'); };
+  assert.equal((await ask(flow, cookie, question)).status, 500);
+  assert.equal(flow.db.tables.questions.length, 0);
+  assert.equal((await ask(flow, cookie, question)).status, 201);
+  assert.equal(flow.db.tables.questions.length, 1);
+});

@@ -81,7 +81,13 @@ export async function handleQuestions({ request, url, session, config, db, stora
     await usableAttachments({ db, input, uploaderId: session.sid, nowMs });
     const step = data.step;
     const questionId = await db.createQuestion({ studentId: session.sid, workshop, stepId: step, mode: data.mode ?? null, status: 'escalated', now: iso(nowMs) });
-    await postMessage({ db, questionId, author: 'student', input, nowMs });
+    // 첫 메시지를 못 저장하면 질문만 남지 않도록 지웁니다(지우기 실패는 무시).
+    try {
+      await postMessage({ db, questionId, author: 'student', input, nowMs });
+    } catch (error) {
+      await db.deleteQuestion(questionId).catch(() => {});
+      throw error;
+    }
     // AI가 켜져 있으면 먼저 답합니다(지금은 꺼져 있어 항상 운영진에게 갑니다).
     const aiText = await ai.answer({ question: input.body, workshop, step });
     if (aiText) {

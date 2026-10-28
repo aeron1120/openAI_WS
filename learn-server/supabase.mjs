@@ -63,6 +63,10 @@ export function supabaseClient({ url, key, fetchImpl = fetch }) {
     async updateQuestion(id, fields) {
       await request(`questions?id=eq.${enc(id)}`, { method: 'PATCH', headers: { prefer: 'return=minimal' }, body: JSON.stringify(fields) });
     },
+    // 메시지·첨부는 외래키(ON DELETE CASCADE)로 함께 지워집니다.
+    async deleteQuestion(id) {
+      await request(`questions?id=eq.${enc(id)}`, { method: 'DELETE', headers: { prefer: 'return=minimal' } });
+    },
     async getQuestion(id) {
       const rows = await request(`questions?id=eq.${enc(id)}&select=${DETAIL}&messages.order=created_at.asc`);
       return rows?.[0] ?? null;
