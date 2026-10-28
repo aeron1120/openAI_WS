@@ -6,8 +6,9 @@ const LAND = [10, 190, 80];
 const TILT = 0.38;   // 북쪽으로 기운 정도(라디안). 배너 그림처럼 북반구가 조금 더 보이게
 const SPIN = 0.22;   // 스스로 도는 속도(라디안/초) ≈ 28초에 한 바퀴
 const MAX_SIZE = 640;
-// 지구 자리(배너 너비 기준): 가운데 x 49.5%, y는 배너 높이의 50%, 지름 42.6% (styles.css의 .globe와 같게)
-const GLOBE_X = 0.495, GLOBE_D = 0.426;
+// 지구 자리: 가운데 x = 배너 너비의 49.8%, y = 배너 높이의 50.65%, 지름 = 배너 너비의 43.3% (styles.css의 .globe와 같게)
+// 그림 속 지구의 초록 테두리를 모두 덮는 원에 3px(2000px 그림 기준) 여유를 더한 값입니다.
+const GLOBE_X = 0.498, GLOBE_Y = 0.5065, GLOBE_D = 0.433;
 const TEXT_RIGHT = 0.35; // 배너 왼쪽 글씨가 끝나는 곳. 이보다 왼쪽의 흰 글씨는 지구 위에 다시 그려 줍니다.
 
 const banner = document.querySelector('[data-globe]');
@@ -75,7 +76,7 @@ function startGlobe(banner) {
     const c = lettering.getContext('2d', { willReadFrequently: true });
     const size = box;
     const k = size / (GLOBE_D * w);
-    const left = (GLOBE_X - GLOBE_D / 2) * w, top = h / 2 - GLOBE_D * w / 2;
+    const left = (GLOBE_X - GLOBE_D / 2) * w, top = GLOBE_Y * h - GLOBE_D * w / 2;
     c.drawImage(picture, -left * k, -top * k, w * k, h * k);
     const text = Math.max(0, Math.min(size, Math.ceil((TEXT_RIGHT * w - left) * k)));
     if (!text) { c.clearRect(0, 0, size, size); return; }

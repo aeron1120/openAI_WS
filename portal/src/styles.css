@@ -122,8 +122,8 @@ small { color: var(--muted); }
 /* Hero */
 .banner { position: relative; margin: 0 0 24px; border-radius: 18px; overflow: hidden; background: #5b2fe0; aspect-ratio: 2000 / 770; animation: banner-in .9s cubic-bezier(.2, .7, .2, 1) both; }
 .banner img { display: block; width: 100%; height: 100%; object-fit: cover; }
-/* 돌아가는 지구(home.js): 그림 속 지구(가로 49.5%, 세로 50%, 지름 = 배너 너비의 42%)를 정확히 덮습니다. */
-.globe, .globe-text { position: absolute; left: 49.5%; top: 50%; width: 42.6%; aspect-ratio: 1; translate: -50% -50%; opacity: 0; transition: opacity .8s; }
+/* 돌아가는 지구(home.js): 그림 속 지구(가로 49.8%, 세로 50.65%, 지름 = 배너 너비의 43.3%)를 테두리까지 덮습니다. */
+.globe, .globe-text { position: absolute; left: 49.8%; top: 50.65%; width: 43.3%; aspect-ratio: 1; translate: -50% -50%; opacity: 0; transition: opacity .8s; }
 .globe { border-radius: 50%; touch-action: pan-y; cursor: grab; }
 .globe-text { pointer-events: none; }
 .banner.is-ready .globe, .banner.is-ready .globe-text { opacity: 1; }

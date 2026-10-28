@@ -143,7 +143,7 @@ portal/
 
 홈의 **다음 워크숍**은 진행 중이거나 날짜가 정해진 첫 회차를 달력과 지도로 보여줍니다. 지도는 회차의 `event.mapQuery`(예: `'서울대학교 56동'`)로 찾으니, Google 지도에서 맞는 건물이 나오는지 확인하고 적으세요. 값이 없으면 지도 없이 장소 글만 보입니다. 날짜가 정해진 회차마다 `/workshops/<번호>/event.ics` 캘린더 파일이 함께 만들어집니다.
 
-홈 배너의 지구는 배너 그림 속 지구 자리(가로 49.5%, 세로 50%, 지름 42.6%)를 덮어 그립니다. 배너 그림을 바꾸면 `src/home.js`와 `src/styles.css`의 `.globe` 위치를 새 그림에 맞추세요.
+홈 배너의 지구는 배너 그림 속 지구 자리(가로 49.8%, 세로 50.65%, 지름 43.3%)를 덮어 그립니다. 배너 그림을 바꾸면 `src/home.js`와 `src/styles.css`의 `.globe` 위치를 새 그림에 맞추세요.
 
 `public/images/examples/`의 화면은 2026-10-27에 실제 예제를 캡처한 것입니다. 예제가 바뀌면 `node portal/scripts/screenshot.mjs <주소> portal/public/images/examples/<파일>.png 1280,800`으로 다시 캡처합니다.
 
