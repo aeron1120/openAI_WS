@@ -364,36 +364,135 @@ small { color: var(--muted); }
 @media (max-width: 719px) { .help-card { width: auto; max-height: 62vh; } .help-keys { display: none; } }
 @media (prefers-reduced-motion: reduce) { .help-spot, .help-progress span { transition: none; } }
 
-/* 수업 듣기 (/learn/) */
-.learn-box { display: grid; gap: 12px; justify-items: start; }
+/* 학습실 (/learn/…, /admin/): 포털과 다른 차분한 배경 + 얇은 상단 바 + 넓은 본문 */
+body.study { background: #f3f5f8; }
+.study [hidden] { display: none !important; }
+.study-bar { position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--line); }
+.study-bar-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; max-width: 1320px; margin-inline: auto; padding: 0 20px; min-height: 60px; }
+.study-brand { display: flex; align-items: center; gap: 6px 16px; min-width: 0; }
+.study-back { display: inline-flex; align-items: center; min-height: 44px; color: var(--muted); font-size: .88rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.study-back:hover { color: var(--ink); }
+.study-name { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--ink); font-weight: 800; letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }
+.study-name img { width: 28px; height: 28px; border-radius: 8px; }
+.study-name:hover { color: var(--navy); }
+.study-nav { display: flex; gap: 4px; }
+.study-nav a { display: inline-flex; align-items: center; gap: 6px; min-height: 60px; padding: 0 14px; border-bottom: 3px solid transparent; color: var(--muted); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.study-nav a:hover { color: var(--ink); }
+.study-nav a[aria-current] { color: var(--navy); border-bottom-color: var(--navy); }
+.study-user { justify-self: end; min-width: 0; }
+.learn-user { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px 12px; }
+.learn-name { font-weight: 700; font-size: .92rem; }
+.learn-admin { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 999px; background: #f3ebfb; color: #5b2a7a; font-size: .82rem; font-weight: 700; text-decoration: none; }
+.learn-admin:hover, .learn-admin[aria-current] { background: #5b2a7a; color: #fff; }
+.study-user .btn { min-height: 38px; padding: 6px 14px; font-size: .88rem; }
+.study-user .learn-error { flex-basis: 100%; text-align: right; font-size: .84rem; }
+.study-main { max-width: 1320px; margin-inline: auto; padding: 28px 20px 56px; }
+.study-main:has(> .course-list), .study-main:has(> [data-questions]) { max-width: 1000px; }
+.study-head { margin-bottom: 16px; }
+.study-head h1, .course-head h1 { font-size: clamp(1.6rem, 4.6vw, 2rem); }
+
+/* 로그인 카드: 로그인 전에는 이것만 가운데에 보입니다. */
+.study-login { max-width: 520px; margin: 6vh auto 0; padding: 32px 28px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: 0 12px 36px rgba(17, 26, 46, .06); }
+.study-head + .study-login { margin-top: 24px; }
+.study-login h1 { font-size: 1.6rem; }
+.study-login .lead { font-size: .98rem; }
+.study-login > .hint { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: .86rem; }
+.learn-box { display: grid; gap: 12px; justify-items: start; margin-top: 18px; }
 .learn-status { margin: 0; font-weight: 600; }
 .learn-error { margin: 0; color: #b42318; font-weight: 600; }
-.learn-user { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-.learn-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin: 20px 0; }
-.learn-links { grid-column: 1 / -1; margin: 0; }
 .ask { margin-top: 12px; }
-.learn-card { display: grid; gap: 6px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--ink); text-decoration: none; }
-a.learn-card:hover { border-color: var(--c); }
-.learn-card.is-locked { opacity: .7; }
-.learn-progress { color: var(--muted); font-size: .92rem; }
-.lesson { margin-top: 20px; }
-.lesson-dots { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0 0 16px; }
-.lesson-dots button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 700; cursor: pointer; }
-.lesson-dots button[aria-current="step"] { border-color: var(--c); box-shadow: 0 0 0 2px var(--c); }
-.lesson-dots button.is-done { background: var(--c); border-color: var(--c); color: #fff; }
-.lesson-grid { display: grid; gap: 24px; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
-.lesson-slides { position: sticky; top: 16px; }
-.slides-frame { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #0b1020; }
+.study .empty { background: var(--surface); }
+
+/* 진도 막대 */
+.progress { display: flex; align-items: center; gap: 12px; }
+.meter { flex: 1; min-width: 60px; height: 8px; border-radius: 999px; background: #e4e8ef; overflow: hidden; }
+.meter span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--c); transition: width .3s; }
+.progress-text { margin: 0; color: var(--muted); font-size: .88rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* 수업 목록 */
+.course-list { display: grid; gap: 16px; }
+.course-head { padding: 4px 0 8px; }
+.course-head .track-kicker { margin-bottom: 4px; }
+.progress-overall { max-width: 520px; margin-top: 12px; }
+.progress-overall .progress-text { color: var(--ink); }
+.course { padding: 22px 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: inset 5px 0 0 var(--c); }
+.course-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.course-name { min-width: 0; }
+.course-name .track-kicker { margin: 0 0 2px; color: var(--c-btn); }
+.course-name h2 { margin: 0; font-size: 1.25rem; }
+.course-name h2 a { color: var(--ink); text-decoration: none; }
+.course-name h2 a:hover { color: var(--c-btn); text-decoration: underline; }
+.course .progress { margin: 16px 0 8px; }
+.course-steps { list-style: none; margin: 0; padding: 0; }
+.course-steps li + li { border-top: 1px solid var(--line); }
+.course-step { display: grid; grid-template-columns: 24px 2.2em minmax(0, 1fr); align-items: center; gap: 8px; min-height: 50px; padding: 8px 8px; border-radius: 10px; color: var(--ink); text-decoration: none; }
+.course-step:hover { background: #f5f7fa; color: var(--ink); }
+.course-step:hover .step-title { text-decoration: underline; }
+.step-mark { color: #a3abba; font-weight: 800; text-align: center; }
+.is-done .step-mark { color: var(--c); }
+.is-current .step-mark { color: var(--c-btn); }
+.step-no { color: var(--muted); font-size: .84rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.course-step.is-done .step-title { color: var(--muted); }
+.course.is-locked { background: #fafbfc; box-shadow: inset 5px 0 0 #c7cdd8; }
+.course.is-locked h2 { color: #3b4558; }
+.course-lock { margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--c-soft); color: var(--c-btn); font-size: .9rem; font-weight: 700; }
+
+/* 수업 화면: 머리말 + 왼쪽 단계 목록 + 오른쪽 슬라이드·단계 */
+.lesson-head { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(200px, 300px); align-items: center; gap: 8px 24px; margin-bottom: 20px; padding: 14px 22px; border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 16px; background: var(--surface); }
+.lesson-back { display: inline-flex; align-items: center; min-height: 44px; color: var(--muted); font-weight: 700; font-size: .92rem; text-decoration: none; white-space: nowrap; }
+.lesson-back:hover { color: var(--ink); }
+.lesson-name { min-width: 0; }
+.lesson-name .track-kicker { margin: 0; color: var(--c-btn); }
+.lesson-name h1 { margin: 0; font-size: 1.35rem; }
+.lesson-body { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 24px; align-items: start; }
+.lesson-nav { position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.lesson-toc > summary { list-style: none; display: flex; align-items: center; min-height: 48px; padding: 0 6px; font-weight: 700; cursor: pointer; }
+.lesson-toc > summary::-webkit-details-marker { display: none; }
+.lesson-toc > summary::after { content: "⌄"; margin-left: auto; font-size: 1.2rem; color: var(--muted); line-height: 1; transition: transform .15s; }
+.lesson-toc[open] > summary::after { transform: rotate(180deg); }
+.toc { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.toc-step { display: grid; grid-template-columns: 22px 2em minmax(0, 1fr); align-items: center; gap: 6px; width: 100%; min-height: 48px; padding: 8px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--ink); font: inherit; font-size: .93rem; line-height: 1.4; text-align: left; cursor: pointer; }
+.toc-step:hover { background: #f4f6fa; }
+.toc-step.is-current { background: var(--c-soft); color: var(--c-btn); font-weight: 700; }
+.lesson-main { display: grid; gap: 20px; min-width: 0; }
+.lesson-slides .hint { margin: 8px 0 0; }
+.slides-frame { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #0b1020; box-shadow: 0 10px 30px rgba(17, 26, 46, .12); }
 .slides-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.lesson-steps { min-width: 0; padding: 24px 28px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.lesson-step > .track-kicker { color: var(--c-btn); }
 .lesson-step h2 { margin: 4px 0 12px; }
 .lesson-step h2:focus { outline: none; }
 .lesson-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
 .lesson-status { margin: 8px 0 0; color: #b42318; font-weight: 600; }
 .lesson-status:empty { display: none; }
-@media (max-width: 960px) {
-  .lesson-grid { grid-template-columns: 1fr; }
-  .lesson-slides { position: static; }
+@media (min-width: 901px) {
+  .lesson-toc > summary { display: none; }
 }
+@media (max-width: 900px) {
+  .lesson-head { grid-template-columns: minmax(0, 1fr); padding: 10px 16px 14px; }
+  .lesson-back { min-height: 36px; }
+  .lesson-body { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .lesson-nav { position: static; max-height: none; padding: 2px 10px; }
+  .lesson-toc[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+  .lesson-toc[open] { padding-bottom: 8px; }
+  .lesson-main { gap: 14px; }
+  .lesson-steps { padding: 18px 16px; }
+}
+@media (max-width: 719px) {
+  .study-bar-inner { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand user" "nav nav"; gap: 0 12px; padding: 0 16px; min-height: 0; }
+  .study-brand { grid-area: brand; gap: 10px; }
+  .study-user { grid-area: user; }
+  .study-nav { grid-area: nav; margin: 0 -8px; }
+  .study-nav a { min-height: 44px; padding: 0 10px; }
+  .study-main { padding: 18px 16px 40px; }
+  .study-login { margin-top: 3vh; padding: 24px 20px; }
+  .course { padding: 18px 16px; }
+  .course-continue { width: 100%; }
+}
+@media (max-width: 480px) {
+  .learn-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+@media (prefers-reduced-motion: reduce) { .meter span { transition: none; } }
 
 /* 질문 칸·내 질문 대화 (questions.js) */
 .ask:not([hidden]) { padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fafbfd; }

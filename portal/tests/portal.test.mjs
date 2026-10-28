@@ -390,7 +390,8 @@ test('question and operator pages load their scripts in order and the lesson has
   assert.equal(steps[0].number, 1);
   const lesson = await read('/learn/01/');
   assert.equal((lesson.match(/data-ask-open/g) ?? []).length, defaultContent.workshops[0].missions.length);
-  assert.match(await read('/learn/'), /<p class="learn-links"><a href="\/learn\/questions\/">내 질문<\/a> <span data-answer-count><\/span><\/p>/);
+  // 내 질문 링크와 답변 수 칸은 학습실 상단 바에 있습니다.
+  for (const page of ['/learn/', '/learn/01/', '/learn/questions/', '/admin/']) assert.match(await read(page), /<a href="\/learn\/questions\/"[^>]*>내 질문 <span data-answer-count><\/span><\/a>/);
   assert.doesNotMatch(await read('/'), /href="\/admin\//);
   for (const name of ['questions.js', 'admin.js']) assert.ok(await exists(path.join(outDir, name)));
   const routes = JSON.parse(await readFile(path.join(outDir, '_routes.json'), 'utf8'));
@@ -414,4 +415,56 @@ test('lesson ask buttons point at their ask boxes', async t => {
     const target = /aria-controls="([^"]+)"/.exec(tag)[1];
     assert.match(lesson, new RegExp(`<div class="ask" data-ask id="${target}" hidden>`));
   }
+});
+
+test('learn pages use the study layout without the portal menu, other pages keep it', async t => {
+  const { read } = await build(t);
+  for (const page of ['/learn/', '/learn/01/', '/learn/questions/', '/admin/']) {
+    const html = await read(page);
+    assert.match(html, /<body class="study">/, `${page} uses the study layout`);
+    assert.doesNotMatch(html, /class="sidebar"|class="topbar"|class="mobile-menu"|class="site-footer"/, `${page} has no portal menu`);
+    const bar = html.match(/<header class="study-bar">[\s\S]*?<\/header>/)[0];
+    for (const href of ['/', '/learn/', '/learn/questions/']) assert.match(bar, new RegExp(`href="${href}"`), `${page} top bar links ${href}`);
+    assert.match(bar, /data-learn-user/);
+    // 로그인 카드 안의 확인 칸은 그대로, 화면 내용은 로그인 전까지 숨김
+    assert.match(html, /<section class="study-login" data-learn-login>[\s\S]*?data-learn-gate/);
+    assert.match(html, /data-learn-content[^>]*hidden/);
+  }
+  assert.match(await read('/learn/'), /<nav class="study-nav"[^>]*><a href="\/learn\/" aria-current="page">수업<\/a>/);
+  assert.match(await read('/learn/questions/'), /<a href="\/learn\/questions\/" aria-current="page">/);
+  for (const page of ['/', '/workshops/01/', '/about/']) {
+    const html = await read(page);
+    assert.match(html, /<aside class="sidebar">/);
+    assert.doesNotMatch(html, /class="study/);
+  }
+});
+
+test('the course list links every step of an open workshop and shows locked ones without steps', async t => {
+  const { read } = await build(t);
+  const html = await read('/learn/');
+  const ws1 = defaultContent.workshops[0];
+  const panel = html.match(/<section class="course c-green" data-course="1"[\s\S]*?<\/section>/)[0];
+  for (const m of ws1.missions) assert.match(panel, new RegExp(`<a class="course-step" href="/learn/01/#step-${m.id}" data-step-link="${m.id}">`));
+  assert.match(panel, new RegExp(`data-continue href="/learn/01/#step-${ws1.missions[0].id}"`));
+  assert.match(panel, new RegExp(`0/${ws1.missions.length} 완료`));
+  assert.match(html, /data-progress-text>0 \/ 4 단계</);
+  const locked = html.match(/<section class="course is-locked c-blue"[\s\S]*?<\/section>/)[0];
+  assert.match(locked, /🔒<\/span> 11\/2 \(월\) 18:00에 열려요 · 4단계/);
+  assert.doesNotMatch(locked, /href=|data-step-link/);
+  assert.doesNotMatch(html, /class="learn-links"/);
+});
+
+test('the lesson page has a step list in a collapsible sidebar and a progress header', async t => {
+  const { read } = await build(t);
+  const html = await read('/learn/01/');
+  const ws1 = defaultContent.workshops[0];
+  const nav = html.match(/<nav class="lesson-nav"[\s\S]*?<\/nav>/)[0];
+  assert.match(nav, /<details class="lesson-toc" data-lesson-toc open>/);
+  assert.ok(nav.includes(`<summary>단계 목록 (<span data-toc-count>0/${ws1.missions.length}</span>)</summary>`));
+  const gotos = [...nav.matchAll(/<button type="button" class="toc-step" data-goto="([^"]+)">/g)].map(m => m[1]);
+  assert.deepEqual(gotos, ws1.missions.map(m => m.id));
+  assert.equal((html.match(/data-goto=/g) ?? []).length, ws1.missions.length);
+  assert.match(html, /<a class="lesson-back" href="\/learn\/">← 수업 목록<\/a>/);
+  assert.match(html, /<header class="lesson-head">[\s\S]*?data-progress-text>0\/4 완료</);
+  assert.doesNotMatch(html, /lesson-dots/);
 });

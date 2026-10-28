@@ -120,7 +120,7 @@ portal/
 │  └─ program.mjs     ← Studio Session, Showcase, 프로젝트, 협력 방식
 ├─ src/
 │  ├─ pages.mjs       ← 페이지별 화면 구성
-│  ├─ layout.mjs      ← 공통 머리말·메뉴·바닥글·공유 메타데이터
+│  ├─ layout.mjs      ← 공통 머리말·메뉴·바닥글·공유 메타데이터, 학습실 상단 바(learnLayout)
 │  ├─ render.mjs      ← 상태 표시, 링크 검사, 요청문 복사 블록 등 공통 조각
 │  ├─ schedule.mjs    ← 시각에 따른 행사·자료 상태 계산
 │  ├─ styles.css      ← 디자인
@@ -156,7 +156,9 @@ npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-stud
 
 ### 수업 화면 만들기·고치기
 
-- `/learn/`은 열린 수업 목록과 내 진도, `/learn/<회차>/`는 학생용 슬라이드와 단계를 나란히 보여줍니다. 둘 다 로그인을 확인한 뒤에 내용이 열립니다(`src/learn.js`).
+- `/learn/`·`/learn/<회차>/`·`/learn/questions/`·`/admin/`은 포털 메뉴 없이 **학습실 화면**(얇은 상단 바: ← 포털 · SNU 학습실 · 수업 · 내 질문 · 이름/로그아웃)을 씁니다. `scripts/build.mjs`의 경로에 `layout: 'learn'`을 붙이면 이 화면이 됩니다(`src/layout.mjs`의 `learnLayout`).
+- 로그인 전에는 가운데 로그인 카드만 보이고, 로그인을 확인하면(`src/learn.js`) 카드를 숨기고 내용을 엽니다.
+- `/learn/`은 회차별 진도 막대·단계 목록·"이어서 하기"(처음으로 안 끝낸 단계), `/learn/<회차>/`는 왼쪽 단계 목록과 오른쪽 슬라이드·지금 단계를 보여줍니다. 휴대폰(900px 이하)에서는 단계 목록이 슬라이드 위의 접는 칸이 됩니다.
 - 수업 화면은 **자료가 열렸고 학생용 슬라이드(`kind: 'slides'`)와 미션이 있는 회차**에만 만들어집니다. 공개 시각(`materialsOpenAt`) 전에는 페이지 자체가 없습니다.
 - 단계 내용은 `content/workshops.mjs`의 `missions`를 그대로 씁니다. 각 미션에 시작 슬라이드를 적습니다:
   - `slide`: 학생용 슬라이드 번호(1부터, 사람이 확인하는 용도)
@@ -169,7 +171,7 @@ npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-stud
 - 수업 화면의 단계마다 **막혔어요 · 질문하기**가 있습니다. 진행 방식(예제 그대로/내 아이디어로), 질문 내용(2000자), 오류 문구, 오류 화면 이미지를 보낼 수 있습니다.
 - 이미지는 3장까지, 장당 5MB, PNG·JPEG·WebP만 됩니다. 파일 선택, 끌어다 놓기, 캡처 후 붙여넣기(Ctrl+V)를 지원합니다. 이미지는 Supabase의 비공개 공간에 저장되고, 질문한 학생과 운영진에게만 10분짜리 주소로 보입니다.
 - `/learn/questions/`(내 질문): 내 질문 목록과 대화, 추가 질문, "해결됐어요". 검색에는 나오지 않습니다(`sitemap.xml` 제외, `robots.txt` Disallow).
-- `/admin/`(운영진): 수업 서버의 `OPERATOR_EMAILS`에 있는 계정만 쓸 수 있습니다. 질문 목록(답변 대기 먼저 보기, 회차 거르기), 답변(4000자, 이미지 가능), 상태 바꾸기, 단계별 완료 학생 수. 메뉴에는 없고, 새 질문 알림 메일의 링크(`/admin/?q=<질문 id>`)로 들어옵니다.
+- `/admin/`(운영진): 수업 서버의 `OPERATOR_EMAILS`에 있는 계정만 쓸 수 있습니다. 질문 목록(답변 대기 먼저 보기, 회차 거르기), 답변(4000자, 이미지 가능), 상태 바꾸기, 단계별 완료 학생 수. 운영진 계정으로 로그인하면 학습실 상단 바에 '운영진' 링크가 보이고, 새 질문 알림 메일의 링크(`/admin/?q=<질문 id>`)로도 들어옵니다.
 - 화면 스크립트: `src/learn.js`(로그인·공통 기능 `window.Learn`·수업 목록·수업 화면), `src/questions.js`(질문 칸·대화·이미지 올리기, 학생·운영진 공용), `src/admin.js`(운영진 화면). 페이지마다 필요한 것만 순서대로 불러옵니다(`scripts/build.mjs`의 `script`).
 - 새 질문 메일은 수업 서버에 `RESEND_API_KEY`와 `NOTIFY_EMAIL`이 있을 때만 갑니다. 없어도 질문은 저장되고 `/admin/`에서 볼 수 있습니다.
 

@@ -1,5 +1,6 @@
-// 수업 듣기(/learn/…)·내 질문·운영진 화면의 공통 스크립트: 로그인 확인 → 화면 열기.
-// 수업 목록은 진도·답변 수를, 수업 화면은 단계 이동·슬라이드 맞추기·완료 표시를 여기서 맡습니다.
+// 학습실(/learn/…)·내 질문·운영진 화면의 공통 스크립트: 로그인 확인 → 화면 열기.
+// 로그인하면 로그인 카드(data-learn-login)를 숨기고 상단 바 사용자 칸(data-learn-user)과 답변 수를 채웁니다.
+// 수업 목록은 진도 막대·이어서 하기를, 수업 화면은 단계 목록·단계 이동·슬라이드 맞추기·완료 표시를 여기서 맡습니다.
 // 질문 칸·대화(questions.js)와 운영진 화면(admin.js)은 window.Learn을 써서 이 위에 얹힙니다.
 // 수업 서버는 Render 무료 요금제라 잠들어 있을 수 있어요. 응답이 없으면 최대 1분 동안 5초마다 다시 시도합니다.
 (() => {
@@ -93,6 +94,9 @@
     showGate(...nodes);
   }
 
+  const userSlot = document.querySelector('[data-learn-user]');
+  const loginCard = gate.closest('[data-learn-login]');
+
   function signedIn(user) {
     Learn.user = user;
     restoreSearch();
@@ -101,6 +105,7 @@
     const bar = el('div', 'learn-user');
     const logout = button('로그아웃', 'btn btn-ghost', async () => {
       logout.disabled = true;
+      bar.querySelector('.learn-error')?.remove();
       try {
         const { response } = await api('/api/session', { method: 'DELETE' });
         if (!response.ok) throw new Error();
@@ -110,10 +115,25 @@
         bar.append(el('span', 'learn-error', '로그아웃하지 못했어요. 다시 시도해 주세요.'));
       }
     });
-    bar.append(el('span', 'learn-status', `${name}님`), el('span', 'hint', user.email));
-    if (user.operator) bar.append(el('span', 'hint', '운영진'));
+    const who = el('span', 'learn-name', `${name}님`);
+    who.title = user.email;
+    bar.append(who);
+    if (user.operator) {
+      const admin = el('a', 'learn-admin', '운영진');
+      admin.href = '/admin/';
+      if (location.pathname === '/admin/') admin.setAttribute('aria-current', 'page');
+      bar.append(admin);
+    }
     bar.append(logout);
-    showGate(bar);
+    // 상단 바가 있으면 거기에 이름·로그아웃을 두고 로그인 카드를 숨깁니다.
+    if (userSlot) {
+      userSlot.replaceChildren(bar);
+      (loginCard ?? gate).hidden = true;
+    } else {
+      bar.insertBefore(el('span', 'hint', user.email), logout);
+      showGate(bar);
+    }
+    showAnswerCount();
     if (!content) return;
     content.hidden = false;
     // 화면 종류는 data-lesson(수업) / data-questions(내 질문) / data-admin(운영진) / 없음(수업 목록)으로 구분합니다.
@@ -156,28 +176,74 @@
     return done;
   }
 
-  // 수업 목록: 회차별 진도와 "답변 N개"(운영진이 답한 내 질문 수). 못 불러와도 목록은 그대로 씁니다.
-  function initList(content) {
-    loadProgress().then(done => {
-      for (const node of content.querySelectorAll('[data-progress-for]')) {
-        const count = done.get(Number(node.dataset.progressFor))?.size ?? 0;
-        node.textContent = `${count} / ${node.dataset.total} 단계 완료`;
-      }
-    }).catch(() => {});
-    const answers = content.querySelector('[data-answer-count]');
-    if (!answers) return;
+  // 상단 바 "내 질문" 옆 답변 수(운영진이 답한 내 질문 수). 못 불러오면 비워 둡니다.
+  function showAnswerCount() {
+    const slot = document.querySelector('[data-answer-count]');
+    if (!slot) return;
     call('/api/questions').then(data => {
       const count = (data.questions ?? []).filter(q => q.status === 'answered').length;
-      answers.textContent = count ? `답변 ${count}개` : '';
-      answers.className = count ? 'badge badge-open' : '';
+      slot.textContent = count ? `답변 ${count}개` : '';
+      slot.className = count ? 'badge badge-open' : '';
+    }).catch(() => {});
+  }
+
+  // 진도 막대(data-progress) 하나를 채웁니다.
+  function setProgress(box, count, total, text) {
+    if (!box) return;
+    box.querySelector('[data-meter-fill]').style.width = `${total ? Math.round((count / total) * 100) : 0}%`;
+    box.querySelector('[data-progress-text]').textContent = text;
+  }
+
+  // 단계 줄 표시: ✔ 완료 · ▶ 지금 보는 단계 · ○ 아직
+  function markStep(node, finished, current = false) {
+    node.classList.toggle('is-done', finished);
+    node.classList.toggle('is-current', current);
+    node.querySelector('.step-mark').textContent = current ? '▶' : finished ? '✔' : '○';
+    node.querySelector('[data-step-state]').textContent = finished ? ' (완료)' : '';
+  }
+
+  // 수업 목록: 회차별 진도 막대·단계 표시와 "이어서 하기"(처음으로 안 끝낸 단계). 못 불러와도 목록은 그대로 씁니다.
+  function initList(content) {
+    loadProgress().then(done => {
+      let all = 0;
+      let allDone = 0;
+      for (const course of content.querySelectorAll('[data-course]')) {
+        const finished = done.get(Number(course.dataset.course)) ?? new Set();
+        const links = [...course.querySelectorAll('[data-step-link]')];
+        let next = null;
+        let count = 0;
+        for (const link of links) {
+          const ok = finished.has(link.dataset.stepLink);
+          markStep(link, ok);
+          if (ok) count++;
+          else next ??= link;
+        }
+        setProgress(course.querySelector('[data-progress]'), count, links.length, `${count}/${links.length} 완료`);
+        const resume = course.querySelector('[data-continue]');
+        if (resume && links.length) {
+          resume.href = (next ?? links[0]).getAttribute('href');
+          resume.textContent = !count ? '시작하기 →' : next ? '이어서 하기 →' : '처음부터 다시 보기 →';
+        }
+        all += links.length;
+        allDone += count;
+      }
+      setProgress(content.querySelector('.course-head [data-progress]'), allDone, all, `${allDone} / ${all} 단계`);
     }).catch(() => {});
   }
 
   function initLesson(content) {
     const workshop = Number(content.dataset.lesson);
     const steps = [...content.querySelectorAll('[data-step]')];
-    const dots = new Map([...content.querySelectorAll('[data-goto]')].map(dot => [dot.dataset.goto, dot]));
+    const items = new Map([...content.querySelectorAll('[data-goto]')].map(item => [item.dataset.goto, item]));
     const frame = content.querySelector('[data-slides]');
+    const toc = content.querySelector('[data-lesson-toc]');
+    const tocCount = content.querySelector('[data-toc-count]');
+    const meter = content.querySelector('.lesson-head [data-progress]');
+    // 휴대폰(900px 이하)에서는 단계 목록을 접어 두고, 넓은 화면에서는 늘 펼쳐 둡니다(넓은 화면은 접는 줄이 숨겨져 있어요).
+    const phone = window.matchMedia('(max-width: 900px)');
+    const fitToc = () => { if (toc) toc.open = !phone.matches; };
+    fitToc();
+    phone.addEventListener('change', fitToc);
     const done = new Set();
     let current = 0;
 
@@ -190,13 +256,19 @@
         const id = step.dataset.step;
         const finished = done.has(id);
         step.hidden = i !== current;
-        dots.get(id).classList.toggle('is-done', finished);
-        if (i === current) dots.get(id).setAttribute('aria-current', 'step');
-        else dots.get(id).removeAttribute('aria-current');
+        const item = items.get(id);
+        if (item) {
+          markStep(item, finished, i === current);
+          if (i === current) item.setAttribute('aria-current', 'step');
+          else item.removeAttribute('aria-current');
+        }
         const toggle = step.querySelector('[data-done]');
         toggle.textContent = finished ? '완료함 · 취소하기' : '이 단계 완료';
         toggle.setAttribute('aria-pressed', String(finished));
       });
+      const count = steps.filter(step => done.has(step.dataset.step)).length;
+      setProgress(meter, count, steps.length, `${count}/${steps.length} 완료`);
+      if (tocCount) tocCount.textContent = `${count}/${steps.length}`;
     }
     function go(index, { focus = true } = {}) {
       current = Math.max(0, Math.min(steps.length - 1, index));
@@ -210,7 +282,11 @@
     content.addEventListener('click', async event => {
       const target = event.target.closest('[data-goto], [data-prev], [data-next], [data-done], [data-ask-open]');
       if (!target) return;
-      if (target.dataset.goto) return go(steps.findIndex(step => step.dataset.step === target.dataset.goto));
+      if (target.dataset.goto) {
+        // 휴대폰에서는 단계를 고르면 목록을 접어 슬라이드·내용이 바로 보이게 합니다.
+        if (toc && phone.matches) toc.open = false;
+        return go(steps.findIndex(step => step.dataset.step === target.dataset.goto));
+      }
       if (target.hasAttribute('data-prev')) return go(current - 1);
       if (target.hasAttribute('data-next')) return go(current + 1);
       if (target.hasAttribute('data-ask-open')) {
