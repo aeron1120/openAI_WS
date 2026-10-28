@@ -561,6 +561,21 @@ test('the lesson page has a finish screen that opens once every step is done', a
   assert.match(script, /function showFinish\(/);
 });
 
+test('only the last step has a finish button; earlier steps save progress with 다음', async t => {
+  const { read } = await build(t);
+  const html = await read('/learn/01/');
+  const ws1 = defaultContent.workshops[0];
+  const sections = [...html.matchAll(/<section class="lesson-step"[\s\S]*?<\/section>/g)].map(m => m[0]);
+  assert.equal(sections.length, ws1.missions.length);
+  sections.forEach((section, i) => {
+    const last = i === sections.length - 1;
+    assert.equal(/data-done/.test(section.replace(/data-done-status/g, '')), last);
+    assert.equal(/data-next/.test(section), !last);
+  });
+  assert.match(sections.at(-1), /<button type="button" class="btn btn-fill" data-done aria-pressed="false">실습 완료<\/button>/);
+  assert.match(sections[0], /<button type="button" class="btn btn-fill" data-next>다음 →<\/button>/);
+});
+
 test('the signed-in preview only turns on at localhost', async () => {
   const source = await readFile(new URL('../src/learn.js', import.meta.url), 'utf8');
   assert.match(source, /const preview = location\.hostname === 'localhost' && params\.has\('preview'\);/);

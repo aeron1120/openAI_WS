@@ -105,15 +105,18 @@ ${loginCard()}
 <div class="admin" data-learn-content data-admin hidden data-steps="${stepsOf(content)}"></div>`;
 }
 
+// 중간 단계는 "다음 →"이 그 단계를 완료로 저장하고 넘어갑니다. 완료 버튼은 마지막 단계에만 있습니다.
 function lessonStep(m, i, total) {
+  const last = i === total - 1;
   return h`<section class="lesson-step" id="step-${m.id}" data-step="${m.id}" data-slide-id="${m.slideId}" ${i ? raw('hidden') : ''}>
   <p class="track-kicker">${i + 1} / ${total} 단계</p>
   <h2 tabindex="-1">${m.title}</h2>
   ${missionBody(m)}
   <div class="lesson-actions">
     <button type="button" class="btn btn-ghost" data-prev ${i === 0 ? raw('disabled') : ''}>← 이전</button>
-    <button type="button" class="btn btn-fill" data-done aria-pressed="false">이 단계 완료</button>
-    <button type="button" class="btn btn-ghost" data-next ${i === total - 1 ? raw('disabled') : ''}>다음 →</button>
+    ${last
+      ? h`<button type="button" class="btn btn-fill" data-done aria-pressed="false">실습 완료</button>`
+      : h`<button type="button" class="btn btn-fill" data-next>다음 →</button>`}
     <button type="button" class="btn btn-ghost" data-ask-open aria-expanded="false" aria-controls="ask-${m.id}">막혔어요 · 질문하기</button>
   </div>
   <div class="ask" data-ask id="ask-${m.id}" hidden></div>

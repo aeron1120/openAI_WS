@@ -275,7 +275,7 @@
       if (token !== progressToken) return; // 새로고침을 또 눌렀으면 늦게 온 결과는 버립니다.
       const counts = new Map((data.progress ?? []).map(row => [`${row.workshop}\n${row.step}`, row.count]));
       const nodes = [el('div', 'admin-progress-head')];
-      nodes[0].append(el('p', 'hint', '단계마다 "이 단계 완료"를 누른 학생 수예요.'), button('새로고침', 'btn btn-ghost', loadProgress));
+      nodes[0].append(el('p', 'hint', '단계마다 끝낸 학생 수예요. 중간 단계는 "다음 →", 마지막 단계는 "실습 완료"를 누르면 끝낸 것으로 셉니다.'), button('새로고침', 'btn btn-ghost', loadProgress));
       if (!workshops.length) nodes.push(el('p', 'empty', '지금 열린 회차가 없어요.'));
       for (const w of workshops) {
         const table = el('table', 'admin-table');

@@ -282,11 +282,12 @@
           if (here) item.setAttribute('aria-current', 'step');
           else item.removeAttribute('aria-current');
         }
+        // 완료 버튼은 마지막 단계에만 있습니다.
         const toggle = step.querySelector('[data-done]');
-        toggle.textContent = ok ? '완료함 · 취소하기' : '이 단계 완료';
-        toggle.setAttribute('aria-pressed', String(ok));
-        // 마지막 단계의 "다음 →"은 다 끝냈을 때 완료 화면으로 갑니다.
-        if (i === steps.length - 1) step.querySelector('[data-next]').disabled = !allDone();
+        if (toggle) {
+          toggle.textContent = ok ? '완료함 · 취소하기' : '실습 완료';
+          toggle.setAttribute('aria-pressed', String(ok));
+        }
       });
       const count = steps.filter(step => done.has(step.dataset.step)).length;
       setProgress(meter, count, steps.length, `${count}/${steps.length} 완료`);
@@ -333,18 +334,20 @@
       if (target.hasAttribute('data-finish-open')) return showFinish();
       if (target.hasAttribute('data-restart')) return go(0);
       if (target.hasAttribute('data-prev')) return go(current - 1);
-      if (target.hasAttribute('data-next')) return current === steps.length - 1 ? showFinish() : go(current + 1);
       if (target.hasAttribute('data-ask-open')) {
         // 질문 칸은 questions.js가 만듭니다.
         const section = target.closest('[data-step]');
         return Learn.openAsk?.(section, { workshop, step: section.dataset.step });
       }
-      // 완료 표시: 서버에 저장된 뒤에만 화면을 바꿉니다.
+      // 진도 저장: 중간 단계의 "다음 →"은 완료로 저장하고 넘어가고, 마지막 단계의 "실습 완료"는 완료·취소를 오갑니다.
+      // 서버에 저장된 뒤에만 화면을 바꿉니다.
       const index = current;
       const step = steps[index];
       const id = step.dataset.step;
       const status = step.querySelector('[data-done-status]');
-      const marking = !done.has(id);
+      const next = target.hasAttribute('data-next');
+      if (next && done.has(id)) return go(index + 1);
+      const marking = next || !done.has(id);
       target.disabled = true;
       try {
         const { response } = await api(`/api/progress/${workshop}/${id}`, { method: marking ? 'PUT' : 'DELETE' });
@@ -353,10 +356,10 @@
         status.textContent = '';
         if (marking) done.add(id); else done.delete(id);
         // 저장하는 동안 다른 단계로 옮겼다면 그 자리에 둡니다.
-        // 다 끝냈으면 완료 화면, 아니면 다음 단계(마지막 단계였다면 아직 안 끝낸 첫 단계)로 갑니다.
+        // 중간 단계는 다음 단계로, 마지막 단계는 다 끝냈으면 완료 화면, 아니면 아직 안 끝낸 첫 단계로 갑니다.
         if (!marking || current !== index) render();
+        else if (next) go(index + 1);
         else if (allDone()) showFinish();
-        else if (index < steps.length - 1) go(index + 1);
         else go(steps.findIndex(s => !done.has(s.dataset.step)));
       } catch (error) {
         status.textContent = error.message || '저장하지 못했어요. 잠시 후 다시 눌러 주세요.';
