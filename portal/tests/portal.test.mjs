@@ -268,8 +268,10 @@ test('hints render one details per hint before the result box, with the last of 
   const content = clone(defaultContent);
   const m = content.workshops[0].missions[1];
   m.hints = ['첫 힌트: [안내](https://github.com/example/hint) 보기', '둘째 힌트\n둘째 줄', '처음부터 차례로 따라 해요.'];
+  delete m.hintSlides; // 이 검사는 힌트 본문 렌더링만 확인. 과제 연결은 별도로 검사합니다.
   const option = content.workshops[0].missions.find(x => x.options).options[0];
   option.hints = ['선택지 힌트'];
+  delete option.hintSlides;
   const { read } = await build(t, content);
   for (const page of ['/workshops/01/', '/learn/01/']) {
     const html = await read(page);
@@ -432,7 +434,7 @@ test('each open workshop gets a lesson page with the student slides and every st
   assert.match(html, /<script src="\/learn\.js\?v=/);
   assert.match(await read('/learn/'), /href="\/learn\/02\/"/);
   const ws1 = await read('/learn/01/');
-  assert.match(ws1, /<details class="option" data-slide-id="h2ea000745df279bf_2_267">/);
+  assert.match(ws1, /<details class="option" data-slide-id="ws1_task_20261029_login_1" data-practice-slides=/);
 });
 
 test('a lesson page does not exist before its workshop opens', async t => {

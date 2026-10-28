@@ -1,3 +1,4 @@
+import { ws1Practice } from './practice-pages.mjs';
 // 워크숍 회차별 콘텐츠. 상태 값의 의미는 portal/README.md의 '상태 값' 표를 보세요.
 // - event.status: 'done'(진행 완료) | 'scheduled'(일정 확정) | 'tbd'·'planning'(준비 중)
 //   start·end가 있으면 시각에 맞춰 자동으로 바뀝니다: 끝난 뒤 '진행 완료'.
@@ -13,6 +14,15 @@
 const repo = 'https://github.com/aeron1120/openAI_WS';
 const file = path => `${repo}/blob/main/${path}`;
 const folder = path => `${repo}/tree/main/${path}`;
+
+
+// 과제 목록을 넘겨 주면 뷰어가 이 페이지 안에서만 이동합니다.
+const practice = (...keys) => ({
+  slide: ws1Practice[keys[0]].number,
+  slideId: ws1Practice[keys[0]].id,
+  practiceSlides: keys.map(key => ws1Practice[key]),
+  hintSlides: keys.map(key => ws1Practice[key].id)
+});
 
 export const workshops = [
   {
@@ -65,27 +75,22 @@ export const workshops = [
     missions: [
       {
         id: 'open-starter',
-        slide: 1, slideId: 'h2ea000745df279bf_2_24',
+        ...practice('open_1', 'open_2'),
+        hintSlides: [ws1Practice.open_1.id, ws1Practice.open_2.id, ws1Practice.open_2.id],
         title: '기초 틀 받고 화면 열기',
         todo: `[GitHub 저장소](${repo})에서 Code → Download ZIP을 누르고 압축을 모두 풉니다. starter 폴더 안의 index.html을 브라우저로 엽니다.`,
         expected: '“이곳에 나의 아이디어를 담아보세요.” 제목과 로그인·지도·날씨·나만의 기능 박스가 보여요. 설치와 API 키는 아직 필요 없어요.',
         verify: ['박스마다 “아직 연결 전” 표시가 보인다.', '“Codex에 이렇게 요청해보세요”를 펼치면 요청문이 나온다.'],
         stuck: ['ZIP 파일 안에서 바로 열면 스타일이 빠질 수 있어요. 압축을 모두 푼 뒤 다시 여세요.', '글자만 보이면 코드 편집기가 아니라 브라우저로 열었는지 확인하세요.'],
         hints: [
-          '초록색 Code 버튼은 저장소 첫 화면의 파일 목록 바로 위, 오른쪽에 있어요. GitHub에 로그인하지 않아도 받을 수 있어요. 압축을 풀면 보통 openAI_WS-main 폴더가 생기고, 그 안에 README.md·package.json·starter가 함께 있어요.',
-          '압축 풀기: Windows는 ZIP 파일을 오른쪽 클릭 → 모두 압축 풀기, Mac은 ZIP 파일을 더블클릭해요. 그다음 openAI_WS-main → starter → index.html을 더블클릭하면 기본 브라우저로 열려요. 메모장이나 코드 편집기가 열리면 index.html 파일을 Chrome 같은 브라우저 창으로 끌어다 놓으세요.',
-          `1. [GitHub 저장소](${repo})를 엽니다.
-2. 파일 목록 위 초록색 Code 버튼 → 맨 아래 Download ZIP을 누릅니다.
-3. 다운로드 폴더에서 openAI_WS-main.zip을 찾습니다.
-4. Windows는 오른쪽 클릭 → 모두 압축 풀기 → 압축 풀기를 누릅니다. Mac은 더블클릭하면 같은 이름의 폴더가 생겨요.
-5. 새로 생긴 openAI_WS-main 폴더(ZIP 파일이 아닌 폴더)를 열고 starter 폴더로 들어갑니다.
-6. index.html을 더블클릭합니다. 파일 확장자가 안 보이면 브라우저 아이콘이 붙은 index 파일을 고르세요.
-7. 브라우저 탭에 “이곳에 나의 아이디어를 담아보세요.”와 기능 박스 네 개가 보이면 성공이에요.`
-        ]
+  "GitHub 파일 목록 위의 초록색 Code 버튼에서 Download ZIP을 누릅니다. 로그인하지 않아도 받을 수 있어요.",
+  "ZIP 안에서 파일을 바로 열지 말고 먼저 압축을 모두 풉니다. openAI_WS-main → starter → index.html 순서로 열어요.",
+  "index.html이 글자로 보이면 우클릭 → 연결 프로그램에서 Chrome 또는 Edge를 고릅니다. 첫 화면과 기능 박스 네 개가 보이면 끝이에요."
+]
       },
       {
         id: 'run-local',
-        slide: 4, slideId: 'h2ea000745df279bf_2_62',
+        ...practice('local_1', 'local_2', 'local_3'),
         title: 'Codex에게 내 컴퓨터에서 실행해 달라고 하기',
         todo: `[Codex 데스크톱 또는 VS Code](${file('guides/START-HERE.md')})에서 압축을 푼 저장소 전체 폴더를 열고, 아래 요청문을 붙여 넣습니다.`,
         prompt: `이 저장소에서 Workshop 1 기초 틀을 실습하려고 해.
@@ -97,21 +102,15 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
         verify: ['브라우저에서 http://localhost:5173/starter/ 를 열면 1단계와 같은 화면이 보인다.', '서버를 끌 때는 서버가 실행 중인 터미널에서 Ctrl+C를 누른다.'],
         stuck: ['Windows에서 npm.ps1 실행이 막히면 같은 폴더에서 npm.cmd run dev를 사용하세요.', '“5173이 이미 사용 중”이면 먼저 켜 둔 실습 서버를 Ctrl+C로 끄세요. 모르는 프로그램은 끄지 말고 Codex에 다른 포트를 요청하세요.', 'package.json을 찾을 수 없다고 나오면 starter 안이 아니라 README.md가 있는 저장소 폴더를 열었는지 확인하세요.'],
         hints: [
-          `“저장소 전체 폴더”는 README.md·package.json·starter가 함께 보이는 openAI_WS-main 폴더예요. starter 폴더만 열면 Codex가 실행 방법을 찾지 못해요. 서버를 켜려면 [Node.js](https://nodejs.org/ko/download) 20 이상이 필요해요.`,
-          'Codex 데스크톱: 로그인 → 프로젝트 추가(앱 버전에 따라 폴더 열기·폴더 추가) → openAI_WS-main 선택 → 새 대화. VS Code: File → Open Folder → openAI_WS-main 선택 → 왼쪽 Extensions에서 OpenAI가 배포한 Codex 확장 설치·로그인 → Codex 아이콘 클릭. 아이콘이 안 보이면 명령 팔레트(Windows Ctrl+Shift+P, Mac ⌘+Shift+P)에서 Codex: Open Codex Sidebar를 실행해요.',
-          `1. [VS Code](https://code.visualstudio.com/)를 설치하고 엽니다.
-2. 메뉴 File → Open Folder에서 openAI_WS-main 폴더를 고릅니다. “이 폴더의 작성자를 신뢰하나요?” 창이 나오면 신뢰한다고 누릅니다.
-3. 왼쪽 막대의 Extensions 아이콘(Windows Ctrl+Shift+X, Mac ⌘+Shift+X)을 누르고 “Codex”를 검색해 OpenAI가 배포한 확장을 설치한 뒤 ChatGPT 계정으로 로그인합니다.
-4. Codex 창 입력칸에 이 단계의 요청문을 붙여 넣고 Enter를 누릅니다.
-5. Codex가 명령 실행 허락을 물으면 내용을 읽고 허용합니다.
-6. Node.js가 없다고 하면 [Node.js](https://nodejs.org/ko/download)에서 LTS를 설치하고 VS Code를 껐다 켠 뒤 다시 요청합니다.
-7. 브라우저 주소창에 http://localhost:5173/starter/ 를 입력합니다.
-8. 끝낼 때는 서버가 실행 중인 터미널을 클릭하고 Ctrl+C를 누릅니다. Mac도 Ctrl+C예요.`
-        ]
+  "Codex에서 여는 폴더는 starter의 상위 폴더인 openAI_WS-main입니다. README.md·package.json·starter가 함께 보여야 해요.",
+  "열어 둔 프로젝트의 대화에 요청문을 보냅니다. Node.js가 없다면 Codex의 설치 안내를 따라 설치하고 앱을 다시 엽니다. 처음 받은 기초 틀은 npm install이 필요 없어요.",
+  "http://localhost:5173/starter/를 열어 봅니다. 연결되지 않으면 서버가 켜져 있는지 확인하세요. Windows에서 npm.ps1 오류가 나면 npm.cmd run dev를 쓰고, 포트가 사용 중이면 Codex에 다른 포트를 요청합니다."
+]
       },
       {
         id: 'first-change',
-        slide: 4, slideId: 'h2ea000745df279bf_2_62',
+        ...practice('change_1', 'change_2'),
+        hintSlides: [ws1Practice.change_1.id, ws1Practice.change_2.id, ws1Practice.change_2.id],
         title: '작은 변화 하나 만들기',
         todo: `내 서비스의 [이름과 소개 문구](${file('starter/index.html')})를 바꿔 달라고 요청합니다. 예시 문장은 내 아이디어로 바꿔도 좋아요.`,
         prompt: `starter의 사이트 이름을 ‘나의 캠퍼스’로 바꾸고,
@@ -121,27 +120,21 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
         verify: ['바꾸려던 문구만 바뀌고 다른 박스는 그대로다.', '브라우저 창을 좁혀도 글자가 잘리지 않는다.'],
         stuck: ['바꿨는데 화면이 그대로면 파일 저장 후 새로고침했는지, 운영진 예제가 아니라 내 localhost 화면을 보고 있는지 확인하세요.'],
         hints: [
-          `사이트 이름은 화면 왼쪽 위 “내 아이디어”와 브라우저 탭 제목이고, 소개 문구는 큰 제목 아래 문장이에요. 모두 [starter/index.html](${file('starter/index.html')})에 있어요. 요청문의 ‘나의 캠퍼스’와 소개 문장만 내 아이디어로 바꿔 보내도 돼요.`,
-          'Codex가 고친 파일은 바로 저장돼요. 브라우저에서 새로고침(Windows Ctrl+R 또는 F5, Mac ⌘+R)만 하면 돼요. VS Code 왼쪽 파일 목록에서 starter/index.html을 열면 바뀐 줄을 직접 볼 수 있어요. 글자 잘림은 브라우저 창 가장자리를 끌어 휴대폰 너비만큼 좁혀서 확인해요.',
-          `1. 앞 단계에서 쓰던 Codex 대화로 돌아갑니다.
-2. 이 단계의 요청문을 복사해 ‘나의 캠퍼스’와 소개 문장을 내 아이디어로 고칩니다.
-3. Codex에 붙여 넣고 Enter를 누릅니다. 파일 수정 허락을 물으면 허용합니다.
-4. Codex 답변에서 바뀐 파일 이름(보통 starter/index.html)을 확인합니다.
-5. http://localhost:5173/starter/ 탭을 새로고침합니다.
-6. 이름과 소개 문구만 바뀌고 로그인·지도·날씨 박스는 그대로인지 봅니다.
-7. 창을 좁혀 글자가 잘리지 않는지 확인합니다.
-8. 마음에 들지 않으면 “방금 바꾼 문구를 원래대로 돌려줘”라고 요청해도 돼요.`
-        ]
+  "과제 2에서 사용한 Codex 대화에 요청문을 보내세요. 바꿀 문구 두 줄과 그대로 둘 박스를 함께 적으면 됩니다.",
+  "Codex가 수정을 마치면 localhost 화면을 새로고침합니다. 안 바뀌면 파일 저장 여부와 현재 주소를 함께 확인하세요.",
+  "제목·소개 문구를 비교하고 창을 좁혀 봅니다. 글자가 겹치거나 박스가 사라졌다면 그 부분만 캡처해서 수정을 요청하세요."
+]
       },
       {
         id: 'connect-feature',
-        slide: 9, slideId: 'h2ea000745df279bf_2_126',
+        ...practice('choose'),
+        hintSlides: Array(3).fill(ws1Practice.choose.id),
         title: '내 서비스에 필요한 기능 하나 연결하기',
         todo: `[로그인](${file('guides/LOGIN.md')})·[지도](${file('guides/MAP.md')})·[날씨](${file('guides/WEATHER.md')}) 중 내 서비스에 필요한 것 하나만 고릅니다. 각 기능은 외부 서비스의 계정·키 설정이 필요하므로, Codex가 먼저 준비 항목을 설명하게 하세요.`,
         options: [
           {
             label: '날씨 — 기상청 단기예보',
-            slide: 9, slideId: 'h2ea000745df279bf_2_126',
+            ...practice('weather_1', 'weather_2', 'weather_3'),
             needs: '[공공데이터포털 기상청 단기예보](https://www.data.go.kr/data/15084084/openapi.do) 이용 신청과 본인 인증키',
             prompt: `starter의 날씨 영역에 기상청 단기예보 API를 연결해줘.
 관악구 대학동의 내일 오후 6시 기온과 강수확률을 보여줘.
@@ -151,21 +144,14 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
 실제 API 응답과 화면에 표시된 날짜·시간·값을 비교하는 방법도 알려줘.`,
             guide: file('guides/WEATHER.md'),
             hints: [
-              '필요한 것은 공공데이터포털의 ‘기상청_단기예보 조회서비스’ 인증키예요. 기상청 API허브의 키와는 다른 키라서, 꼭 [공공데이터포털 서비스 페이지](https://www.data.go.kr/data/15084084/openapi.do)에서 받으세요.',
-              '서비스 페이지에서 활용신청 → 활용 목적 입력 → 신청을 누릅니다. 그다음 마이페이지 → 데이터활용 → Open API → 활용신청 현황에서 이 서비스를 누르면 일반 인증키가 보여요. Decoding 값을 쓰는 걸 권장해요. 메뉴 이름은 사이트 개편에 따라 조금 다를 수 있고, 승인 직후에는 키가 바로 동작하지 않을 수 있어요.',
-              `1. [공공데이터포털](https://www.data.go.kr/)에 회원가입하고 로그인합니다.
-2. [기상청_단기예보 조회서비스](https://www.data.go.kr/data/15084084/openapi.do) 페이지에서 활용신청을 누르고, 활용 목적을 적어 신청합니다. 예) 워크숍 실습
-3. 마이페이지 → 데이터활용 → Open API → 활용신청 현황에서 신청한 서비스를 엽니다.
-4. 일반 인증키(Decoding)를 복사합니다. 이 키는 Codex 채팅창에 붙여 넣지 않아요.
-5. 날씨 요청문을 Codex에 보내고, 내가 설정할 항목을 확인합니다.
-6. Codex가 알려준 로컬 설정 파일을 VS Code에서 열어 KMA_SERVICE_KEY 자리에 키를 붙여 넣고 저장합니다.
-7. 서버를 Ctrl+C로 끄고 다시 켠 뒤 화면을 새로고침합니다.
-8. Codex가 알려준 방법으로 실제 API 응답의 날짜·시간·값과 화면을 비교합니다.`
-            ]
+  "공공데이터포털에서 신청한 기상청 단기예보 API의 승인 상태와 일반 인증키(Decoding)를 확인합니다. 기상청 API허브의 키와는 달라요.",
+  "Codex가 안내한 비공개 서버 설정 파일에 KMA_SERVICE_KEY를 직접 입력하고 서버를 다시 실행합니다. 키를 대화창이나 공개 파일에 붙이지 마세요.",
+  "응답의 fcstDate·fcstTime을 먼저 맞춘 뒤 TMP와 POP를 화면 값과 비교합니다. 조회 실패나 예보 없음이 나오면 오류 문구를 키 없이 Codex에 전달하세요."
+]
           },
           {
             label: '로그인 — Google 계정',
-            slide: 15, slideId: 'h2ea000745df279bf_2_267',
+            ...practice('login_1', 'login_2', 'login_3'),
             needs: 'Google 앱 등록과 [클라이언트 ID](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid), 로그인 결과를 확인할 서버',
             prompt: `starter의 로그인 영역에 Google 로그인 기능을 구현해줘.
 로그인하면 이름과 프로필 사진을 보여주고,
@@ -175,21 +161,14 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
 실제 로그인 확인 없이 완료됐다고 표시하지 마.`,
             guide: file('guides/LOGIN.md'),
             hints: [
-              `Google 로그인에는 Google Cloud에서 만든 ‘OAuth 클라이언트 ID(웹 애플리케이션)’가 필요해요. Google이 돌려준 로그인 결과를 확인할 서버도 필요해서 Codex가 서버 기능을 함께 추가해요. 기존 예제의 설정은 [로그인 설정 문서](${file('docs/AUTH.md')})에 있어요.`,
-              '[Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 만들기 → Google Auth Platform → 동의 화면(대상은 외부, 테스트 사용자에 내 계정 추가) → Clients → 클라이언트 만들기 → 웹 애플리케이션. 승인된 JavaScript 원본에는 지금 접속한 주소의 앞부분만 경로와 마지막 / 없이 넣어요. 예) http://localhost:5173',
-              `1. [Google Cloud Console](https://console.cloud.google.com/)에 내 Google 계정으로 로그인합니다.
-2. 위쪽 프로젝트 선택 → 새 프로젝트를 만들고 그 프로젝트를 고릅니다.
-3. 위쪽 검색창에 Google Auth Platform을 입력해 엽니다. 시작하기를 눌러 앱 이름과 이메일을 넣고, 대상은 외부를 고릅니다.
-4. 대상(Audience) 메뉴의 테스트 사용자에 로그인해 볼 내 Gmail을 추가합니다.
-5. 클라이언트(Clients) → 클라이언트 만들기 → 애플리케이션 유형은 웹 애플리케이션을 고릅니다.
-6. 승인된 JavaScript 원본에 http://localhost:5173 과 http://localhost 를 추가하고 만들기를 누릅니다.
-7. …apps.googleusercontent.com으로 끝나는 클라이언트 ID를 복사해 Codex가 알려준 설정 위치에 넣습니다.
-8. 서버를 다시 켜고 내 계정으로 로그인 → 새로고침 → 로그아웃까지 직접 확인합니다.`
-            ]
+  "Google Cloud에서 프로젝트를 선택한 뒤 Google Auth Platform에 앱 정보를 등록하고 웹 애플리케이션 클라이언트 ID를 만듭니다. 테스트 사용자 안내가 나타나면 사용할 계정을 등록하세요.",
+  "Authorized JavaScript origins에는 경로 없이 실제 주소를 넣습니다. 기본 실습 주소는 http://localhost:5173이고 /starter/는 넣지 않습니다. 발급된 클라이언트 ID와 서버 설정을 저장한 뒤 재시작하세요.",
+  "계정 선택 → 이름·사진 표시 → 새로고침 → 로그아웃까지 확인합니다. 새로고침만 하면 풀릴 경우 localhost의 세션·쿠키 설정을 Codex에 확인해 달라고 하세요."
+]
           },
           {
             label: '지도 — Google Maps',
-            slide: 21, slideId: 'h2ea000745df279bf_2_421',
+            ...practice('map_1', 'map_2', 'map_3'),
             needs: '[Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/load-maps-js-api) 사용 설정과 지도 키. 결제 계정 설정과 사용량에 따른 비용을 먼저 확인하세요.',
             prompt: `starter의 지도·위치정보 영역에 Google 지도를 구현해줘.
 서울대학교 정문 위치에 마커를 표시하고,
@@ -198,34 +177,20 @@ docs/MAPS.md를 참고해서 필요한 API 설정과 비용 발생 가능성을 
 좌표는 확인한 실제 위치를 사용하고, 설정할 항목과 확인 방법을 안내해줘.`,
             guide: file('guides/MAP.md'),
             hints: [
-              `지도에는 Google Cloud 프로젝트, 결제 계정, Maps JavaScript API 사용 설정, 브라우저용 지도 키가 필요해요. 결제 계정을 연결해야 하고 사용량에 따라 비용이 생길 수 있으니, 시작 전에 [지도 설정 문서](${file('docs/MAPS.md')})를 확인하세요.`,
-              '[Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 선택 → 결제 계정 연결 → API 및 서비스 → 라이브러리에서 Maps JavaScript API 사용 → 사용자 인증 정보 → API 키 만들기. 키를 만든 뒤 꼭 제한을 걸어요. 애플리케이션 제한은 웹사이트(HTTP 리퍼러)에 http://localhost:5173/*, API 제한은 Maps JavaScript API만 고릅니다.',
-              `1. [Google Cloud Console](https://console.cloud.google.com/)에 로그인하고 새 프로젝트를 만듭니다.
-2. 왼쪽 메뉴 결제에서 결제 계정을 연결합니다. 예산 알림도 함께 설정해 두면 좋아요.
-3. API 및 서비스 → 라이브러리에서 “Maps JavaScript API”를 검색해 사용을 누릅니다.
-4. API 및 서비스 → 사용자 인증 정보 → 사용자 인증 정보 만들기 → API 키를 누릅니다.
-5. 만든 키를 열어 웹사이트 제한에 http://localhost:5173/* 를 넣고, API 제한은 Maps JavaScript API만 고른 뒤 저장합니다.
-6. 지도 요청문을 Codex에 보내고, Codex가 알려준 로컬 설정 파일에 키를 넣고 저장합니다.
-7. 서버를 다시 켜고 지도, 마커 위치, 마커를 눌렀을 때 나오는 이름을 확인합니다.
-8. 회색 화면이나 오류가 나오면 개발자 도구(Windows F12, Mac ⌥⌘I)의 Console 오류 문구를 Codex에 보여주세요.`
-            ]
+  "Google Cloud에서 결제 설정을 확인하고 Maps JavaScript API를 사용 설정합니다. 사용량에 따라 비용이 생길 수 있으니 설정 전에 확인하세요.",
+  "지도 키의 웹사이트 제한에 실제 주소를 넣습니다. 기본 실습 주소는 http://localhost:5173/*입니다. API 제한은 Maps JavaScript API로 지정하고 안내받은 Map ID도 설정하세요.",
+  "실제 지도와 정문 위치의 마커가 보이는지 확인하고 마커를 눌러 봅니다. 오류가 나면 오류 문구와 현재 접속 주소를 Codex에 알려주세요. 키는 가리고 전달합니다."
+]
           }
         ],
         expected: '예시 숫자나 가짜 계정이 아니라 실제 서비스의 응답이 화면에 보여요. 처음 받은 기초 틀에는 연결이 없으니, 키와 설정을 마친 뒤에만 결과가 나와요.',
         verify: ['실제 응답을 받았는지 확인한다 — 날씨는 요청한 지역·날짜·시간, 로그인은 내 계정 이름, 지도는 의도한 위치의 마커.', '실패했을 때 실패 상태가 보인다.'],
         stuck: ['인증키·비밀번호는 AI 대화, 공개 HTML/JavaScript, GitHub에 넣지 마세요. Codex가 안내한 로컬 설정 파일에 직접 입력합니다.', '로그인·지도는 지금 접속한 주소가 외부 서비스에 등록한 주소와 같은지 확인하세요.'],
         hints: [
-          `처음 받은 기초 틀에는 서버 기능이 없어요. 그래서 어떤 기능이든 외부 서비스에서 키 만들기 → Codex가 서버와 화면 코드 추가 → 키를 내 컴퓨터의 비공개 설정 파일에 직접 입력 → 실제 응답 확인 순서로 진행돼요. 지도는 결제 계정 연결이 필요하다는 점도 고를 때 참고하세요.`,
-          `키는 대화창에 붙여 넣지 말고, Codex가 알려준 설정 파일을 VS Code에서 열어 직접 입력·저장해요. .env나 .dev.vars처럼 [.gitignore](${file('.gitignore')})에 들어 있어 GitHub에 올라가지 않는 파일인지 Codex에 확인해 달라고 하세요. 설정을 바꾼 뒤에는 서버를 Ctrl+C로 끄고 다시 켜야 새 값이 적용되는 경우가 많아요.`,
-          `1. 기능 하나를 펼쳐 ‘먼저 필요한 것’을 읽습니다.
-2. ‘자세한 안내’ 링크에서 준비 항목과 동작 확인 순서를 확인합니다.
-3. 요청문을 복사해 Codex에 보냅니다. 지역이나 장소는 내 서비스에 맞게 바꿔도 돼요.
-4. Codex가 알려준 순서대로 외부 사이트에서 키나 클라이언트 ID를 만듭니다.
-5. Codex가 알려준 로컬 설정 파일에 키를 직접 붙여 넣고 저장합니다.
-6. 터미널에서 Ctrl+C로 서버를 끄고, Codex가 알려준 명령으로 다시 켭니다.
-7. 브라우저를 새로고침해 실제 결과가 나오는지 봅니다.
-8. 안 되면 [문제 해결](${file('guides/TROUBLESHOOTING.md')})을 보고, 화면과 터미널의 오류 문구를 키는 가린 채 Codex에 보여주세요.`
-        ]
+  "날씨·로그인·지도 중 하나를 펼쳐 고릅니다. 왼쪽 자료도 선택한 기능의 준비·연결·확인 3장으로 바뀝니다.",
+  "선택한 기능의 요청문을 같은 Codex 대화에 보내세요. 필요한 외부 설정을 한 뒤, Codex가 안내한 실행 명령으로 다시 엽니다.",
+  "실제 데이터를 받았는지 직접 확인해야 끝입니다. 화면을 새로고침하고, 선택한 기능의 마지막 실습 페이지에 있는 완료 기준을 확인하세요."
+]
       }
     ],
     apply: {

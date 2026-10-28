@@ -53,10 +53,21 @@ export function validateContent(content) {
       const deck = w.resources.find(r => r.kind === 'slides');
       if (!/^https:\/\/docs\.google\.com\/presentation\/d\/[A-Za-z0-9_-]{20,}\//.test(deck.url ?? '')) problems.push(`${where}: 학생용 슬라이드는 docs.google.com/presentation/d/<ID>/… 주소여야 화면에 넣을 수 있어요.`);
       const slideOk = item => Number.isInteger(item.slide) && item.slide >= 1 && /^[A-Za-z0-9_-]+$/.test(item.slideId ?? '');
+      const practiceOk = (item, at) => {
+        if (item.practiceSlides == null) return;
+        const pages = item.practiceSlides;
+        if (!Array.isArray(pages) || !pages.length) { problems.push(`${at}: practiceSlides는 비어 있을 수 없습니다.`); return; }
+        if (new Set(pages.map(p => p.id)).size !== pages.length || pages.some(p => !/^[A-Za-z0-9_-]+$/.test(p.id ?? '') || !/^\/images\/practice\/[A-Za-z0-9_./-]+\.(webp|png)$/.test(p.image ?? '') || !p.title?.trim() || !p.text?.trim())) problems.push(`${at}: practiceSlides의 ID·이미지·제목·본문을 확인하세요.`);
+        if (pages[0].id !== item.slideId || pages[0].number !== item.slide) problems.push(`${at}: practiceSlides 첫 페이지와 slideId·slide를 맞춰 주세요.`);
+        if (item.hintSlides?.some(id => !pages.some(p => p.id === id))) problems.push(`${at}: 힌트는 이 과제의 practiceSlides 안으로만 연결해야 합니다.`);
+      };
+      if (w.missions.some(m => m.practiceSlides) && w.missions.some(m => !m.practiceSlides?.length || m.options?.some(o => !o.practiceSlides?.length))) problems.push(`${where}: 과제 뷰어를 쓰려면 모든 과제와 선택지에 practiceSlides가 필요합니다.`);
       for (const m of w.missions) {
         if (!slideOk(m)) problems.push(`${where} ${m.id}: slide(슬라이드 번호)와 slideId(슬라이드 ID)를 적어 주세요.`);
+        practiceOk(m, `${where} ${m.id}`);
         m.options?.forEach((o, i) => {
           if ((o.slide != null || o.slideId != null) && !slideOk(o)) problems.push(`${where} ${m.id}.options[${i}]: slide와 slideId를 함께 적어 주세요.`);
+          practiceOk(o, `${where} ${m.id}.options[${i}]`);
         });
       }
     }

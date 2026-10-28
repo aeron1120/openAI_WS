@@ -568,6 +568,29 @@ body.study { background: #f3f5f8; }
 .lesson-slides .hint { margin: 8px 0 0; }
 .slides-frame { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #0b1020; box-shadow: 0 10px 30px rgba(17, 26, 46, .12); }
 .slides-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.practice-viewer { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 10px 30px rgba(17,26,46,.08); }
+.practice-heading, .practice-controls, .practice-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; }
+.practice-heading { background: var(--c-soft); color: var(--c-btn); font-size: .94rem; }
+.practice-heading span { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.practice-frame { position: relative; aspect-ratio: 16 / 9; background: white; }
+.practice-frame img { display: block; width: 100%; height: auto; }
+.practice-frame:focus-visible { outline: 3px solid var(--c); outline-offset: -3px; }
+.practice-frame [data-practice-error] { position: absolute; inset: 15%; background: white; padding: 16px; }
+.practice-controls { border-top: 1px solid var(--line); font-size: .82rem; }
+.practice-controls span { min-width: 0; text-align: center; color: var(--muted); }
+.practice-viewer button, .practice-hint-link { min-height: 44px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--c-btn); padding: 7px 11px; font: inherit; cursor: pointer; }
+.practice-controls button { white-space: nowrap; font-size: .84rem; }
+.practice-viewer button:disabled { opacity: .4; cursor: default; }
+.practice-tools { padding-top: 0; font-size: .85rem; }
+.practice-transcript { margin: 0 16px 14px; font-size: .9rem; }
+.practice-transcript summary { cursor: pointer; color: var(--muted); }
+.practice-transcript [data-practice-text] { white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px 0; line-height: 1.7; }
+.practice-dialog { width: min(1400px, 96vw); max-width: 96vw; max-height: 96vh; padding: 14px; border: 0; border-radius: 12px; }
+.practice-dialog::backdrop { background: rgba(10,15,25,.72); }
+.practice-dialog img { display: block; width: 100%; height: auto; margin-top: 10px; }
+.practice-dialog p { margin: 8px 0 0; }
+.practice-hint-link { display: block; margin-bottom: 12px; text-decoration: underline; }
+@media (max-width: 600px) { .practice-controls > span { display: none; } .practice-heading, .practice-controls, .practice-tools { padding-left: 12px; padding-right: 12px; } }
 .lesson-steps { min-width: 0; padding: 24px 28px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
 .lesson-step > .track-kicker { color: var(--c-btn); }
 .lesson-step h2 { margin: 4px 0 12px; }

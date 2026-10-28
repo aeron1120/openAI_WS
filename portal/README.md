@@ -174,6 +174,27 @@ npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-stud
   - 기능 선택지(`options`)에도 같은 값을 넣으면, 학생이 그 선택지를 펼칠 때 해당 슬라이드로 넘어갑니다.
 - 단계를 바꾸거나 회차 공개 시각을 바꾸면 수업 서버의 `WORKSHOP_OPEN_AT`(Render 설정, `render.yaml`)도 같은 시각으로 맞춥니다. 서버는 열린 회차의 진도만 저장합니다.
 
+### 과제마다 필요한 슬라이드만 보여주기
+
+Workshop 1은 기존 강의 페이지 사이에 과제 페이지 17장을 추가했습니다. 기존 33장과 페이지 ID는 유지합니다. 과제 페이지의 아래 링크로 해당 사이트 과제에 돌아올 수 있습니다.
+
+수업 화면은 전체 Google Slides iframe 대신 `missions[].practiceSlides`에 지정한 페이지만 넘깁니다. 1번 2장, 2번 3장, 3번 2장, 4번 공통 1장과 기능별 3장입니다. 날씨·로그인·지도 중 하나를 펼치면 해당 선택지 자료만 표시합니다. `hintSlides`는 각 힌트의 ‘관련 실습 페이지 보기’ 대상이며 같은 과제 안의 ID만 허용합니다.
+
+- 원본: 편집 가능한 Google Slides 학생용 파일
+- 사이트용 미리보기와 글로 읽기: `content/practice-pages.mjs`, `public/images/practice/ws1/`
+- 사이트 미리보기는 **내보낸 시점의 자료**입니다. Google Slides 수정이 자동으로 동기화되지는 않습니다. 원본은 ‘이 페이지 원본’ 링크에서 바로 확인합니다.
+
+슬라이드 내용을 수정한 뒤 Google Slides PDF와 전체 `get_presentation` JSON을 받아 아래 명령으로 미리보기·페이지 번호·본문을 함께 갱신합니다. 운영진용 Python 도구이며 Pillow·pypdf와 Poppler의 pdftoppm이 필요합니다. 사이트 실행에는 필요 없습니다.
+
+```text
+python portal/scripts/refresh-practice.py --pdf workshop1.pdf --presentation workshop1.json --pdftoppm pdftoppm
+npm run test:portal
+npm run build:portal
+npm run deploy:portal
+```
+
+새 과제를 추가하면 `practice-pages.mjs`의 페이지 항목과 `workshops.mjs`의 연결도 추가합니다. 원본 페이지 ID를 기준으로 찾아 내보내므로 앞쪽에 다른 강의 페이지가 추가되어도 잘못된 장을 가져오지 않습니다. 과제 자료에는 학생 개인정보나 비밀 키를 넣지 않습니다.
+
 ### 질문하기와 운영진 화면
 
 - 수업 화면의 단계마다 **막혔어요 · 질문하기**가 있습니다. 진행 방식(예제 그대로/내 아이디어로), 질문 내용(2000자), 오류 문구, 오류 화면 이미지를 보낼 수 있습니다.

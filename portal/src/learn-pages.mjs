@@ -10,6 +10,26 @@ const deckId = url => /\/presentation\/d\/([A-Za-z0-9_-]+)/.exec(url)?.[1];
 // Google Slides 임베드 주소. 끝에 슬라이드 페이지 ID를 붙이면 그 슬라이드부터 보여줍니다.
 export const embedBase = url => `https://docs.google.com/presentation/d/${deckId(url)}/embed?start=false&loop=false&delayms=60000&slide=id.`;
 
+// 과제용 자료가 있으면 전체 덱 iframe 대신 명시된 페이지만 넘깁니다.
+function practiceViewer(w, url) {
+  const first = w.missions[0].practiceSlides[0];
+  return h`<div class="practice-viewer" data-practice-viewer data-deck-url="${url.split('?')[0]}">
+    <div class="practice-heading"><strong data-practice-label>과제 1 자료</strong><span data-practice-count aria-live="polite">1 / ${w.missions[0].practiceSlides.length}</span></div>
+    <div class="practice-frame" tabindex="0" aria-label="실습 자료. 왼쪽과 오른쪽 방향키로 페이지 이동">
+      <img data-practice-image src="${first.image}" alt="${first.title}" width="1600" height="900">
+      <p data-practice-error hidden>자료를 불러오지 못했어요. 아래 ‘글로 읽기’ 또는 원본 슬라이드를 열어 주세요.</p>
+    </div>
+    <div class="practice-controls">
+      <button type="button" data-practice-prev aria-label="이 과제의 이전 자료">← 이전 자료</button>
+      <span data-practice-title>${first.title}</span>
+      <button type="button" data-practice-next aria-label="이 과제의 다음 자료">다음 자료 →</button>
+    </div>
+    <div class="practice-tools"><button type="button" data-practice-zoom>크게 보기</button><a data-practice-source href="${url.split('?')[0]}#slide=id.${first.id}" target="_blank" rel="noopener">이 페이지 원본 ↗</a></div>
+    <details class="practice-transcript"><summary>이 페이지 글로 읽기</summary><div data-practice-text>${first.text}</div></details>
+    <dialog class="practice-dialog" aria-label="실습 자료 확대"><button type="button" data-practice-close>닫기 ✕</button><img data-practice-large alt=""><p data-practice-large-title></p></dialog>
+  </div>`;
+}
+
 // 학생용 슬라이드와 단계가 있는, 자료가 열린 회차만 수업 화면을 만듭니다.
 export const lessonWorkshops = content => content.workshops.filter(w => w.materials === 'open' && slidesOf(w) && w.missions.length);
 
@@ -108,10 +128,10 @@ ${loginCard()}
 // 중간 단계는 "다음 →"이 그 단계를 완료로 저장하고 넘어갑니다. 완료 버튼은 마지막 단계에만 있습니다.
 function lessonStep(m, i, total) {
   const last = i === total - 1;
-  return h`<section class="lesson-step" id="step-${m.id}" data-step="${m.id}" data-slide-id="${m.slideId}" ${i ? raw('hidden') : ''}>
+  return h`<section class="lesson-step" id="step-${m.id}" data-step="${m.id}" data-slide-id="${m.slideId}"${m.practiceSlides ? h` data-practice-slides="${JSON.stringify(m.practiceSlides)}"` : ''} ${i ? raw('hidden') : ''}>
   <p class="track-kicker">${i + 1} / ${total} 단계</p>
   <h2 tabindex="-1">${m.title}</h2>
-  ${missionBody(m)}
+  ${missionBody(m, { practice: !!m.practiceSlides })}
   <div class="lesson-actions">
     <button type="button" class="btn btn-ghost" data-prev ${i === 0 ? raw('disabled') : ''}>← 이전</button>
     ${last
@@ -170,8 +190,8 @@ export function lessonPage(content, w) {
   </nav>
   <div class="lesson-body">
     <div class="lesson-slides">
-      <div class="slides-frame"><iframe data-slides data-embed-base="${base}" src="${base}${w.missions[0].slideId}" title="Workshop ${w.number} 학생용 슬라이드" allowfullscreen></iframe></div>
-      <p class="hint">${link(slides.url, '슬라이드 새 창으로 열기')}</p>
+      ${w.missions.every(m => m.practiceSlides?.length) ? practiceViewer(w, slides.url) : h`<div class="slides-frame"><iframe data-slides data-embed-base="${base}" src="${base}${w.missions[0].slideId}" title="Workshop ${w.number} 학생용 슬라이드" allowfullscreen></iframe></div>`}
+      <p class="hint">${link(slides.url, '전체 강의 슬라이드 열기')}</p>
     </div>
     <div class="lesson-steps">${w.missions.map((m, i) => lessonStep(m, i, total))}</div>
   </div>

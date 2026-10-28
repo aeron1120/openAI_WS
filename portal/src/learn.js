@@ -251,11 +251,63 @@
     }).catch(() => {});
   }
 
+  // 전체 덱은 탐색하지 않습니다. 현재 과제/선택지의 목록 안에서만 이동합니다.
+  function initPracticeViewer(root) {
+    const get = name => root.querySelector(`[data-practice-${name}]`);
+    const picture = get('image');
+    const prev = get('prev');
+    const next = get('next');
+    const dialog = root.querySelector('dialog');
+    let pages = [];
+    let index = 0;
+    function paint() {
+      const page = pages[index];
+      if (!page) return;
+      picture.src = page.image;
+      picture.alt = page.title;
+      get('error').hidden = true;
+      get('count').textContent = `${index + 1} / ${pages.length}`;
+      get('title').textContent = page.title;
+      get('text').textContent = page.text;
+      get('source').href = `${root.dataset.deckUrl}#slide=id.${page.id}`;
+      prev.disabled = index === 0;
+      next.disabled = index === pages.length - 1;
+      root.dataset.currentPage = page.id;
+      get('large').src = page.image;
+      get('large').alt = page.title;
+      get('large-title').textContent = page.title;
+    }
+    function move(delta) { index = Math.max(0, Math.min(pages.length - 1, index + delta)); paint(); }
+    prev.addEventListener('click', () => move(-1));
+    next.addEventListener('click', () => move(1));
+    picture.addEventListener('error', () => { get('error').hidden = false; });
+    root.querySelector('.practice-frame').addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+      event.preventDefault();
+      move(event.key === 'ArrowLeft' ? -1 : 1);
+    });
+    get('zoom').addEventListener('click', () => dialog.showModal());
+    get('close').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+    return {
+      show(owner, label) {
+        pages = JSON.parse(owner.dataset.practiceSlides);
+        index = 0;
+        get('label').textContent = label;
+        root.querySelector('.practice-transcript').open = false;
+        paint();
+      },
+      jump(id) { const found = pages.findIndex(page => page.id === id); if (found >= 0) { index = found; paint(); } }
+    };
+  }
+
   function initLesson(content) {
     const workshop = Number(content.dataset.lesson);
     const steps = [...content.querySelectorAll('[data-step]')];
     const items = new Map([...content.querySelectorAll('[data-goto]')].map(item => [item.dataset.goto, item]));
     const frame = content.querySelector('[data-slides]');
+    const practice = content.querySelector('[data-practice-viewer]');
+    const viewer = practice ? initPracticeViewer(practice) : null;
     const tabs = content.querySelector('.step-tabs');
     const meter = content.querySelector('.lesson-head [data-progress]');
     const body = content.querySelector('.lesson-body');
@@ -267,6 +319,7 @@
     const allDone = () => steps.every(step => done.has(step.dataset.step));
 
     const showSlide = slideId => {
+      if (!frame) return;
       const src = frame.dataset.embedBase + slideId;
       if (slideId && frame.src !== src) frame.src = src;
     };
@@ -321,7 +374,10 @@
       finished = false;
       const step = steps[current];
       history.replaceState(null, '', `#step-${step.dataset.step}`);
-      showSlide(step.dataset.slideId);
+      if (viewer) {
+        const option = step.querySelector('.option[open][data-practice-slides]');
+        viewer.show(option ?? step, option ? option.querySelector('summary').textContent : `과제 ${current + 1} 자료`);
+      } else showSlide(step.dataset.slideId);
       render();
       revealTab();
       if (focus) step.querySelector('h2').focus();
@@ -370,8 +426,24 @@
     // 선택지(예: 로그인·지도)를 펼치면 그 기능의 슬라이드로 이동합니다. toggle은 버블링되지 않아 capture로 받습니다.
     content.addEventListener('toggle', event => {
       const option = event.target;
-      if (option.open && option.dataset?.slideId) showSlide(option.dataset.slideId);
+      if (!option.matches('.option') || option.closest('[data-step]') !== steps[current]) return;
+      if (viewer && option.dataset.practiceSlides) {
+        if (option.open) {
+          for (const other of steps[current].querySelectorAll('.option[open]')) if (other !== option) other.open = false;
+          viewer.show(option, option.querySelector('summary').textContent);
+        } else if (!steps[current].querySelector('.option[open]')) viewer.show(steps[current], `과제 ${current + 1} 자료`);
+      } else if (option.open && option.dataset?.slideId) showSlide(option.dataset.slideId);
     }, true);
+
+    content.addEventListener('click', event => {
+      const jump = event.target.closest('[data-practice-jump]');
+      if (!viewer || !jump || jump.closest('[data-step]') !== steps[current]) return;
+      const owner = jump.closest('.option') ?? steps[current];
+      viewer.show(owner, owner.matches('.option') ? owner.querySelector('summary').textContent : `과제 ${current + 1} 자료`);
+      viewer.jump(jump.dataset.practiceJump);
+      practice.querySelector('.practice-frame').focus({ preventScroll: true });
+      if (matchMedia('(max-width: 900px)').matches) practice.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
 
     const start = steps.findIndex(step => location.hash === `#step-${step.dataset.step}`);
     go(start >= 0 ? start : 0, { focus: false });
