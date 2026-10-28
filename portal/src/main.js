@@ -52,6 +52,20 @@ document.addEventListener('click', async event => {
 });
 for (const button of document.querySelectorAll('[data-copy-target]')) button.hidden = false;
 
+// 힌트: 앞 힌트를 한 번 열어야 다음 힌트가 보입니다. 스크립트가 없으면 모든 힌트가 보입니다.
+function showHints(box) {
+  const hints = [...box.querySelectorAll(':scope > details[data-hint]')];
+  hints.forEach((hint, i) => { hint.hidden = i > 0 && !hints[i - 1].hasAttribute('data-opened'); });
+}
+// toggle은 버블링되지 않아 capture로 받습니다.
+document.addEventListener('toggle', event => {
+  const hint = event.target;
+  if (!hint.matches?.('details[data-hint]') || !hint.open) return;
+  hint.setAttribute('data-opened', '');
+  showHints(hint.parentElement);
+}, true);
+for (const box of document.querySelectorAll('[data-hints]')) showHints(box);
+
 // 시작 전 확인 도움말: 항목을 하나씩 강조하고, 옆 카드에 확인·설치 방법을 보여줍니다.
 const GAP = 16;
 const MARGIN = 12;

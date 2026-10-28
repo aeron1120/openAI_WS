@@ -7,7 +7,7 @@ import { site } from '../content/site.mjs';
 import { workshops } from '../content/workshops.mjs';
 import { studio, showcase, projects, collaboration } from '../content/program.mjs';
 import { layout, learnLayout } from '../src/layout.mjs';
-import { isUsableUrl } from '../src/render.mjs';
+import { isUsableUrl, inlineLinkUrls } from '../src/render.mjs';
 import * as pages from '../src/pages.mjs';
 import * as learnPages from '../src/learn-pages.mjs';
 import { resolveContent, boundaries } from '../src/schedule.mjs';
@@ -62,11 +62,29 @@ export function validateContent(content) {
     if (w.video) checkUrl(w.video.src, `${where} video.src`);
     if (w.checkHelp && w.checkHelp.length !== w.checks.length) problems.push(`${where}: checkHelp는 checks와 같은 개수·순서로 적어 주세요.`);
     w.checkHelp?.forEach((c, i) => c.links?.forEach((l, j) => checkUrl(l.url, `${where} checkHelp[${i}].links[${j}]`)));
+    // 설명 글 속 [글](주소) 링크와 힌트(1~3개, 각 800자 이하)를 검사합니다.
+    const checkText = (item, key, at) => {
+      const values = [item[key]].flat().filter(value => typeof value === 'string');
+      for (const value of values) for (const url of inlineLinkUrls(value)) if (!isUsableUrl(url)) problems.push(`${at}.${key}: 글 속 링크 주소 "${url}"를 쓸 수 없어요 ([보이는 글](https://… 또는 /…) 모양으로 적어 주세요)`);
+    };
+    const checkHints = (item, at) => {
+      if (item.hints == null) return;
+      const ok = Array.isArray(item.hints) && item.hints.length >= 1 && item.hints.length <= 3
+        && item.hints.every(text => typeof text === 'string' && text.trim() && text.length <= 800);
+      if (!ok) problems.push(`${at}.hints: 힌트는 1~3개의 글(각 800자 이하, 빈 글 없이)로 적어 주세요.`);
+    };
     const missionIds = new Set();
     for (const m of w.missions) {
       if (missionIds.has(m.id)) problems.push(`${where}: mission id 중복 ${m.id}`);
       missionIds.add(m.id);
-      m.options?.forEach((o, i) => checkUrl(o.guide, `${where} ${m.id}.options[${i}].guide`));
+      const at = `${where} ${m.id}`;
+      for (const key of ['todo', 'expected', 'verify', 'stuck', 'hints']) checkText(m, key, at);
+      checkHints(m, at);
+      m.options?.forEach((o, i) => {
+        checkUrl(o.guide, `${at}.options[${i}].guide`);
+        for (const key of ['needs', 'hints']) checkText(o, key, `${at}.options[${i}]`);
+        checkHints(o, `${at}.options[${i}]`);
+      });
     }
   }
   (content.studio.sessions ?? []).forEach((s, i) => {

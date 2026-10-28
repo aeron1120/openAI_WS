@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { buildSite, defaultContent, validateContent } from '../scripts/build.mjs';
 import { onRequest } from '../functions/_middleware.js';
+import { richText } from '../src/render.mjs';
 
 const clone = value => structuredClone(value);
 // 실제 날짜와 무관하게 검사하도록 기준 시각을 고정합니다.
@@ -240,6 +241,74 @@ test('copy buttons start hidden so they only appear when the script can run', as
   const buttons = html.match(/<button[^>]*copy-button[^>]*>/g) ?? [];
   assert.ok(buttons.length >= 4);
   for (const button of buttons) assert.match(button, /\shidden>/);
+});
+
+test('mission text turns [글](주소) into links, but copy blocks stay plain', async t => {
+  const content = clone(defaultContent);
+  const m = content.workshops[0].missions[0];
+  m.todo = '먼저 [저장소](https://github.com/example/repo)를 열고 [수업 목록](/learn/)도 봐요. <b>굵게</b>';
+  m.expected = '[결과 예시](https://github.com/example/result)처럼 보여요.';
+  m.verify = ['[확인 화면](/workshops/01/) 열기'];
+  m.stuck = ['[문제 해결](https://github.com/example/help) 보기'];
+  m.prompt = '[요청](https://github.com/example/prompt) 그대로';
+  const html = await (await build(t, content)).read('/workshops/01/');
+  const body = html.match(/<details class="mission" id="mission-open-starter"[\s\S]*?<\/details>\s*<details class="mission"/)[0];
+  assert.match(body, /<a href="https:\/\/github\.com\/example\/repo" target="_blank" rel="noopener">저장소<span class="ext" aria-hidden="true">↗<\/span><span class="sr-only"> \(새 창\)<\/span><\/a>를 열고/);
+  assert.match(body, /<a href="\/learn\/">수업 목록<\/a>/);
+  assert.match(body, /&lt;b&gt;굵게&lt;\/b&gt;/);
+  for (const url of ['example/result', 'example/help']) assert.match(body, new RegExp(`<a href="https://github\\.com/${url}" target="_blank"`));
+  assert.match(body, /<li><a href="\/workshops\/01\/">확인 화면<\/a> 열기<\/li>/);
+  assert.match(body, /<code>\[요청\]\(https:\/\/github\.com\/example\/prompt\) 그대로<\/code>/);
+  // 쓸 수 없는 주소나 다른 모양은 글자 그대로 둡니다.
+  assert.equal(String(richText('[a](http://x.test) [b](javascript:alert(1)) <i>')), '[a](http://x.test) [b](javascript:alert(1)) &lt;i&gt;');
+  assert.equal(String(richText('[a](/x) "q"')), '<a href="/x">a</a> &quot;q&quot;');
+});
+
+test('hints render one details per hint before the result box, with the last of three as a walkthrough', async t => {
+  const content = clone(defaultContent);
+  const m = content.workshops[0].missions[1];
+  m.hints = ['첫 힌트: [안내](https://github.com/example/hint) 보기', '둘째 힌트\n둘째 줄', '처음부터 차례로 따라 해요.'];
+  const option = content.workshops[0].missions.find(x => x.options).options[0];
+  option.hints = ['선택지 힌트'];
+  const { read } = await build(t, content);
+  for (const page of ['/workshops/01/', '/learn/01/']) {
+    const html = await read(page);
+    const step = html.split(`id="${page === '/learn/01/' ? 'step' : 'mission'}-${m.id}"`)[1].split('class="result"')[0];
+    assert.match(step, /<div class="hints" data-hints>/);
+    assert.match(step, /<details class="hint" data-hint="1"><summary>힌트 1 <span class="hint-verb">보기<\/span><\/summary><div class="hint-text">첫 힌트: <a href="https:\/\/github\.com\/example\/hint" target="_blank" rel="noopener">안내/);
+    assert.match(step, /<details class="hint" data-hint="2"><summary>힌트 2 <span class="hint-verb">보기<\/span><\/summary><div class="hint-text">둘째 힌트\n둘째 줄<\/div>/);
+    assert.match(step, /<details class="hint" data-hint="3"><summary>힌트 3 · 자세한 따라하기<\/summary>/);
+    assert.doesNotMatch(step, /data-hint="\d"[^>]*hidden/);
+    assert.match(html, /<details class="option"[\s\S]*?<details class="hint" data-hint="1"><summary>힌트 1 <span class="hint-verb">보기<\/span><\/summary><div class="hint-text">선택지 힌트<\/div>/);
+  }
+  // 힌트가 없는 미션에는 힌트 상자가 없습니다.
+  const plain = clone(defaultContent);
+  for (const w of plain.workshops) for (const x of w.missions) { delete x.hints; x.options?.forEach(o => delete o.hints); }
+  assert.doesNotMatch(await (await build(t, plain)).read('/workshops/01/'), /data-hints/);
+});
+
+test('content validation rejects unusable inline links and malformed hints', () => {
+  const at = (edit, pattern) => {
+    const content = clone(defaultContent);
+    edit(content.workshops[0].missions[0], content.workshops[0].missions.find(m => m.options).options[0]);
+    assert.throws(() => validateContent(content), pattern);
+  };
+  at(m => { m.todo = '[저장소](http://github.com/x)'; }, /Workshop 1 open-starter\.todo: 글 속 링크 주소 "http:\/\/github\.com\/x"/);
+  at(m => { m.expected = '[빈 주소]()'; }, /open-starter\.expected: 글 속 링크/);
+  at(m => { m.verify = ['[빈칸](https://a b)']; }, /open-starter\.verify: 글 속 링크/);
+  at(m => { m.stuck = ['[상대](docs/x)']; }, /open-starter\.stuck: 글 속 링크/);
+  at((m, o) => { o.needs = '[키](#)'; }, /options\[0\]\.needs: 글 속 링크/);
+  at(m => { m.hints = ['[x](ftp://x)']; }, /open-starter\.hints: 글 속 링크/);
+  at(m => { m.hints = ['1', '2', '3', '4']; }, /open-starter\.hints: 힌트는 1~3개/);
+  at(m => { m.hints = []; }, /hints: 힌트는 1~3개/);
+  at(m => { m.hints = ['  ']; }, /hints: 힌트는 1~3개/);
+  at(m => { m.hints = ['가'.repeat(801)]; }, /hints: 힌트는 1~3개/);
+  at(m => { m.hints = '힌트'; }, /hints: 힌트는 1~3개/);
+  at((m, o) => { o.hints = ['a', 'b', 'c', 'd']; }, /options\[0\]\.hints: 힌트는 1~3개/);
+  const ok = clone(defaultContent);
+  ok.workshops[0].missions[0].hints = ['[안내](https://github.com/x)', '두 번째', '가'.repeat(800)];
+  ok.workshops[0].missions[0].todo = '[목록](/learn/) [메일](mailto:a@b.co)';
+  assert.doesNotThrow(() => validateContent(ok));
 });
 
 test('studio shows weekly sessions and promotes the next one until it ends', async t => {

@@ -213,6 +213,17 @@ small { color: var(--muted); }
 .option { border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; margin-top: 8px; }
 .option summary { min-height: 48px; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
 .option[open] { padding-bottom: 12px; }
+/* 단계별 힌트: 노란 상자. 앞 힌트를 열면 다음 힌트가 나타납니다(main.js). */
+.hints { display: grid; gap: 8px; max-width: 78ch; margin-top: 14px; padding: 12px 14px; border: 1px solid #f1d58a; border-radius: 12px; background: #fffaeb; }
+.hints > [hidden] { display: none; }
+.hints-title { margin: 0; color: #6b4b00; font-size: .9rem; font-weight: 700; }
+.hints details.hint { border: 1px solid #f3e2b0; border-radius: 10px; background: var(--surface); color: var(--ink); font-size: .94rem; }
+.hints details.hint > summary { display: flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px; color: #7a5200; font-weight: 700; cursor: pointer; list-style: none; }
+.hints details.hint > summary::-webkit-details-marker { display: none; }
+.hints details.hint > summary::before { content: "▸"; margin-right: 4px; transition: transform .15s; }
+.hints details.hint[open] > summary::before { transform: rotate(90deg); }
+.hints details.hint[open] .hint-verb { display: none; }
+.hint-text { padding: 0 14px 12px; line-height: 1.7; white-space: pre-line; }
 
 /* Copy blocks: 넘치는 코드는 블록 안에서만 가로로 스크롤합니다. */
 .copy-block { margin-top: 12px; border: 1px solid #d4dbea; border-radius: 12px; overflow: hidden; background: #f8faff; }

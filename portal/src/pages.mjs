@@ -1,4 +1,4 @@
-import { h, raw, link, isUsableUrl, isRecruiting, eventBadge, formatSchedule, copyBlock, figure, video } from './render.mjs';
+import { h, raw, link, richText, isUsableUrl, isRecruiting, eventBadge, formatSchedule, copyBlock, figure, video } from './render.mjs';
 
 const pad = n => String(n).padStart(2, '0');
 const workshopPath = w => `/workshops/${w.slug}/`;
@@ -161,22 +161,36 @@ export function roadmapPage(content) {
 </ol>`;
 }
 
+// 단계별 힌트: 처음에는 힌트 1만 보이고, 앞 힌트를 열면 다음 힌트가 나타납니다(main.js).
+// 스크립트가 없으면 모든 힌트가 접힌 채로 보입니다. 힌트가 3개면 마지막은 자세한 따라하기입니다.
+function hintBox(hints) {
+  if (!hints?.length) return '';
+  const label = i => i === 2 ? '힌트 3 · 자세한 따라하기' : h`힌트 ${i + 1} <span class="hint-verb">보기</span>`;
+  return h`<div class="hints" data-hints>
+      <p class="hints-title"><span aria-hidden="true">💡</span> 막히면 힌트를 열어 보세요</p>
+      ${hints.map((text, i) => h`<details class="hint" data-hint="${i + 1}"><summary>${label(i)}</summary><div class="hint-text">${richText(text)}</div></details>`)}
+    </div>`;
+}
+
 // 미션 본문: 공개 워크숍 페이지(접히는 미션)와 수업 화면(/learn/)이 함께 씁니다.
+// 설명 글(todo·expected·verify·stuck·needs·hints)은 [글](주소) 링크를 쓸 수 있고, 요청문·명령은 그대로 복사됩니다.
 export function missionBody(m) {
-  return h`<p>${m.todo}</p>
+  return h`<p>${richText(m.todo)}</p>
     ${m.prompt ? copyBlock(m.prompt) : ''}
     ${m.commands ? copyBlock(m.commands, '터미널 명령 (한 줄씩 실행)', { code: true }) : ''}
     ${m.options ? h`<div class="options">${m.options.map(o => h`<details class="option"${o.slideId ? h` data-slide-id="${o.slideId}"` : ''}>
       <summary>${o.label}</summary>
-      <p class="hint">먼저 필요한 것: ${o.needs}</p>
+      <p class="hint">먼저 필요한 것: ${richText(o.needs)}</p>
       ${copyBlock(o.prompt)}
       <p>${link(o.guide, '자세한 안내')}</p>
+      ${hintBox(o.hints)}
     </details>`)}</div>` : ''}
+    ${hintBox(m.hints)}
     <div class="result">
-      <p><strong>예상 결과</strong>${m.expected}</p>
-      ${m.verify?.length ? h`<div><strong>확인</strong>${checks(m.verify)}</div>` : ''}
+      <p><strong>예상 결과</strong>${richText(m.expected)}</p>
+      ${m.verify?.length ? h`<div><strong>확인</strong>${checks(m.verify.map(richText))}</div>` : ''}
     </div>
-    ${m.stuck?.length ? h`<details class="stuck"><summary>막혔을 때</summary><ul>${m.stuck.map(s => h`<li>${s}</li>`)}</ul></details>` : ''}`;
+    ${m.stuck?.length ? h`<details class="stuck"><summary>막혔을 때</summary><ul>${m.stuck.map(s => h`<li>${richText(s)}</li>`)}</ul></details>` : ''}`;
 }
 
 function missionBlock(m, index) {

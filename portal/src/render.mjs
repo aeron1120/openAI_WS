@@ -22,6 +22,21 @@ export function link(url, label, className = '') {
     : h`<a${cls} href="${url}">${label}</a>`;
 }
 
+// 글 속 링크: [보이는 글](https://… 또는 /…) 모양만 링크로 바꾸고 나머지는 모두 escape합니다.
+// 쓸 수 없는 주소면 글자 그대로 둡니다. 검사(inlineLinkUrls)는 빈칸 섞인 주소까지 넓게 찾습니다.
+const INLINE_LINK = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
+export const inlineLinkUrls = text => [...String(text ?? '').matchAll(/\[[^\]\n]+\]\(([^)\n]*)\)/g)].map(m => m[1]);
+export function richText(text) {
+  const source = String(text ?? '');
+  let out = '';
+  let last = 0;
+  for (const m of source.matchAll(INLINE_LINK)) {
+    out += esc(source.slice(last, m.index)) + (isUsableUrl(m[2]) ? link(m[2], m[1]) : esc(m[0]));
+    last = m.index + m[0].length;
+  }
+  return raw(out + esc(source.slice(last)));
+}
+
 // 날짜는 확정된 절대 시각만 한국 시간으로 표시합니다.
 export function formatSchedule(event, timeZone) {
   if (!event?.start) return null;
