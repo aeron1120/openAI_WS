@@ -1,7 +1,7 @@
 // 수업 서버(Render 무료 요금제)는 15분 동안 요청이 없으면 잠듭니다.
 // Cloudflare 예약 실행(wrangler.jsonc의 crons)으로 14분마다 상태 확인 주소를 불러 깨어 있게 합니다.
 // 상태 확인은 비밀값 없이 응답하고 데이터베이스를 건드리지 않습니다.
-export const HEALTH_URL = 'https://snu-learn-server.onrender.com/api/health';
+export const HEALTH_URL = 'https://snu-learn-server-0lw6.onrender.com/api/health';
 
 export async function ping(fetcher = fetch) {
   const started = Date.now();

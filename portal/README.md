@@ -23,11 +23,18 @@
 | 자동 검사 | `npm run test:portal` |
 | 외부 링크를 로그아웃 상태로 확인 | `npm run check:portal-links` |
 | 공유 이미지(`public/og.png`) 다시 만들기 | `npm run og:portal` (Edge 또는 Chrome 필요) |
-| 배포 | `npm run deploy:portal` |
+| 배포 | `main`에 push (Cloudflare가 자동 배포) |
+| 비상 배포 (내 컴퓨터에서 바로 올리기) | `npm run deploy:portal` |
 
 Windows PowerShell에서 `npm.ps1` 실행이 막히면 `npm.cmd run dev:portal`처럼 실행합니다. 콘텐츠를 고친 뒤 미리보기 서버를 다시 시작하세요.
 
-배포 전 한 번 `npx --yes wrangler@4.152.0 login`으로 Cloudflare에 로그인합니다. `deploy:portal`은 검사 → 빌드 → `portal/dist` 업로드 순서로 진행합니다. 프로젝트는 이미 만들어져 있으므로 `--force` 같은 추가 옵션은 필요 없습니다.
+**배포는 GitHub 연동으로 자동입니다(2026-10-30부터).** Cloudflare Pages 프로젝트 `snu-student-collective`가 이 저장소의 `main`에 연결되어 있어, push하면 Cloudflare가 직접 검사·빌드·배포합니다. 설정(대시보드 Settings → Build):
+
+- Root directory `portal`, Build command `node --test tests/*.test.mjs && node scripts/build.mjs`, Build output `dist` (검사가 실패하면 배포하지 않음)
+- Build watch paths: `portal/*`, `workshop2/*` (회차의 `exampleDirs`로 복사하는 폴더). `exampleDirs`에 다른 폴더를 더하면 여기에도 추가하세요.
+- 변수 `NODE_VERSION` = `22`
+
+`npm run deploy:portal`은 자동 배포가 막혔을 때만 씁니다(먼저 `npx --yes wrangler@4.152.0 login`). 검사 → 빌드 → `portal/dist` 업로드 순서로 진행합니다.
 
 ## 내용 고치기
 
@@ -195,7 +202,7 @@ npx --yes wrangler@4.152.0 pages secret put LEARN_API_ORIGIN --project-name snu-
 npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-student-collective
 ```
 
-`LEARN_API_ORIGIN`은 Render 서비스 주소(예: `https://snu-learn-server.onrender.com`, 끝에 / 없음), `PROXY_SECRET`은 Render 환경값과 같은 32자 이상 값입니다. 비밀값을 넣거나 바꾼 뒤에는 `npm run deploy:portal`로 다시 배포해야 적용됩니다.
+`LEARN_API_ORIGIN`은 Render 서비스 주소(지금은 `https://snu-learn-server-0lw6.onrender.com`, 끝에 / 없음), `PROXY_SECRET`은 Render 환경값과 같은 32자 이상 값입니다(원본: 저장소에 올리지 않는 `learn-server/.env.proxy-secret`). 비밀값을 넣거나 바꾼 뒤에는 다시 배포해야 적용됩니다(Cloudflare 대시보드 Deployments에서 최근 배포의 Retry, 또는 포털 변경을 push).
 
 ### 수업 화면 만들기·고치기
 

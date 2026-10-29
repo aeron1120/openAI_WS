@@ -6,7 +6,7 @@ test('the keep-alive Worker calls the learn server health check and survives fai
   const calls = [];
   assert.equal(await ping(async url => { calls.push(url); return new Response('{}', { status: 200 }); }), 200);
   assert.deepEqual(calls, [HEALTH_URL]);
-  assert.match(HEALTH_URL, /^https:\/\/snu-learn-server\.onrender\.com\/api\/health$/);
+  assert.match(HEALTH_URL, /^https:\/\/snu-learn-server-0lw6\.onrender\.com\/api\/health$/);
   assert.equal(await ping(async () => { throw new Error('down'); }), 0);
   assert.equal(typeof worker.scheduled, 'function');
 });

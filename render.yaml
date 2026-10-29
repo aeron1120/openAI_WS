@@ -7,6 +7,10 @@ services:
     plan: free
     region: singapore
     rootDir: learn-server
+    # learn-server/가 바뀐 push만 다시 배포합니다(포털만 고친 push로 서버가 재시작되지 않도록).
+    buildFilter:
+      paths:
+        - learn-server/**
     buildCommand: npm install --omit=dev
     startCommand: node server.mjs
     healthCheckPath: /api/health
