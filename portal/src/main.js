@@ -196,16 +196,33 @@ function openWalk(box) {
     const ty = Math.min(0, Math.max(height - height * scale, height / 2 - cy));
     zoom.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
   }
-  function go(next) {
+  let shown = ''; // 지금 화면에 걸린 그림
+  async function go(next) {
     if (next < 0 || next >= steps.length) return;
     index = next;
     const step = steps[index];
+    const turn = index;
+    // 새 그림은 다 받아 둔 뒤에 바꿉니다. 받는 동안 빈 화면이나 이전 그림 위의 상자가 보이지 않게 합니다.
+    if (step.image && step.image !== shown) {
+      const ready = new Image();
+      ready.src = step.image;
+      await ready.decode().catch(() => {});
+      if (turn !== index) return; // 그사이 다른 단계로 넘어갔어요.
+    }
     layer.querySelector('.walk-count').textContent = `Step ${index + 1} / ${steps.length}`;
     layer.querySelector('.walk-progress span').style.width = `${((index + 1) / steps.length) * 100}%`;
+    // 같은 그림 안에서만 강조 상자가 미끄러지듯 옮겨 가고, 그림이 바뀌면 상자는 바로 새 자리에 놓입니다.
+    const sameImage = !!step.image && step.image === shown;
+    shot.classList.toggle('is-still', !sameImage);
     shot.classList.toggle('is-text', !step.image);
-    if (step.image) img.src = step.image;
+    if (step.image) {
+      if (!sameImage) img.src = step.image;
+      shown = step.image;
     // 그림이 없는 단계는 왜 그림이 없는지 짧게 알려줍니다(기본: 로그인한 뒤의 화면).
-    else shot.querySelector('.walk-noimg').textContent = step.blank ?? '🔒 로그인한 뒤의 화면이에요';
+    } else {
+      shot.querySelector('.walk-noimg').textContent = step.blank ?? '🔒 로그인한 뒤의 화면이에요';
+      shown = '';
+    }
     mark.hidden = !step.box;
     if (step.box) {
       const [x, y, w, h] = step.box;

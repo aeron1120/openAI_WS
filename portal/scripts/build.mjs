@@ -133,6 +133,8 @@ export function validateContent(content) {
     for (const key of ['start', 'end']) {
       if (!s[key] || Number.isNaN(Date.parse(s[key])) || !/[+-]\d\d:\d\d$|Z$/.test(s[key])) problems.push(`studio.sessions[${i}].${key} 형식 확인 (예: 2026-11-02T19:00:00+09:00, 시간대 포함)`);
     }
+    // 세션 슬라이드는 학생용 Google 슬라이드 주소만 받습니다.
+    if (s.slides != null && !/^https:\/\/docs\.google\.com\/presentation\/d\/[A-Za-z0-9_-]{20,}\//.test(s.slides)) problems.push(`studio.sessions[${i}].slides: docs.google.com/presentation/d/<ID>/… 주소를 적어 주세요.`);
   });
   content.projects.forEach((p, i) => p.links?.forEach((l, j) => checkUrl(l.url, `projects[${i}].links[${j}]`)));
   if (problems.length) throw new Error(`콘텐츠를 확인해 주세요:\n- ${problems.join('\n- ')}`);

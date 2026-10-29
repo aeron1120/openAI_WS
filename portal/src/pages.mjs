@@ -404,6 +404,7 @@ function sessionRow(s, timeZone) {
   return h`<li class="session${done ? ' is-done' : ''}">
   <p class="session-time">${formatSchedule(s, timeZone)}${done ? h` <span class="badge badge-done">진행 완료</span>` : s.status === 'live' ? h` <span class="badge badge-open">진행 중</span>` : ''}</p>
   <p class="hint">${[s.note, s.topic, done ? null : s.place ?? '장소 추후 안내'].filter(Boolean).join(' · ')}</p>
+  ${s.slides ? h`<p class="hint">${link(s.slides, '세션 슬라이드')}</p>` : ''}
 </li>`;
 }
 
@@ -424,6 +425,7 @@ ${next?.topic ? h`<section class="block reveal next-session">
   <p>${next.detail}</p>
   ${next.call ? h`<p class="next-call">${next.call}</p>` : ''}
   <p class="hint">${formatSchedule(next, site.timeZone)} · ${[next.note, next.place ?? '장소 추후 안내'].filter(Boolean).join(' · ')}</p>
+  ${next.slides ? h`<div class="actions">${link(next.slides, '📑 세션 슬라이드 보기', 'btn btn-primary')}</div>` : ''}
 </section>` : ''}
 <section class="block reveal two">
   <div class="box">

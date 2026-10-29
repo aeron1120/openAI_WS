@@ -11,11 +11,13 @@ export const studio = {
   timingNote: '시간은 주마다 달라질 수 있어요. 회차별 시간은 일정에서 확인해 주세요.',
   // 상태와 배지는 sessions에서 다음 회차를 찾아 자동으로 정합니다.
   event: { status: 'tbd', start: null, end: null, place: null },
-  // 회차: { start, end, place, note, topic?, detail?, tag?, call? } — tag는 배지, call은 강조 문장으로 표시
+  // 회차: { start, end, place, note, topic?, detail?, tag?, call?, slides? } — tag는 배지, call은 강조 문장으로 표시
+  // slides: 학생용 Google 슬라이드 주소('링크가 있는 모든 사용자 · 뷰어'로 공유). 있으면 '세션 슬라이드' 버튼이 생깁니다.
   sessions: [
     { start: '2026-10-26T19:00:00+09:00', end: '2026-10-26T20:00:00+09:00', place: null, note: 'Workshop 1이 끝난 뒤' },
     {
       start: '2026-11-02T19:00:00+09:00', end: '2026-11-02T20:00:00+09:00', place: null, note: 'Workshop 2가 끝난 뒤',
+      slides: 'https://docs.google.com/presentation/d/1TwJDjzG1Oo24YirHCgSs3BGoOPhncrmkVkVTDjmOpCQ/edit?usp=sharing',
       topic: 'VS Code 세팅 · GitHub·Cloudflare 실습 Q&A',
       detail: 'VS Code를 함께 세팅하고, Workshop 2의 GitHub·Cloudflare 실습 예제를 따라가며 생긴 문제를 질문하고 해결해요.',
       tag: '처음이라면 추천',

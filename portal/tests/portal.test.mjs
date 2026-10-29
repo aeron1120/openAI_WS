@@ -330,10 +330,17 @@ test('studio shows weekly sessions and promotes the next one until it ends', asy
   assert.doesNotMatch(page, /필수 참여|꼭 참여/);
   assert.match(page, /2026년 10월 26일 \(월\) 19:00–20:00[\s\S]*?진행 완료/);
   assert.match(await before.read('/'), /다음 11\/2 \(월\) 19:00 · VS Code 세팅/);
+  // 세션 슬라이드: 다음 세션 상자와 일정 목록 양쪽에서 열 수 있고, 세션이 끝나도 목록에 남습니다.
+  const deck = 'https://docs.google.com/presentation/d/1TwJDjzG1Oo24YirHCgSs3BGoOPhncrmkVkVTDjmOpCQ/edit?usp=sharing';
+  assert.ok(page.includes(`href="${deck}"`) && page.includes('세션 슬라이드 보기'));
   const after = await build(t, defaultContent, Date.parse('2026-11-02T20:00:00+09:00'));
   const done = await after.read('/studio/');
   assert.doesNotMatch(done, /다음 세션/);
   assert.match(done, /badge-scheduled">매주 월요일/);
+  assert.ok(done.includes(`href="${deck}"`));
+  const bad = clone(defaultContent);
+  bad.studio.sessions[1].slides = 'https://example.com/slides';
+  assert.throws(() => validateContent(bad), /slides/);
 });
 
 test('Workshop 2 sign-up links to Luma until the event starts', async t => {
