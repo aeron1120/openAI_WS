@@ -272,15 +272,25 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
             slideId: 'h2ea000745df279bf_2_421',
             taskSlides: ['ws1_task_20261029_map_1', 'ws1_task_20261029_map_2', 'ws1_task_20261029_map_3'],
             hintSlides: ['ws1_task_20261029_map_1', 'ws1_task_20261029_map_1'],
-            needs: '[Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/load-maps-js-api) 사용 설정과 지도 키. 결제 계정 설정과 사용량에 따른 비용을 먼저 확인하세요.',
+            needs: '[Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/load-maps-js-api)를 쓸 지도 키. 실습은 결제 없이 받는 [지도 데모 키](https://developers.google.com/maps/demo-key?hl=ko)(개인 Gmail 계정)로 할 수 있어요. 정식 키는 결제 계정을 연결해야 하고 사용량에 따라 비용이 생길 수 있어요.',
             prompt: `starter의 지도·위치정보 영역에 Google 지도를 구현해줘.
 서울대학교 정문 위치에 마커를 표시하고,
 마커를 누르면 장소 이름이 보이게 해줘.
 docs/MAPS.md를 참고해서 필요한 API 설정과 비용 발생 가능성을 먼저 설명해줘.
 좌표는 확인한 실제 위치를 사용하고, 설정할 항목과 확인 방법을 안내해줘.`,
             guide: file('guides/MAP.md'),
+            walkthrough: {
+              title: '결제 없이 지도 데모 키 받기',
+              steps: [
+                { image: '/images/walk/map/01-demo.webp', box: [67.02, 51.73, 12.24, 6], text: '[지도 데모 키 페이지](https://developers.google.com/maps/demo-key?hl=ko)를 열고 데모 키 가져오기를 눌러요.', note: '결제 정보 없이 받는 무료 테스트용 키예요. 하루 사용량을 넘으면 다음 날까지 멈출 뿐 요금은 나오지 않아요.' },
+                { image: '/images/walk/map/02-login.webp', box: [51.4, 34.6, 30.6, 7.5], text: '개인 Gmail 계정으로 로그인해요.', note: '학교·회사에서 받은 Google Workspace 계정으로는 데모 키를 받을 수 없어요.' },
+                { text: '지도 데모 키 약관을 읽고 동의하면 키가 바로 보여요. 키를 복사해요.', note: '키를 다시 찾는 방법이 적힌 메일도 와요. 나중에는 Google Cloud 콘솔에서 찾을 수 있어요.', blank: '🔑 약관에 동의하면 키가 보여요' },
+                { image: '/images/walk/codex/03-codex-home.webp', box: [34.2, 84.4, 51.6, 11.6], text: '지도 요청문 끝에 “지도 키는 지도 데모 키를 쓸 거야”를 덧붙여 Codex에 보내요. 키는 Codex가 알려준 비공개 설정 파일에 직접 넣어요.', note: '키는 대화창에 붙이지 않아요. Map ID가 필요하면 테스트용 DEMO_MAP_ID를 쓸 수 있는지 Codex가 확인해 줘요.' },
+                { text: '서버를 다시 켜고 새로고침해 서울대학교 정문에 마커가 보이는지, 마커를 누르면 장소 이름이 나오는지 확인해요.', note: '회색 화면이나 오류가 나오면 개발자 도구(Windows F12, Mac ⌥⌘I)의 Console 오류 문구를 키는 가린 채 Codex에 보여줘요.', blank: '🗺️ 내 화면에서 지도와 마커를 확인해요' }
+              ]
+            },
             hints: [
-              `지도에는 Google Cloud 프로젝트, 결제 계정, Maps JavaScript API 사용 설정, 브라우저용 지도 키가 필요해요. 결제 계정을 연결해야 하고 사용량에 따라 비용이 생길 수 있으니, 시작 전에 [지도 설정 문서](${file('docs/MAPS.md')})를 확인하세요.`,
+              `지도에는 Maps JavaScript API를 쓸 브라우저용 지도 키가 필요해요. 실습은 결제 없이 받는 [지도 데모 키](https://developers.google.com/maps/demo-key?hl=ko)로 충분해요. 정식 키는 결제 계정을 연결해야 하고 사용량에 따라 비용이 생길 수 있으니, 그때는 [지도 설정 문서](${file('docs/MAPS.md')})를 먼저 확인하세요.`,
               '[Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 선택 → 결제 계정 연결 → API 및 서비스 → 라이브러리에서 Maps JavaScript API 사용 → 사용자 인증 정보 → API 키 만들기. 키를 만든 뒤 꼭 제한을 걸어요. 애플리케이션 제한은 웹사이트(HTTP 리퍼러)에 http://localhost:5173/*, API 제한은 Maps JavaScript API만 고릅니다.',
               `1. [Google Cloud Console](https://console.cloud.google.com/)에 로그인하고 새 프로젝트를 만듭니다.
 2. 왼쪽 메뉴 결제에서 결제 계정을 연결합니다. 예산 알림도 함께 설정해 두면 좋아요.
@@ -297,7 +307,7 @@ docs/MAPS.md를 참고해서 필요한 API 설정과 비용 발생 가능성을 
         verify: ['실제 응답을 받았는지 확인한다 — 날씨는 요청한 지역·날짜·시간, 로그인은 내 계정 이름, 지도는 의도한 위치의 마커.', '실패했을 때 실패 상태가 보인다.'],
         stuck: ['인증키·비밀번호는 AI 대화, 공개 HTML/JavaScript, GitHub에 넣지 마세요. Codex가 안내한 로컬 설정 파일에 직접 입력합니다.', '로그인·지도는 지금 접속한 주소가 외부 서비스에 등록한 주소와 같은지 확인하세요.'],
         hints: [
-          `처음 받은 기초 틀에는 서버 기능이 없어요. 그래서 어떤 기능이든 외부 서비스에서 키 만들기 → Codex가 서버와 화면 코드 추가 → 키를 내 컴퓨터의 비공개 설정 파일에 직접 입력 → 실제 응답 확인 순서로 진행돼요. 지도는 결제 계정 연결이 필요하다는 점도 고를 때 참고하세요.`,
+          `처음 받은 기초 틀에는 서버 기능이 없어요. 그래서 어떤 기능이든 외부 서비스에서 키 만들기 → Codex가 서버와 화면 코드 추가 → 키를 내 컴퓨터의 비공개 설정 파일에 직접 입력 → 실제 응답 확인 순서로 진행돼요. 지도는 결제 없이 지도 데모 키로 시작할 수 있지만 개인 Gmail 계정이 필요하다는 점도 고를 때 참고하세요.`,
           `키는 대화창에 붙여 넣지 말고, Codex가 알려준 설정 파일을 VS Code에서 열어 직접 입력·저장해요. .env나 .dev.vars처럼 [.gitignore](${file('.gitignore')})에 들어 있어 GitHub에 올라가지 않는 파일인지 Codex에 확인해 달라고 하세요. 설정을 바꾼 뒤에는 서버를 Ctrl+C로 끄고 다시 켜야 새 값이 적용되는 경우가 많아요.`,
           `1. 기능 하나를 펼쳐 ‘먼저 필요한 것’을 읽습니다.
 2. ‘자세한 안내’ 링크에서 준비 항목과 동작 확인 순서를 확인합니다.
