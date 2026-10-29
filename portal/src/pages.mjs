@@ -101,9 +101,7 @@ function showcaseCard(showcase) {
 function studioStrip(studio) {
   return h`<a class="strip reveal" href="/studio/">
   <span class="dot dot-navy" aria-hidden="true"></span>
-  <span><strong>${studio.title}</strong> ${studio.next?.topic
-    ? h`다음 ${studio.next.badge} · ${studio.next.topic}${studio.next.tag ? h` <span class="badge badge-open">${studio.next.tag}</span>` : ''}`
-    : studio.message}</span>
+  <span><strong>${studio.title}</strong> ${studio.next?.topic ? h`${studio.next.badge} · ${studio.next.topic}` : studio.message}</span>
   <span class="strip-arrow" aria-hidden="true">→</span>
 </a>`;
 }
@@ -144,7 +142,6 @@ function nextWorkshop(content) {
   </div>
   <div class="next-ws-grid">
     <div class="next-card cal-card">
-      <p class="next-card-label"><span aria-hidden="true">📅</span> 언제</p>
       <p class="next-card-main">${scheduleText(w, site.timeZone)}</p>
       ${monthCalendar(w.event, site.timeZone, eventTitle(w))}
       <div class="next-card-actions">
@@ -153,7 +150,6 @@ function nextWorkshop(content) {
       </div>
     </div>
     <div class="next-card map-card">
-      <p class="next-card-label"><span aria-hidden="true">📍</span> 어디서</p>
       <p class="next-card-main">${placeText(w)}</p>
       ${map ? mapBlock(w, map) : ''}
     </div>

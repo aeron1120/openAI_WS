@@ -346,7 +346,9 @@ test('studio shows weekly sessions and promotes the next one until it ends', asy
   assert.match(page, /못 와도 다음 워크숍을 따라가는 데 문제없어요/);
   assert.doesNotMatch(page, /필수 참여|꼭 참여/);
   assert.match(page, /2026년 10월 26일 \(월\) 19:00–20:00[\s\S]*?진행 완료/);
-  assert.match(await before.read('/'), /다음 11\/2 \(월\) 19:00 · VS Code 세팅/);
+  const homeStrip = (await before.read('/')).match(/<a class="strip[\s\S]*?<\/a>/)[0];
+  assert.match(homeStrip, /<\/strong> 11\/2 \(월\) 19:00 · VS Code 세팅/);
+  assert.doesNotMatch(homeStrip, /처음이라면 추천/, 'the home strip stays to one line');
   // 세션 슬라이드: 다음 세션 상자와 일정 목록 양쪽에서 열 수 있고, 세션이 끝나도 목록에 남습니다.
   const deck = 'https://docs.google.com/presentation/d/1TwJDjzG1Oo24YirHCgSs3BGoOPhncrmkVkVTDjmOpCQ/edit?usp=sharing';
   assert.ok(page.includes(`href="${deck}"`) && page.includes('세션 슬라이드 보기'));

@@ -326,11 +326,8 @@ function showToday(cal) {
     }
     cal.tBodies[0].innerHTML = rows.join('');
     const a = new Date(first), b = new Date(last);
-    const name = a.getUTCMonth() === b.getUTCMonth()
-      ? `${a.getUTCFullYear()}년 ${a.getUTCMonth() + 1}월`
-      : a.getUTCFullYear() === b.getUTCFullYear()
-        ? `${a.getUTCFullYear()}년 ${a.getUTCMonth() + 1}월 – ${b.getUTCMonth() + 1}월`
-        : `${a.getUTCFullYear()}년 ${a.getUTCMonth() + 1}월 – ${b.getUTCFullYear()}년 ${b.getUTCMonth() + 1}월`;
+    // 연도는 바로 위 날짜 줄에 있으니 달만 적습니다.
+    const name = a.getUTCMonth() === b.getUTCMonth() ? `${a.getUTCMonth() + 1}월` : `${a.getUTCMonth() + 1}월 – ${b.getUTCMonth() + 1}월`;
     cal.caption.firstChild.textContent = name;
   }
   for (const cell of cal.querySelectorAll('td[data-date]')) {

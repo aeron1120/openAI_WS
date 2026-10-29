@@ -75,7 +75,7 @@ small { color: var(--muted); }
 .nav-group a:hover { background: #f4f6fb; color: var(--ink); }
 .nav-group a[aria-current="page"] { background: var(--navy-soft); color: var(--navy); box-shadow: inset 3px 0 0 var(--navy); }
 .nav-label { display: flex; flex-direction: column; line-height: 1.3; }
-.nav-label small { font-size: .76rem; font-weight: 500; }
+.nav-label small { font-size: .8rem; font-weight: 500; }
 .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
 .dot-green { background: #16a34a; } .dot-blue { background: #2563eb; } .dot-purple { background: #7c3aed; }
 .dot-orange { background: #ea8a0c; } .dot-rose { background: #e11d48; } .dot-navy { background: var(--navy); }
@@ -214,7 +214,8 @@ small { color: var(--muted); }
 
 /* 홈의 다음 워크숍: 왼쪽 달력, 오른쪽 지도 (좁은 화면은 위아래) */
 .next-ws { margin-top: 28px; padding: 20px 16px; border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 22px; background: linear-gradient(180deg, var(--c-soft), var(--surface) 60%); }
-.next-ws h2 { margin: 2px 0 6px; font-size: clamp(1.25rem, 3.6vw, 1.6rem); }
+.next-ws h2 { margin: 4px 0 6px; font-size: clamp(1.45rem, 4.2vw, 2rem); }
+.next-ws .track-kicker { font-size: .9rem; }
 .next-ws h2 a { color: var(--ink); text-decoration: none; }
 .next-ws h2 a:hover { color: var(--c-btn); text-decoration: underline; }
 .next-ws .track-desc { margin: 0; }
@@ -225,10 +226,10 @@ small { color: var(--muted); }
 .next-card { display: flex; flex-direction: column; min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s; }
 @media (hover: hover) { .next-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(17, 26, 46, .08); } }
 .next-card-label { margin: 0; color: var(--c-btn); font-size: .78rem; font-weight: 800; letter-spacing: .02em; }
-.next-card-main { margin: 2px 0 12px; font-weight: 750; }
+.next-card-main { margin: 0 0 14px; font-size: 1.14rem; font-weight: 800; line-height: 1.45; }
 .next-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .cal { width: 100%; border-collapse: separate; border-spacing: 0 2px; table-layout: fixed; text-align: center; font-size: .86rem; font-variant-numeric: tabular-nums; }
-.cal caption { margin-bottom: 6px; text-align: left; font-weight: 800; }
+.cal caption { margin-bottom: 6px; text-align: left; color: var(--muted); font-size: .92rem; font-weight: 700; }
 .cal th { padding: 2px 0 4px; color: var(--muted); font-size: .72rem; font-weight: 700; }
 .cal th:first-child, .cal td:first-child { color: #c2410c; }
 .cal th:last-child, .cal td:last-child { color: #1d4ed8; }
