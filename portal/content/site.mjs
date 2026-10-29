@@ -14,8 +14,8 @@ export const site = {
   },
   supportNotice: '운영자는 OpenAI Student Collective 프로그램을 통해 활동비 등 지원을 받습니다.',
   links: {
-    openChat: null, // 오픈채팅 주소가 확정되면 'https://open.kakao.com/...' 형식으로 입력
-    contact: null, // 협력 문의 주소(폼·이메일 링크)가 확정되면 입력. mailto: 도 가능
+    openChat: 'https://open.kakao.com/o/pqDgx8Pi', // 오픈채팅 주소 ('https://open.kakao.com/...' 형식)
+    contact: 'https://open.kakao.com/o/pqDgx8Pi', // 협력 문의 주소(폼·이메일 링크도 가능, mailto: 도 가능). 지금은 오픈채팅으로 받아요
     repository: 'https://github.com/aeron1120/openAI_WS'
   }
 };

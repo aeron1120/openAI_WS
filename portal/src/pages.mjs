@@ -496,7 +496,7 @@ export function aboutPage(content) {
   ${isUsableUrl(site.links.contact)
     ? h`<div class="actions">${link(site.links.contact, '협력 문의하기', 'btn btn-primary')}</div>`
     : h`<p class="empty">협력 문의 채널은 준비 중이에요. 확정되면 이 자리에 안내합니다.</p>`}
-  ${isUsableUrl(site.links.openChat) ? h`<p>${link(site.links.openChat, '학생 커뮤니티 오픈채팅')}</p>` : ''}
+  ${isUsableUrl(site.links.openChat) && site.links.openChat !== site.links.contact ? h`<p>${link(site.links.openChat, '학생 커뮤니티 오픈채팅')}</p>` : ''}
 </section>`;
 }
 

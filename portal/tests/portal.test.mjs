@@ -201,8 +201,15 @@ test('workshops link the student slides, never the presenter deck', async t => {
 });
 
 test('open chat and contact buttons appear only when their links are set', async t => {
-  const without = await build(t);
+  const empty = clone(defaultContent);
+  empty.site.links.openChat = null;
+  empty.site.links.contact = null;
+  const without = await build(t, empty);
   assert.doesNotMatch(await without.read('/about/'), /협력 문의하기|오픈채팅/);
+  // 협력 문의를 오픈채팅으로 받으면(같은 주소) 문의 버튼 하나만 보입니다.
+  const same = await (await build(t)).read('/about/');
+  assert.match(same, /href="https:\/\/open\.kakao\.com\/o\/pqDgx8Pi"[^>]*>협력 문의하기/);
+  assert.doesNotMatch(same, /학생 커뮤니티 오픈채팅/);
   const content = clone(defaultContent);
   content.site.links.openChat = 'https://open.kakao.com/o/example';
   content.site.links.contact = 'mailto:team@example.com';
