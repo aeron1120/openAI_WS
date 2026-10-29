@@ -52,11 +52,7 @@ export const workshops = [
       '만들고 싶은 서비스 한 문장',
       'Node.js 20 이상 (서버로 실행할 때만)'
     ],
-    preview: {
-      image: '/images/examples/ws1-starter.png',
-      alt: '기초 틀 화면. 로그인, 지도·위치정보, 날씨 박스가 “아직 연결 전” 상태로 비어 있다.',
-      caption: '내가 직접 고치는 기초 틀. 기능 자리만 비어 있어요.'
-    },
+    preview: null,
     video: null,
     resources: [
       { label: '기초 틀 받기', kind: 'starter', audience: 'student', url: repo, checked: '2026-10-27', note: 'GitHub → Code → Download ZIP' },
