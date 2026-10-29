@@ -207,199 +207,275 @@
   },
   "1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE": {
     "workshop": 2,
-    "fetched": "2026-10-28T18:28:38.396Z",
+    "fetched": "2026-10-29T02:47:53.100614+00:00",
     "pages": [
       {
         "id": "ws2_activity_20261019_01",
-        "file": "ws2_activity_20261019_01.svg"
+        "file": "ws2_activity_20261019_01.webp"
       },
       {
         "id": "ws2_selflearn_20261028_02",
-        "file": "ws2_selflearn_20261028_02.svg"
+        "file": "ws2_selflearn_20261028_02.webp"
       },
       {
         "id": "ws2_selflearn_20261028_03",
-        "file": "ws2_selflearn_20261028_03.svg"
+        "file": "ws2_selflearn_20261028_03.webp"
       },
       {
         "id": "ws2_selflearn_20261028_04",
-        "file": "ws2_selflearn_20261028_04.svg"
+        "file": "ws2_selflearn_20261028_04.webp"
       },
       {
         "id": "ws2_selflearn_20261028_05",
-        "file": "ws2_selflearn_20261028_05.svg"
+        "file": "ws2_selflearn_20261028_05.webp"
       },
       {
         "id": "ws2_selflearn_20261028_06",
-        "file": "ws2_selflearn_20261028_06.svg"
+        "file": "ws2_selflearn_20261028_06.webp"
       },
       {
         "id": "ws2_selflearn_20261028_07",
-        "file": "ws2_selflearn_20261028_07.svg"
+        "file": "ws2_selflearn_20261028_07.webp"
       },
       {
         "id": "ws2_selflearn_20261028_08",
-        "file": "ws2_selflearn_20261028_08.svg"
+        "file": "ws2_selflearn_20261028_08.webp"
       },
       {
         "id": "ws2_selflearn_20261028_09",
-        "file": "ws2_selflearn_20261028_09.svg"
+        "file": "ws2_selflearn_20261028_09.webp"
       },
       {
         "id": "ws2_selflearn_20261028_10",
-        "file": "ws2_selflearn_20261028_10.svg"
+        "file": "ws2_selflearn_20261028_10.webp"
       },
       {
         "id": "ws2_selflearn_20261028_11",
-        "file": "ws2_selflearn_20261028_11.svg"
+        "file": "ws2_selflearn_20261028_11.webp"
       },
       {
         "id": "ws2_selflearn_20261028_12",
-        "file": "ws2_selflearn_20261028_12.svg"
+        "file": "ws2_selflearn_20261028_12.webp"
       },
       {
         "id": "ws2_selflearn_20261028_13",
-        "file": "ws2_selflearn_20261028_13.svg"
+        "file": "ws2_selflearn_20261028_13.webp"
       },
       {
         "id": "ws2_selflearn_20261028_14",
-        "file": "ws2_selflearn_20261028_14.svg"
+        "file": "ws2_selflearn_20261028_14.webp"
       },
       {
         "id": "ws2_selflearn_20261028_15",
-        "file": "ws2_selflearn_20261028_15.svg"
+        "file": "ws2_selflearn_20261028_15.webp"
       },
       {
         "id": "ws2_selflearn_20261028_16",
-        "file": "ws2_selflearn_20261028_16.svg"
+        "file": "ws2_selflearn_20261028_16.webp"
       },
       {
         "id": "ws2_selflearn_20261028_17",
-        "file": "ws2_selflearn_20261028_17.svg"
+        "file": "ws2_selflearn_20261028_17.webp"
       },
       {
         "id": "ws2_selflearn_20261028_18",
-        "file": "ws2_selflearn_20261028_18.svg"
+        "file": "ws2_selflearn_20261028_18.webp"
+      },
+      {
+        "id": "ws2_task_20261029_deploy_1",
+        "file": "ws2_task_20261029_deploy_1.webp"
+      },
+      {
+        "id": "ws2_task_20261029_deploy_2",
+        "file": "ws2_task_20261029_deploy_2.webp"
+      },
+      {
+        "id": "ws2_task_20261029_deploy_3",
+        "file": "ws2_task_20261029_deploy_3.webp"
+      },
+      {
+        "id": "ws2_task_20261029_deploy_4",
+        "file": "ws2_task_20261029_deploy_4.webp"
       },
       {
         "id": "ws2_selflearn_20261028_19",
-        "file": "ws2_selflearn_20261028_19.svg"
+        "file": "ws2_selflearn_20261028_19.webp"
       },
       {
         "id": "ws2_selflearn_20261028_20",
-        "file": "ws2_selflearn_20261028_20.svg"
+        "file": "ws2_selflearn_20261028_20.webp"
       },
       {
         "id": "ws2_selflearn_20261028_21",
-        "file": "ws2_selflearn_20261028_21.svg"
+        "file": "ws2_selflearn_20261028_21.webp"
       },
       {
         "id": "ws2_selflearn_20261028_22",
-        "file": "ws2_selflearn_20261028_22.svg"
+        "file": "ws2_selflearn_20261028_22.webp"
       },
       {
         "id": "ws2_selflearn_20261028_23",
-        "file": "ws2_selflearn_20261028_23.svg"
+        "file": "ws2_selflearn_20261028_23.webp"
       },
       {
         "id": "ws2_selflearn_20261028_24",
-        "file": "ws2_selflearn_20261028_24.svg"
+        "file": "ws2_selflearn_20261028_24.webp"
       },
       {
         "id": "ws2_selflearn_20261028_25",
-        "file": "ws2_selflearn_20261028_25.svg"
+        "file": "ws2_selflearn_20261028_25.webp"
       },
       {
         "id": "ws2_activity_20261019_14",
-        "file": "ws2_activity_20261019_14.svg"
+        "file": "ws2_activity_20261019_14.webp"
+      },
+      {
+        "id": "ws2_task_20261029_repo_1",
+        "file": "ws2_task_20261029_repo_1.webp"
+      },
+      {
+        "id": "ws2_task_20261029_repo_2",
+        "file": "ws2_task_20261029_repo_2.webp"
+      },
+      {
+        "id": "ws2_task_20261029_repo_3",
+        "file": "ws2_task_20261029_repo_3.webp"
       },
       {
         "id": "ws2_selflearn_20261028_26",
-        "file": "ws2_selflearn_20261028_26.svg"
+        "file": "ws2_selflearn_20261028_26.webp"
       },
       {
         "id": "ws2_selflearn_20261028_27",
-        "file": "ws2_selflearn_20261028_27.svg"
+        "file": "ws2_selflearn_20261028_27.webp"
       },
       {
         "id": "ws2_selflearn_20261028_28",
-        "file": "ws2_selflearn_20261028_28.svg"
+        "file": "ws2_selflearn_20261028_28.webp"
       },
       {
         "id": "ws2_selflearn_20261028_29",
-        "file": "ws2_selflearn_20261028_29.svg"
+        "file": "ws2_selflearn_20261028_29.webp"
+      },
+      {
+        "id": "ws2_task_20261029_connect_1",
+        "file": "ws2_task_20261029_connect_1.webp"
+      },
+      {
+        "id": "ws2_task_20261029_connect_2",
+        "file": "ws2_task_20261029_connect_2.webp"
+      },
+      {
+        "id": "ws2_task_20261029_connect_3",
+        "file": "ws2_task_20261029_connect_3.webp"
       },
       {
         "id": "ws2_selflearn_20261028_31",
-        "file": "ws2_selflearn_20261028_31.svg"
+        "file": "ws2_selflearn_20261028_31.webp"
       },
       {
         "id": "ws2_selflearn_20261028_32",
-        "file": "ws2_selflearn_20261028_32.svg"
+        "file": "ws2_selflearn_20261028_32.webp"
       },
       {
         "id": "ws2_selflearn_20261028_33",
-        "file": "ws2_selflearn_20261028_33.svg"
+        "file": "ws2_selflearn_20261028_33.webp"
       },
       {
         "id": "ws2_selflearn_20261028_34",
-        "file": "ws2_selflearn_20261028_34.svg"
+        "file": "ws2_selflearn_20261028_34.webp"
       },
       {
         "id": "ws2_selflearn_20261028_35",
-        "file": "ws2_selflearn_20261028_35.svg"
+        "file": "ws2_selflearn_20261028_35.webp"
       },
       {
         "id": "ws2_selflearn_20261028_36",
-        "file": "ws2_selflearn_20261028_36.svg"
+        "file": "ws2_selflearn_20261028_36.webp"
       },
       {
         "id": "ws2_activity_20261019_07",
-        "file": "ws2_activity_20261019_07.svg"
+        "file": "ws2_activity_20261019_07.webp"
       },
       {
         "id": "ws2_selflearn_20261028_37",
-        "file": "ws2_selflearn_20261028_37.svg"
+        "file": "ws2_selflearn_20261028_37.webp"
+      },
+      {
+        "id": "ws2_task_20261029_preview_1",
+        "file": "ws2_task_20261029_preview_1.webp"
+      },
+      {
+        "id": "ws2_task_20261029_preview_2",
+        "file": "ws2_task_20261029_preview_2.webp"
+      },
+      {
+        "id": "ws2_task_20261029_preview_3",
+        "file": "ws2_task_20261029_preview_3.webp"
+      },
+      {
+        "id": "ws2_task_20261029_preview_4",
+        "file": "ws2_task_20261029_preview_4.webp"
       },
       {
         "id": "ws2_selflearn_20261028_38",
-        "file": "ws2_selflearn_20261028_38.svg"
+        "file": "ws2_selflearn_20261028_38.webp"
       },
       {
         "id": "ws2_selflearn_20261028_39",
-        "file": "ws2_selflearn_20261028_39.svg"
+        "file": "ws2_selflearn_20261028_39.webp"
       },
       {
         "id": "ws2_activity_20261019_17",
-        "file": "ws2_activity_20261019_17.svg"
+        "file": "ws2_activity_20261019_17.webp"
       },
       {
         "id": "ws2_selflearn_20261028_40",
-        "file": "ws2_selflearn_20261028_40.svg"
+        "file": "ws2_selflearn_20261028_40.webp"
       },
       {
         "id": "ws2_selflearn_20261028_41",
-        "file": "ws2_selflearn_20261028_41.svg"
+        "file": "ws2_selflearn_20261028_41.webp"
+      },
+      {
+        "id": "ws2_task_20261029_release_1",
+        "file": "ws2_task_20261029_release_1.webp"
+      },
+      {
+        "id": "ws2_task_20261029_release_2",
+        "file": "ws2_task_20261029_release_2.webp"
+      },
+      {
+        "id": "ws2_task_20261029_release_3",
+        "file": "ws2_task_20261029_release_3.webp"
+      },
+      {
+        "id": "ws2_task_20261029_release_4",
+        "file": "ws2_task_20261029_release_4.webp"
+      },
+      {
+        "id": "ws2_task_20261029_release_5",
+        "file": "ws2_task_20261029_release_5.webp"
       },
       {
         "id": "ws2_selflearn_20261028_42",
-        "file": "ws2_selflearn_20261028_42.svg"
+        "file": "ws2_selflearn_20261028_42.webp"
       },
       {
         "id": "ws2_selflearn_20261028_43",
-        "file": "ws2_selflearn_20261028_43.svg"
+        "file": "ws2_selflearn_20261028_43.webp"
       },
       {
         "id": "ws2_selflearn_20261028_44",
-        "file": "ws2_selflearn_20261028_44.svg"
+        "file": "ws2_selflearn_20261028_44.webp"
       },
       {
         "id": "ws2_selflearn_20261028_46",
-        "file": "ws2_selflearn_20261028_46.svg"
+        "file": "ws2_selflearn_20261028_46.webp"
       },
       {
         "id": "ws2_selflearn_20261028_47",
-        "file": "ws2_selflearn_20261028_47.svg"
+        "file": "ws2_selflearn_20261028_47.webp"
       }
     ]
   }

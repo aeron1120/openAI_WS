@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { defaultContent, validateContent } from '../scripts/build.mjs';
 import { lessonPage } from '../src/learn-pages.mjs';
 import { workshopPage } from '../src/pages.mjs';
@@ -12,6 +13,35 @@ test('each Workshop 1 assignment has its own pages with a readable transcript, i
   assert.equal(new Set(allIds).size, 17, 'no question or feature shares unrelated pages');
   assert.deepEqual(w.missions.map(m => m.taskSlides.length), [2, 3, 2, 1]);
   for (const id of allIds) assert.ok(defaultContent.transcripts[id]?.text.length > 50, `${id} has a transcript`);
+});
+
+test('Workshop 2 keeps 48 lecture pages and bounds five assignments to their own 19 practice pages', async () => {
+  const w = defaultContent.workshops[1];
+  const deckId = '1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE';
+  const deck = defaultContent.decks[deckId];
+  const ids = w.missions.flatMap(m => m.taskSlides);
+  assert.equal(deck.pages.length, 67);
+  assert.equal(deck.pages.filter(p => !p.id.startsWith('ws2_task_')).length, 48);
+  assert.deepEqual(w.missions.map(m => m.taskSlides.length), [4, 3, 3, 4, 5]);
+  assert.equal(new Set(ids).size, 19);
+  for (const m of w.missions) {
+    assert.equal(m.hintSlides.length, m.hints.length);
+    assert.ok(m.hintSlides.every(id => m.taskSlides.includes(id)));
+    for (const id of m.taskSlides) {
+      assert.ok(defaultContent.transcripts[id]?.text.length > 50);
+      const page = deck.pages.find(p => p.id === id);
+      const bytes = await readFile(new URL(`../slides/${deckId}/${page.file}`, import.meta.url));
+      assert.equal(bytes.subarray(8, 12).toString(), 'WEBP');
+    }
+  }
+  const html = String(lessonPage(defaultContent, w));
+  assert.match(html, /data-slide-jump="ws2_task_20261029_release_4"/);
+  assert.match(html, /data-deck-mode="task" aria-pressed="true"/);
+  const bad = structuredClone(defaultContent);
+  bad.workshops[1].missions[0].hintSlides[0] = w.missions[4].slideId;
+  assert.throws(() => validateContent(bad), /hintSlides/);
+  const zip = await readFile(new URL('../public/downloads/workshop2-site.zip', import.meta.url));
+  assert.equal(zip.subarray(0, 2).toString(), 'PK');
 });
 
 test('the lesson deck offers the page text and hints jump to their own task pages', () => {

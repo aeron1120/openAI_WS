@@ -53,7 +53,7 @@ test('internal links resolve, no placeholder links, and share metadata uses the 
       for (const [, href] of html.matchAll(/(?:href|src)="(\/[^"]*)"/g)) {
         const clean = href.split(/[?#]/)[0];
         // 공용 파일(css·js·이미지)은 루트에, 페이지와 예제는 같은 묶음 안에 있어야 합니다.
-        const shared = /^\/(styles\.css|main\.js|home\.js|learn\.js|questions\.js|admin\.js|favicon\.svg|og\.png|images\/)/.test(clean);
+        const shared = /^\/(styles\.css|main\.js|home\.js|learn\.js|questions\.js|admin\.js|favicon\.svg|og\.png|images\/|downloads\/)/.test(clean);
         const file = path.join(shared ? outDir : root, clean, clean.endsWith('/') ? 'index.html' : '');
         assert.ok(await exists(file), `${path.relative(outDir, root) || '/'}${page} → ${href} does not exist`);
       }
@@ -355,8 +355,8 @@ test('start checks come with a step-by-step help that needs the script to open',
   assert.match(page, /<button type="button" class="help-start" hidden>/);
   const template = page.match(/<template>([\s\S]*?)<\/template>/)[1];
   assert.equal((template.match(/class="help-step"/g) ?? []).length, defaultContent.workshops[1].checks.length);
-  assert.match(template, /node --version/);
-  assert.match(template, /nodejs\.org/);
+  assert.match(template, /계정 두 개/);
+  assert.match(template, /downloads\/workshop2-site\.zip/);
   const bad = structuredClone(defaultContent);
   bad.workshops[1].checkHelp.pop();
   assert.throws(() => validateContent(bad), /checkHelp/);
@@ -434,8 +434,8 @@ test('each open workshop gets a lesson page with the student slides and every st
   const html = await read('/learn/02/');
   const ws2 = defaultContent.workshops[1];
   assert.doesNotMatch(html, /<iframe/);
-  assert.match(html, /<img data-deck-img src="\/slides\/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE\/ws2_activity_20261019_01\.(svg|png)"/);
-  // 과제 페이지가 아직 없는 단계는 시작 슬라이드 한 장을 보여줍니다.
+  assert.match(html, /<img data-deck-img src="\/slides\/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE\/ws2_task_20261029_deploy_1\.webp"/);
+  // 각 과제에 명시한 실습 페이지만 연결합니다.
   for (const m of ws2.missions) assert.match(html, new RegExp(`data-step="${m.id}" data-task-slides="${m.taskSlides?.join(' ') ?? m.slideId}"`));
   assert.equal((html.match(/class="lesson-step"/g) ?? []).length, ws2.missions.length);
   assert.match(html, /data-learn-content data-lesson="2" hidden/);
@@ -528,7 +528,7 @@ test('the course list links every step of an open workshop and shows locked ones
   assert.match(panel, new RegExp(`0/${ws1.missions.length} 완료`));
   assert.match(html, /data-progress-text>0 \/ 4 단계</);
   const locked = html.match(/<section class="course is-locked c-blue"[\s\S]*?<\/section>/)[0];
-  assert.match(locked, /🔒<\/span> 11\/2 \(월\) 18:00에 열려요 · 4단계/);
+  assert.match(locked, /🔒<\/span> 11\/2 \(월\) 18:00에 열려요 · 5단계/);
   assert.doesNotMatch(locked, /href=|data-step-link/);
   assert.doesNotMatch(html, /class="learn-links"/);
 });
@@ -646,7 +646,7 @@ test('the lesson shows only the current task pages, can switch to the whole lect
   for (const page of pages) assert.ok(await exists(path.join(outDir, page.src)), `${page.src} is copied`);
   assert.equal(await exists(path.join(outDir, 'slides/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE')), false);
   const opened = await build(t, defaultContent, WS2_OPENS);
-  assert.ok(await exists(path.join(opened.outDir, 'slides/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE/ws2_activity_20261019_01.svg')));
+  assert.ok(await exists(path.join(opened.outDir, 'slides/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE/ws2_activity_20261019_01.webp')));
 });
 
 test('the weather hint opens a screen-by-screen walkthrough with highlighted spots', async t => {

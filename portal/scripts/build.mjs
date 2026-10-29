@@ -8,6 +8,7 @@ import { site } from '../content/site.mjs';
 import { workshops } from '../content/workshops.mjs';
 import { studio, showcase, projects, collaboration } from '../content/program.mjs';
 import { ws1Practice } from '../content/practice-pages.mjs';
+import { ws2Practice } from '../content/practice-pages-ws2.mjs';
 import { layout, learnLayout } from '../src/layout.mjs';
 import { isUsableUrl, inlineLinkUrls } from '../src/render.mjs';
 import { icsFile } from '../src/calendar.mjs';
@@ -23,7 +24,7 @@ const slidesDir = path.join(portal, 'slides');
 const manifestFile = path.join(slidesDir, 'manifest.json');
 const decks = existsSync(manifestFile) ? JSON.parse(readFileSync(manifestFile, 'utf8')) : {};
 // 과제 페이지의 '글로 읽기': { <페이지 ID>: { title, text } }
-const transcripts = Object.fromEntries(Object.values(ws1Practice).map(p => [p.id, { title: p.title, text: p.text }]));
+const transcripts = Object.fromEntries([...Object.values(ws1Practice), ...Object.values(ws2Practice)].map(p => [p.id, { title: p.title, text: p.text }]));
 
 export const defaultContent = { site, workshops, studio, showcase, projects, collaboration, decks, transcripts };
 
@@ -221,7 +222,7 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
   await writeFile(path.join(out, '_routes.json'), JSON.stringify({
     version: 1,
     include: ['/*'],
-    exclude: ['/styles.css', '/main.js', '/home.js', '/learn.js', '/questions.js', '/admin.js', '/favicon.svg', '/og.png', '/images/*', '/sitemap.xml', '/robots.txt']
+    exclude: ['/styles.css', '/main.js', '/home.js', '/learn.js', '/questions.js', '/admin.js', '/favicon.svg', '/og.png', '/images/*', '/downloads/*', '/sitemap.xml', '/robots.txt']
   }));
 
   // 로그인해야 쓰는 개인 화면(내 질문·운영진)은 검색에 내보내지 않습니다.
