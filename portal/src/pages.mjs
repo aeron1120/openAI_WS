@@ -313,8 +313,24 @@ export function workshopPage(content, w) {
   ${prev ? h`<a href="${workshopPath(prev)}">← Workshop ${pad(prev.number)}</a>` : raw('<span></span>')}
   ${next ? h`<a href="${workshopPath(next)}">Workshop ${pad(next.number)} →</a>` : h`<a href="/showcase/">Showcase →</a>`}
 </nav>`;
+  // 막혔을 때: 머리말 오른쪽 위 ? 버튼. 스크롤하지 않고 바로 열어 봅니다(바깥을 누르거나 Esc면 main.js가 닫음).
+  const help = w.materials === 'planning' ? '' : h`<details class="help-pop" id="help">
+  <summary aria-label="막혔을 때"><span aria-hidden="true">?</span></summary>
+  <div class="help-pop-body">
+    <h2>막혔을 때</h2>
+    <p>무엇을 했고 무엇이 보이는지 Codex에 그대로 설명하세요. 비밀번호·API 키는 가려 주세요.</p>
+    ${open && w.help?.prompt ? copyBlock(w.help.prompt, '오류를 설명하는 요청문') : ''}
+    <p>${w.help?.guide ? h`${link(w.help.guide, '문제 해결 안내')} · ` : ''}<a href="/studio/">Studio Session에서 같이 풀기</a></p>
+  </div>
+</details>`;
+  // 시작 전: 준비물과 시작 전 확인은 기본 정보 바로 아래에 나란히 둡니다.
+  const prepare = h`<section class="block reveal two" id="prepare">
+  ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
+  ${checkBox(w)}
+</section>`;
   const head = h`<nav class="crumbs" aria-label="현재 위치"><a href="/workshops/">워크숍</a> › Workshop ${pad(w.number)}</nav>
 <header class="detail-head c-${color}">
+  ${help}
   <p class="track-kicker">Workshop ${pad(w.number)} ${cardStatus(w)}</p>
   <h1>${w.title}</h1>
   <p class="lead">${w.summary}</p>
@@ -331,12 +347,9 @@ export function workshopPage(content, w) {
 
   if (locked) {
     return h`<div class="c-${color}">${head}
+${prepare}
 <section class="pending locked">
   <h2><span aria-hidden="true">🔒</span> 실습과 슬라이드는 ${w.opensLabel}에 열려요</h2>
-</section>
-<section class="block reveal two">
-  ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
-  ${checkBox(w)}
 </section>
 ${pager}</div>`;
   }
@@ -353,39 +366,29 @@ ${pager}</div>`;
 ${pager}</div>`;
   }
 
+  // 실습 순서(번호): 파일 받기 → 단계별 실습 → 완료 목표. 받는 파일은 kind: 'starter' 또는 start: true인 자료입니다.
+  // 나머지 자료(기능별 안내·예제·슬라이드)는 필요할 때 보는 참고 자료로 아래에 작게 둡니다.
   const resources = w.resources.filter(r => isUsableUrl(r.url));
+  const startFiles = resources.filter(r => r.kind === 'starter' || r.start);
+  const references = resources.filter(r => !startFiles.includes(r));
+  const steps = [
+    startFiles.length && { title: '파일 받기', body: h`<ul class="res-cards">${startFiles.map(resourceCard)}</ul>` },
+    w.missions.length && { title: '단계별 실습', body: lessonCard(w) },
+    w.share && { title: '완료 목표', body: h`<p class="goal">${w.share}</p>
+      <div class="actions"><a class="btn btn-ghost" href="/studio/">Studio Session</a>${next ? h`<a class="btn btn-ghost" href="${workshopPath(next)}">다음 회차${arrow()}</a>` : ''}</div>` }
+  ].filter(Boolean);
+  const media = video(w) || figure(w.preview);
   return h`<div class="c-${color}">${head}
+${prepare}
 
 <section class="block reveal" id="materials">
-  <h2>실습과 자료</h2>
-  ${w.missions.length ? lessonCard(w) : ''}
-  ${resources.length ? h`<ul class="res-cards">${resources.map(resourceCard)}</ul>` : ''}
+  <h2>실습 순서</h2>
+  <ol class="flow">${steps.map((s, i) => h`<li class="flow-step"><span class="flow-no" aria-hidden="true">${i + 1}</span><div class="flow-body"><h3>${s.title}</h3>${s.body}</div></li>`)}</ol>
 </section>
-
-<section class="block reveal">
-  ${video(w) || figure(w.preview)}
-</section>
-
-<section class="block reveal two">
-  ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
-  ${checkBox(w)}
-</section>
-
-<section class="block reveal">
-  <details class="mission more" id="help">
-    <summary><span class="mission-no">?</span><span class="mission-title">막혔을 때</span></summary>
-    <div class="mission-body">
-      <p>무엇을 했고 무엇이 보이는지 Codex에 그대로 설명하세요. 비밀번호·API 키는 가려 주세요.</p>
-      ${w.help?.prompt ? copyBlock(w.help.prompt, '오류를 설명하는 요청문') : ''}
-      <p>${w.help?.guide ? h`${link(w.help.guide, '문제 해결 안내')} · ` : ''}<a href="/studio/">Studio Session에서 같이 풀기</a></p>
-    </div>
-  </details>
-</section>
-
-${w.share ? h`<section class="block reveal next-box">
-  <h2>완료 목표</h2>
-  <p class="goal">${w.share}</p>
-  <div class="actions"><a class="btn btn-ghost" href="/studio/">Studio Session</a>${next ? h`<a class="btn btn-ghost" href="${workshopPath(next)}">다음 회차${arrow()}</a>` : ''}</div>
+${media ? h`<section class="block reveal">${media}</section>` : ''}
+${references.length ? h`<section class="block reveal" id="references">
+  <h2>참고 자료</h2>
+  <ul class="res-cards compact">${references.map(resourceCard)}</ul>
 </section>` : ''}
 ${pager}</div>`;
 }

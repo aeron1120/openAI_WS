@@ -379,8 +379,31 @@ ol.step-list > li::before { content: "Step " counter(step); color: var(--em); fo
 .learn-steps span { padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: .8rem; font-weight: 600; }
 .learn-card:hover .res-go { transform: translateX(3px); background: var(--c-btn); color: #fff; }
 .learn-card + .res-cards { margin-top: 10px; }
-.next-box { border-radius: 16px; background: #f6f8fc; padding: 18px; }
-.next-box .goal { margin: 0 0 4px; font-size: 1.12rem; font-weight: 800; }
+/* 회차 페이지 '실습 순서': 번호 원과 세로 선으로 이어지는 단계. 같은 단계 안의 카드는 같은 위계입니다. */
+.flow { list-style: none; margin: 14px 0 0; padding: 0; }
+.flow-step { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; padding-bottom: 26px; }
+.flow-step:last-child { padding-bottom: 0; }
+.flow-step:not(:last-child)::before { content: ""; position: absolute; left: 19px; top: 46px; bottom: 6px; width: 2px; border-radius: 2px; background: color-mix(in srgb, var(--c) 30%, var(--line)); }
+.flow-no { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--c-btn); color: #fff; font-weight: 800; box-shadow: 0 6px 14px color-mix(in srgb, var(--c) 30%, transparent); }
+.flow-body { min-width: 0; }
+.flow-body > h3 { margin: 7px 0 0; font-size: 1.1rem; }
+.flow-body > .goal { margin: 8px 0 0; font-size: 1.12rem; font-weight: 800; }
+.flow-body > .actions { margin-top: 12px; }
+/* 참고 자료: 필요할 때만 보는 자료라 카드를 작게 */
+.res-cards.compact .res-card { min-height: 60px; padding: 10px 12px; gap: 12px; border-radius: 14px; }
+.res-cards.compact .res-icon { width: 38px; height: 38px; border-radius: 12px; font-size: 1.1rem; }
+.res-cards.compact .res-go { width: 30px; height: 30px; }
+/* 막혔을 때: 머리말 오른쪽 위 ? 버튼과 그 아래 열리는 도움말 */
+.detail-head { position: relative; }
+.help-pop { position: absolute; top: 16px; right: 16px; z-index: 6; }
+.help-pop > summary { list-style: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--c) 40%, var(--line)); background: var(--surface); color: var(--c-btn); font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: background-color .2s, color .2s, transform .2s; }
+.help-pop > summary::-webkit-details-marker { display: none; }
+.help-pop > summary:hover { transform: scale(1.06); }
+.help-pop[open] > summary { background: var(--c-btn); color: #fff; }
+.help-pop-body { position: absolute; top: 50px; right: 0; width: min(400px, calc(100vw - 48px)); padding: 16px 18px; border-radius: 18px; background: var(--surface); box-shadow: 0 18px 44px rgba(17, 26, 46, .2); }
+.help-pop-body h2 { margin: 0 0 6px; font-size: 1.05rem; }
+.help-pop-body p { margin: 8px 0 0; font-size: .92rem; }
+.detail-head .track-kicker { padding-right: 52px; }
 
 /* Timeline (roadmap) */
 .timeline { list-style: none; margin: 24px 0 0; padding: 0; position: relative; }
@@ -428,6 +451,7 @@ ol.step-list > li::before { content: "Step " counter(step); color: var(--em); fo
   .info div { display: block; background: rgba(255, 255, 255, .75); border-radius: 12px; padding: 12px 14px; }
   .info dd { margin-top: 2px; }
   .projects, .collab, .res-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .res-cards.compact { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
   .detail-head { padding: 28px; }
   .next-ws { padding: 26px; }
   .next-ws-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 14px; }

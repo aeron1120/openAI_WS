@@ -355,3 +355,15 @@ for (const badge of document.querySelectorAll('[data-dday]')) {
   badge.textContent = days === 0 ? say('D-DAY · 오늘', 'D-DAY · Today') : `D-${days}`;
   badge.hidden = false;
 }
+
+// 회차 페이지의 ? 도움말(막혔을 때): 바깥을 누르거나 Esc를 누르면 닫습니다. 주소가 #help면 열어 둡니다.
+const helpPop = document.querySelector('.help-pop');
+if (helpPop) {
+  if (location.hash === '#help') helpPop.open = true;
+  document.addEventListener('click', event => { if (helpPop.open && !helpPop.contains(event.target)) helpPop.open = false; });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !helpPop.open) return;
+    helpPop.open = false;
+    helpPop.querySelector('summary').focus();
+  });
+}

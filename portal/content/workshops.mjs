@@ -54,9 +54,10 @@ export const workshops = [
     ],
     preview: null,
     video: null,
+    // kind: 'starter'와 start: true인 자료는 회차 페이지 '실습 순서'의 1번(파일 받기)에, 나머지는 '참고 자료'에 놓입니다.
     resources: [
       { label: '기초 틀 받기', kind: 'starter', audience: 'student', url: repo, checked: '2026-10-27', note: 'GitHub → Code → Download ZIP' },
-      { label: '시작 안내', kind: 'guide', audience: 'student', url: file('guides/START-HERE.md'), checked: '2026-10-27' },
+      { label: '시작 안내', kind: 'guide', start: true, audience: 'student', url: file('guides/START-HERE.md'), checked: '2026-10-27' },
       { label: '기능별 안내', kind: 'guide', audience: 'student', url: file('guides/README.md'), checked: '2026-10-27', note: '로그인 · 지도 · 날씨' },
       { label: '운영진 예제 ‘틈’', kind: 'demo', audience: 'student', url: 'https://openai-ws-workshop1.a01085519047.workers.dev/versions/', checked: '2026-10-27', note: '발표용 예제 · 로그인·지도 확인 중' },
       { label: '실습 슬라이드', kind: 'slides', audience: 'student', url: 'https://docs.google.com/presentation/d/1pUcnsVa0Ab_z_ZxbVnO6cCHCIcTYVVvz10C9Tt52xuU/edit?usp=sharing', checked: '2026-10-27', note: '실습 부분만' }

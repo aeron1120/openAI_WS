@@ -282,10 +282,17 @@ test('an open workshop page gathers info and materials and sends practice to the
   assert.doesNotMatch(html, /class="mission" id="mission-/);
   assert.doesNotMatch(html, /data-hints/);
   assert.match(html, /<a class="btn btn-fill" href="\/learn\/01\/">수업 듣기에서 실습하기/);
+  // 순서: 기본 정보(? 도움말 포함) → 준비물·시작 전 확인 → 실습 순서(파일 받기 → 단계별 실습 → 완료 목표) → 참고 자료
+  const order = ['<header class="detail-head', 'class="help-pop" id="help"', 'id="prepare"', 'id="materials"', 'id="references"'].map(mark => html.indexOf(mark));
+  assert.ok(order.every((at, i) => at > 0 && (i === 0 || at > order[i - 1])), `sections out of order: ${order}`);
   const materials = html.match(/<section class="block reveal" id="materials">[\s\S]*?<\/section>/)[0];
+  const steps = [...materials.matchAll(/<li class="flow-step"><span class="flow-no" aria-hidden="true">(\d)<\/span><div class="flow-body"><h3>([^<]+)<\/h3>/g)].map(m => `${m[1]} ${m[2]}`);
+  assert.deepEqual(steps, ['1 파일 받기', '2 단계별 실습', '3 완료 목표']);
+  assert.match(materials, /기초 틀 받기[\s\S]*시작 안내/, 'start files sit in step 1');
   assert.match(materials, /<a class="learn-card" href="\/learn\/01\/">[\s\S]*01 기초 틀 받고 화면 열기[\s\S]*04 내 서비스에 필요한 기능 하나 연결하기/);
-  assert.match(materials, /class="res-card/);
-  assert.match(html, /id="help"/);
+  const references = html.match(/<section class="block reveal" id="references">[\s\S]*?<\/section>/)[0];
+  for (const label of ['기능별 안내', '운영진 예제', '실습 슬라이드']) assert.match(references, new RegExp(label));
+  assert.doesNotMatch(references, /기초 틀 받기/);
   // 내 아이디어로 넓히기는 수업 듣기의 완료 화면으로 옮겼고, 수업 화면에서 자료 모음으로 돌아올 수 있어요.
   const lesson = await read('/learn/01/');
   assert.match(lesson, /<div class="finish-apply">/);
