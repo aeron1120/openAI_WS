@@ -20,7 +20,8 @@
     "og:portal": "node portal/scripts/screenshot.mjs portal/scripts/og-image.html portal/public/og.png 1200,630",
     "deploy:portal": "npm run test:portal && npm run build:portal && cd portal && npx --yes wrangler@4.152.0 pages deploy --branch main",
     "test:learn": "node --test learn-server/tests/*.test.mjs",
-    "dev:learn": "node learn-server/server.mjs"
+    "dev:learn": "node learn-server/server.mjs",
+    "deploy:keepalive": "npx --yes wrangler@4.152.0 deploy --config learn-keepalive/wrangler.jsonc"
   },
   "engines": {
     "node": ">=20"

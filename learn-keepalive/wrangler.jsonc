@@ -1,0 +1,11 @@
+{
+  // 수업 서버 깨우기 전용 Worker. 포털(portal/wrangler.jsonc)·Workshop Worker(../wrangler*.jsonc)와 별개입니다.
+  // 배포: npm run deploy:keepalive
+  "name": "snu-learn-keepalive",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-24",
+  // 주소로 열 일이 없는 Worker라 workers.dev 주소를 만들지 않습니다.
+  "workers_dev": false,
+  "triggers": { "crons": ["*/14 * * * *"] },
+  "observability": { "enabled": true }
+}

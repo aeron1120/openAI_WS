@@ -62,7 +62,10 @@
 3. **Render**: New → Blueprint → 이 GitHub 저장소 선택 → `render.yaml` 확인 → `sync: false` 값 입력 → 배포. 서비스 주소(`https://snu-learn-server.onrender.com` 등) 확인.
 4. **Cloudflare Pages 비밀값**: `LEARN_API_ORIGIN`(Render 서비스 주소)과 `PROXY_SECRET`(Render와 같은 값)을 넣고 포털을 다시 배포. 자세한 명령은 `portal/README.md`.
 
-무료 요금제는 15분간 요청이 없으면 잠들고 첫 요청에 30초~1분이 걸립니다. 화면은 "서버를 깨우는 중"을 보여주며 자동으로 다시 시도합니다. 워크숍 전에 한 번 열어 두세요.
+무료 요금제는 15분간 요청이 없으면 잠들고 첫 요청에 30초~1분이 걸립니다. 그래서 Cloudflare Worker `snu-learn-keepalive`(`../learn-keepalive/`)가 14분마다 `/api/health`를 불러 깨워 둡니다. 배포는 저장소 루트에서 `npm run deploy:keepalive`, 실행 기록은 `npx --yes wrangler@4.152.0 tail snu-learn-keepalive`로 봅니다.
+
+- Render 무료 시간은 계정당 월 750시간입니다. 24시간 켜 두면 한 달 최대 744시간이라, 이 계정에 다른 무료 서비스를 추가하면 월말에 시간이 모자랄 수 있어요. 그때는 `learn-keepalive/wrangler.jsonc`의 `crons`를 수업 시간대로 줄이세요(시각은 UTC, 예: `*/14 0-15 * * *` = 한국 시간 09:00–24:59).
+- 깨우기가 멈춰도 화면은 "서버를 깨우는 중"을 보여주며 자동으로 다시 시도합니다.
 
 ## API
 
