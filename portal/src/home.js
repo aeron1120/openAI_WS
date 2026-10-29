@@ -1,6 +1,8 @@
 // 홈 배너의 지구: 그림 속 지구 자리에 실제 육지 지도(images/brand/earth-mask.png)로 그린 지구를 겹쳐 천천히 돌립니다.
 // 마우스·손가락으로 끌면 돌아가고, 놓으면 관성으로 돌다가 원래 속도로 돌아옵니다.
 // 화면 밖에 있거나 탭이 숨겨지면 멈추고, '동작 줄이기' 설정이면 스스로 돌지 않습니다(끌기는 됨).
+// 손으로 한 바퀴를 돌리면 지구가 빛나며 커지다가 화면을 덮고 수업 목록(/learn/)으로 넘어갑니다.
+// 도착한 화면은 layout.mjs의 첫 스크립트가 sessionStorage 표시를 보고 보라색을 걷어 내며 시작합니다.
 const OCEAN = [100, 49, 242];
 const LAND = [10, 190, 80];
 const TILT = 0.38;   // 북쪽으로 기운 정도(라디안). 배너 그림처럼 북반구가 조금 더 보이게
@@ -10,6 +12,8 @@ const MAX_SIZE = 640;
 // 그림 속 지구의 초록 테두리를 모두 덮는 원에 3px(2000px 그림 기준) 여유를 더한 값입니다.
 const GLOBE_X = 0.498, GLOBE_Y = 0.5065, GLOBE_D = 0.433;
 const TEXT_RIGHT = 0.35; // 배너 왼쪽 글씨가 끝나는 곳. 이보다 왼쪽의 흰 글씨는 지구 위에 다시 그려 줍니다.
+const FULL_TURN = 2 * Math.PI; // 손으로 이만큼 돌리면 수업 목록으로
+const LEARN_URL = '/learn/';
 
 const banner = document.querySelector('[data-globe]');
 if (banner) startGlobe(banner);
@@ -29,6 +33,8 @@ function startGlobe(banner) {
   let size = 0, lonU, rowStart, shade, alpha, image, rim, gloss;
   let center = -0.7;   // 처음 모습: 배너 그림처럼 대서양이 가운데(경도 약 -40°)
   let velocity = 0, drag = null, visible = true, running = false, last = 0;
+  // charge: 손으로 돌린 양(라디안). 놓은 뒤 관성으로 더 도는 만큼도 셉니다. 잠시 손을 떼면 천천히 줄어듭니다.
+  let charge = 0, idle = 0, prefetched = false, warpVeil = null;
 
   // 화면 픽셀마다 위도·경도를 미리 계산해 둡니다. 돌릴 때는 경도만 더하면 됩니다.
   function layout() {
@@ -121,15 +127,18 @@ function startGlobe(banner) {
     last = time;
     if (!drag) {
       const target = reduce.matches ? 0 : -SPIN;
+      const extra = Math.abs(velocity - target);
       velocity += (target - velocity) * Math.min(1, dt * 1.5);
       center += velocity * dt;
+      if (extra > 0.3) { addCharge(extra * dt); idle = 0; }
+      else if ((idle += dt) > 0.8) addCharge(-dt * 1.5);
     }
     draw();
     schedule();
   }
   function schedule() {
-    if (running || !visible || document.hidden) { last = 0; return; }
-    if (!drag && reduce.matches && Math.abs(velocity) < 0.001) { last = 0; return; }
+    if (running || !visible || document.hidden || warpVeil) { last = 0; return; }
+    if (!drag && reduce.matches && Math.abs(velocity) < 0.001 && !charge) { last = 0; return; }
     running = true;
     requestAnimationFrame(frame);
   }
@@ -150,6 +159,48 @@ function startGlobe(banner) {
     velocity = velocity * 0.4 - (turn / dt) * 0.6;
     drag.x = event.clientX;
     drag.t = event.timeStamp;
+    idle = 0;
+    addCharge(Math.abs(turn));
+    schedule();
+  });
+
+  // 돌린 양만큼 지구가 빛나고 조금 커집니다(styles.css의 --charge). 반 바퀴쯤에서 수업 목록을 미리 받아 둡니다.
+  function addCharge(amount) {
+    if (warpVeil || (!charge && amount <= 0)) return;
+    charge =Math.min(FULL_TURN, Math.max(0, charge + amount));
+    banner.style.setProperty('--charge', (charge / FULL_TURN).toFixed(3));
+    if (!prefetched && charge > FULL_TURN / 2) {
+      prefetched = true;
+      document.head.append(Object.assign(document.createElement('link'), { rel: 'prefetch', href: LEARN_URL }));
+    }
+    if (charge >= FULL_TURN) warp();
+  }
+
+  // 지금 지구 모습 그대로 원을 화면 끝까지 키우고, 보라색으로 덮은 뒤 넘어갑니다.
+  function warp() {
+    drag = null;
+    banner.classList.remove('is-dragging');
+    if (reduce.matches) { location.assign(LEARN_URL); return; }
+    try { sessionStorage.setItem('globe-warp', '1'); } catch {}
+    const box = canvas.getBoundingClientRect();
+    warpVeil = document.createElement('div');
+    warpVeil.className = 'globe-warp';
+    warpVeil.setAttribute('aria-hidden', 'true');
+    Object.assign(warpVeil.style, { left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px`, backgroundImage: `url(${canvas.toDataURL()})` });
+    document.body.append(warpVeil);
+    const cx = box.left + box.width / 2, cy = box.top + box.height / 2;
+    const reach = Math.hypot(Math.max(cx, innerWidth - cx), Math.max(cy, innerHeight - cy));
+    warpVeil.animate([{ transform: 'scale(1)' }, { transform: `scale(${(reach * 2 / box.width) * 1.05})` }], { duration: 750, easing: 'cubic-bezier(.6, 0, .3, 1)', fill: 'forwards' })
+      .finished.then(() => location.assign(LEARN_URL));
+  }
+  // 뒤로 가기로 돌아오면 덮개를 걷고 처음 상태로
+  addEventListener('pageshow', event => {
+    if (!event.persisted || !warpVeil) return;
+    warpVeil.remove();
+    warpVeil = null;
+    charge = 0;
+    velocity = reduce.matches ? 0 : -SPIN;
+    banner.style.setProperty('--charge', '0');
     schedule();
   });
   const release = () => {
