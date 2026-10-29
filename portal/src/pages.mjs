@@ -231,7 +231,7 @@ function hintText(text) {
 // 단계 데이터는 data-walk에 담고, 스크립트가 없을 때를 위해 같은 내용을 글 목록으로도 둡니다.
 function walkthrough(walk) {
   if (!walk?.steps?.length) return '';
-  const steps = walk.steps.map(s => ({ image: s.image ?? null, box: s.box ?? null, text: String(richText(s.text)), note: s.note ?? '' }));
+  const steps = walk.steps.map(s => ({ image: s.image ?? null, box: s.box ?? null, text: String(richText(s.text)), note: s.note ?? '', blank: s.blank ?? null }));
   return h`<div class="walk" data-walk="${JSON.stringify(steps)}" data-walk-title="${walk.title}">
       <button type="button" class="walk-open" data-walk-open hidden><span class="walk-icon" aria-hidden="true">🎬</span><span><strong>화면으로 따라 하기</strong><small>${walk.title} · ${walk.steps.length}단계</small></span><span class="arrow" aria-hidden="true">→</span></button>
       <details class="walk-list"><summary>화면 따라 하기를 글로 보기</summary><ol class="step-list">${walk.steps.map(s => h`<li><span>${richText(s.text)}${s.note ? h` <small>${s.note}</small>` : ''}</span></li>`)}</ol></details>

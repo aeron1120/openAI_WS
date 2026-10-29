@@ -14,7 +14,8 @@ import { workshop2 } from './workshop2.mjs';
 //   없으면 slideId 한 장만 보여줍니다. 선택지(options)에도 따로 적을 수 있어요. 페이지 ID는 portal/slides/manifest.json에서 찾으세요.
 // - hintSlides: 힌트 1·2·3 순서대로 '관련 실습 페이지 보기'가 열 과제 페이지 ID. taskSlides 안의 ID만 쓸 수 있고, 버튼이 필요 없는 힌트는 뒤에서 빼면 됩니다.
 //   과제 페이지의 '글로 읽기' 내용은 content/practice-pages.mjs에 있습니다.
-// - walkthrough: { title, steps: [{ image?, box?, text, note? }] } 힌트 상자의 '화면으로 따라 하기'. 실제 화면 캡처에서 box(%) 자리를 강조합니다.
+// - walkthrough: { title, steps: [{ image?, box?, text, note?, blank? }] } 힌트 상자의 '화면으로 따라 하기'. 실제 화면 캡처에서 box(%) 자리를 강조합니다.
+//   그림이 없는 단계는 blank 문구(없으면 '로그인한 뒤의 화면이에요')를 대신 보여줍니다.
 //   캡처에 개인정보·인증키가 보이면 안 됩니다. 이미지는 public/images/walk/에 둡니다.
 
 const repo = 'https://github.com/aeron1120/openAI_WS';
@@ -80,6 +81,17 @@ export const workshops = [
         expected: '“이곳에 나의 아이디어를 담아보세요.” 제목과 로그인·지도·날씨·나만의 기능 박스가 보여요. 설치와 API 키는 아직 필요 없어요.',
         verify: ['박스마다 “아직 연결 전” 표시가 보인다.', '“Codex에 이렇게 요청해보세요”를 펼치면 요청문이 나온다.'],
         stuck: ['ZIP 파일 안에서 바로 열면 스타일이 빠질 수 있어요. 압축을 모두 푼 뒤 다시 여세요.', '글자만 보이면 코드 편집기가 아니라 브라우저로 열었는지 확인하세요.'],
+        walkthrough: {
+          title: '기초 틀 받아서 열기',
+          steps: [
+            { image: '/images/walk/starter/01-github-code.webp', box: [64.46, 32.13, 8.98, 5], text: `[GitHub 저장소](${repo})를 열고 파일 목록 위의 초록색 Code 버튼을 눌러요.`, note: 'GitHub에 로그인하지 않아도 돼요.' },
+            { image: '/images/walk/starter/02-github-zip.webp', box: [42.19, 66.5, 30.63, 5], text: '메뉴 맨 아래 Download ZIP을 눌러요. 다운로드 폴더에 openAI_WS-main.zip이 저장돼요.' },
+            { image: '/images/walk/starter/03-unzip.webp', box: [28.28, 35.25, 25.47, 5.25], text: '다운로드 폴더에서 ZIP 파일을 오른쪽 클릭하고 모두 압축 풀기...를 누른 뒤, 열린 창에서 압축 풀기를 눌러요.', note: 'Mac은 ZIP 파일을 두 번 클릭하면 같은 이름의 폴더가 생겨요. 그림은 Windows 11 탐색기를 따라 그린 예시예요.' },
+            { image: '/images/walk/starter/04-root.webp', box: [17.19, 49.5, 82.03, 5], text: '새로 생긴 openAI_WS-main 폴더에서 starter 폴더를 두 번 클릭해요.', note: '안에 openAI_WS-main 폴더가 한 번 더 있으면 그 안으로 들어가요. README.md·package.json이 함께 보이는 곳이 맞는 위치예요.' },
+            { image: '/images/walk/starter/05-starter.webp', box: [17.19, 25.5, 82.03, 5], text: 'index.html을 두 번 클릭해요.', note: '확장자가 안 보이면 브라우저 아이콘이 붙은 index 파일을 골라요. 메모장이 열리면 오른쪽 클릭 → 연결 프로그램 → Chrome 또는 Edge를 골라요.' },
+            { image: '/images/walk/starter/06-open-file.webp', box: [6.88, 31.62, 57.03, 17.25], text: '브라우저에 “이곳에 나의 아이디어를 담아보세요.”와 기능 박스가 보이면 성공이에요.' }
+          ]
+        },
         hints: [
           '초록색 Code 버튼은 저장소 첫 화면의 파일 목록 바로 위, 오른쪽에 있어요. GitHub에 로그인하지 않아도 받을 수 있어요. 압축을 풀면 보통 openAI_WS-main 폴더가 생기고, 그 안에 README.md·package.json·starter가 함께 있어요.',
           '압축 풀기: Windows는 ZIP 파일을 오른쪽 클릭 → 모두 압축 풀기, Mac은 ZIP 파일을 더블클릭해요. 그다음 openAI_WS-main → starter → index.html을 더블클릭하면 기본 브라우저로 열려요. 메모장이나 코드 편집기가 열리면 index.html 파일을 Chrome 같은 브라우저 창으로 끌어다 놓으세요.',
@@ -107,9 +119,22 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
         expected: 'Codex가 npm run dev로 서버를 켜고 http://localhost:5173/starter/ 주소를 알려줘요. npm install은 필요 없어요.',
         verify: ['브라우저에서 http://localhost:5173/starter/ 를 열면 1단계와 같은 화면이 보인다.', '서버를 끌 때는 서버가 실행 중인 터미널에서 Ctrl+C를 누른다.'],
         stuck: ['Windows에서 npm.ps1 실행이 막히면 같은 폴더에서 npm.cmd run dev를 사용하세요.', '“5173이 이미 사용 중”이면 먼저 켜 둔 실습 서버를 Ctrl+C로 끄세요. 모르는 프로그램은 끄지 말고 Codex에 다른 포트를 요청하세요.', 'package.json을 찾을 수 없다고 나오면 starter 안이 아니라 README.md가 있는 저장소 폴더를 열었는지 확인하세요.'],
+        walkthrough: {
+          title: 'Codex 앱에서 폴더 열고 실행하기',
+          steps: [
+            { image: '/images/walk/codex/01-chatgpt-home.webp', box: [3.5, 7.9, 8.8, 5], text: 'ChatGPT 앱을 열고 왼쪽 위의 ChatGPT ∨를 눌러요.', note: 'VS Code를 쓴다면 아래 힌트 2·3을 보세요.' },
+            { image: '/images/walk/codex/02-switch-codex.webp', box: [16.4, 61.8, 58, 18], text: '메뉴에서 Codex를 골라요.' },
+            { image: '/images/walk/codex/03-codex-home.webp', box: [35, 80, 9.6, 4.6], text: '“무엇을 만들까요?” 화면이 나오면 입력칸 위의 프로젝트 선택을 눌러요.' },
+            { image: '/images/walk/codex/04-project-settings.webp', box: [31.51, 15.25, 34.23, 4.68], text: '프로젝트 설정 창이 열리면 프로젝트 이름에 openAI_WS-main을 적어요.', note: '이름은 알아보기 쉽게 바꿔도 돼요.' },
+            { image: '/images/walk/codex/04-project-settings.webp', box: [31.51, 70.47, 34.23, 11.25], text: '소스 폴더의 폴더 추가를 누르고, 압축을 푼 openAI_WS-main 폴더를 고르면 목록에 이렇게 생겨요.', note: 'starter 폴더가 아니라 그 바로 위 폴더예요. 안에 README.md·package.json·starter가 함께 보여야 해요.' },
+            { image: '/images/walk/codex/04-project-settings.webp', box: [61.1, 86.17, 5.03, 4.85], text: '저장을 눌러요.' },
+            { image: '/images/walk/codex/03-codex-home.webp', box: [34.2, 84.4, 51.6, 11.6], text: '입력칸 위 프로젝트 자리에 openAI_WS-main이 보이면, 이 단계의 요청문을 붙여 넣고 보내요.', note: 'Codex가 명령 실행 허락을 물으면 내용을 읽고 허용해요.' },
+            { image: '/images/walk/codex/05-localhost.webp', box: [8.91, 5.19, 85, 5], text: 'Codex가 서버를 켠 뒤 알려준 주소 http://localhost:5173/starter/ 를 브라우저 주소창에 입력해요. 과제 1과 같은 화면이 나오면 성공이에요.', note: '서버를 끌 때는 서버가 실행 중인 터미널에서 Ctrl+C를 눌러요.' }
+          ]
+        },
         hints: [
           `“저장소 전체 폴더”는 README.md·package.json·starter가 함께 보이는 openAI_WS-main 폴더예요. starter 폴더만 열면 Codex가 실행 방법을 찾지 못해요. 서버를 켜려면 [Node.js](https://nodejs.org/ko/download) 20 이상이 필요해요.`,
-          'Codex 데스크톱: 로그인 → 프로젝트 추가(앱 버전에 따라 폴더 열기·폴더 추가) → openAI_WS-main 선택 → 새 대화. VS Code: File → Open Folder → openAI_WS-main 선택 → 왼쪽 Extensions에서 OpenAI가 배포한 Codex 확장 설치·로그인 → Codex 아이콘 클릭. 아이콘이 안 보이면 명령 팔레트(Windows Ctrl+Shift+P, Mac ⌘+Shift+P)에서 Codex: Open Codex Sidebar를 실행해요.',
+          'Codex 앱: ChatGPT 앱 왼쪽 위 ChatGPT ∨ → Codex → 입력칸 위 프로젝트 선택 → openAI_WS-main 선택 → 요청문 보내기. VS Code: File → Open Folder → openAI_WS-main 선택 → 왼쪽 Extensions에서 OpenAI가 배포한 Codex 확장 설치·로그인 → Codex 아이콘 클릭. 아이콘이 안 보이면 명령 팔레트(Windows Ctrl+Shift+P, Mac ⌘+Shift+P)에서 Codex: Open Codex Sidebar를 실행해요.',
           `1. [VS Code](https://code.visualstudio.com/)를 설치하고 엽니다.
 2. 메뉴 File → Open Folder에서 openAI_WS-main 폴더를 고릅니다. “이 폴더의 작성자를 신뢰하나요?” 창이 나오면 신뢰한다고 누릅니다.
 3. 왼쪽 막대의 Extensions 아이콘(Windows Ctrl+Shift+X, Mac ⌘+Shift+X)을 누르고 “Codex”를 검색해 OpenAI가 배포한 확장을 설치한 뒤 ChatGPT 계정으로 로그인합니다.
@@ -133,6 +158,15 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
         expected: '새로고침하면 사이트 이름과 소개 문구가 바뀌어 있어요.',
         verify: ['바꾸려던 문구만 바뀌고 다른 박스는 그대로다.', '브라우저 창을 좁혀도 글자가 잘리지 않는다.'],
         stuck: ['바꿨는데 화면이 그대로면 파일 저장 후 새로고침했는지, 운영진 예제가 아니라 내 localhost 화면을 보고 있는지 확인하세요.'],
+        walkthrough: {
+          title: '문구 바꾸고 화면에서 확인하기',
+          steps: [
+            { image: '/images/walk/codex/03-codex-home.webp', box: [34.2, 84.4, 51.6, 11.6], text: '과제 2에서 쓰던 Codex 대화 입력칸에 이 단계의 요청문을 붙여 넣고 보내요. ‘나의 캠퍼스’와 소개 문장은 내 아이디어로 바꿔도 돼요.', note: '새 대화여도 같은 openAI_WS-main 프로젝트면 괜찮아요.' },
+            { image: '/images/walk/change/01-changed.webp', box: [6.88, 12.38, 17.5, 7.12], text: 'Codex가 수정을 마치면 localhost 화면을 새로고침(Windows Ctrl+R, Mac ⌘+R)해요. 왼쪽 위 사이트 이름과 탭 제목이 바뀌었는지 봐요.', note: '그림은 요청문 예시대로 바꾼 모습이에요.' },
+            { image: '/images/walk/change/01-changed.webp', box: [6.88, 48.38, 57.03, 9.25], text: '큰 제목 아래 소개 문구도 바뀌었는지 봐요. 로그인·지도·날씨 박스는 그대로여야 해요.' },
+            { image: '/images/walk/change/02-narrow.webp', box: [33.28, 4.5, 33.44, 91], text: '브라우저 창 가장자리를 끌어 휴대폰 너비만큼 좁혀도 글자가 겹치거나 잘리지 않는지 확인해요.' }
+          ]
+        },
         hints: [
           `사이트 이름은 화면 왼쪽 위 “내 아이디어”와 브라우저 탭 제목이고, 소개 문구는 큰 제목 아래 문장이에요. 모두 [starter/index.html](${file('starter/index.html')})에 있어요. 요청문의 ‘나의 캠퍼스’와 소개 문장만 내 아이디어로 바꿔 보내도 돼요.`,
           'Codex가 고친 파일은 바로 저장돼요. 브라우저에서 새로고침(Windows Ctrl+R 또는 F5, Mac ⌘+R)만 하면 돼요. VS Code 왼쪽 파일 목록에서 starter/index.html을 열면 바뀐 줄을 직접 볼 수 있어요. 글자 잘림은 브라우저 창 가장자리를 끌어 휴대폰 너비만큼 좁혀서 확인해요.',
@@ -172,11 +206,13 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
               title: '기상청 인증키 받기',
               steps: [
                 { image: '/images/walk/kma/01-login.webp', box: [81.34, 8.81, 8.24, 6.5], text: '[공공데이터포털](https://www.data.go.kr/)에 들어가 오른쪽 위 로그인을 눌러요. 계정이 없으면 옆의 회원가입부터 해요.' },
-                { image: '/images/walk/kma/02-search.webp', box: [18.32, 46.25, 50.94, 7.5], text: '검색창에 기상청_단기예보를 입력하고 Enter를 눌러요. 첫 화면의 큰 검색창에 입력해도 돼요.' },
-                { image: '/images/walk/kma/03-result.webp', box: [13.09, 28.31, 19.96, 5.06], text: '오픈API 목록 맨 위의 ‘기상청_단기예보 조회서비스’를 눌러요. 아래쪽 ‘(기상청API허브 연계)’는 다른 키라서 고르지 않아요.' },
-                { image: '/images/walk/kma/04-apply.webp', box: [14.67, 27, 10.06, 7.5], text: '서비스 페이지에서 활용신청을 눌러요.' },
-                { text: '신청 화면에서 활용 목적을 적고 신청을 눌러요. 예) 워크숍 실습', note: '로그인한 뒤의 화면이라 캡처 대신 글로 안내해요.' },
-                { text: '마이페이지 → 데이터활용 → Open API → 활용신청 현황에서 이 서비스를 열고 일반 인증키(Decoding)를 복사해요. 키는 Codex 대화창에 붙여 넣지 말고, 다음 과제 페이지에서 안내받은 설정 파일에 직접 넣어요.', note: '승인 직후에는 키가 바로 동작하지 않을 수 있어요. 메뉴 이름은 사이트 개편에 따라 조금 다를 수 있어요.' }
+                { image: '/images/walk/kma/02-search.webp', box: [32.24, 30.31, 35.18, 9.08], text: '로그인한 첫 화면 가운데 검색창에 기상청 단기예보 서비스를 입력하고 ↑ 버튼을 눌러요.' },
+                { image: '/images/walk/kma/03-result.webp', box: [24.3, 26.2, 15.2, 4], text: '검색 결과 맨 위의 ‘기상청 단기예보 조회서비스’를 눌러요. 바로 아래 ‘(기상청API허브 연계)’는 다른 키라서 고르지 않아요.' },
+                { image: '/images/walk/kma/04-apply.webp', box: [25.1, 60.09, 5.95, 4.28], text: '서비스 페이지에서 활용신청을 눌러요.' },
+                { text: '신청 화면에서 활용 목적을 적고 신청을 눌러요. 예) 워크숍 실습', note: '이 서비스는 자동승인이라 신청하면 바로 승인돼요.', blank: '📝 신청서 화면은 글로 안내해요' },
+                { image: '/images/walk/kma/05-mypage.webp', box: [83.29, 1.93, 6.13, 3.04], text: '오른쪽 위 마이페이지를 누르면 활용신청 현황이 나와요.' },
+                { image: '/images/walk/kma/05-mypage.webp', box: [25.71, 83.29, 64.23, 16.3], text: '목록에서 [승인] 기상청_단기예보 조회서비스를 눌러요.' },
+                { image: '/images/walk/kma/06-key.webp', box: [22.78, 83.99, 46.77, 4.1], text: '서비스 정보의 일반 인증키를 복사해요. 키는 Codex 대화창에 붙여 넣지 말고, 다음 과제 페이지에서 안내받은 설정 파일에 직접 넣어요.', note: '그림의 키는 가렸어요. 승인 직후에는 키가 바로 동작하지 않을 수 있어요.' }
               ]
             },
             hints: [
@@ -205,6 +241,19 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
 내가 직접 설정해야 할 항목과 순서를 먼저 알려줘.
 실제 로그인 확인 없이 완료됐다고 표시하지 마.`,
             guide: file('guides/LOGIN.md'),
+            walkthrough: {
+              title: 'Google 로그인 클라이언트 ID 만들기',
+              steps: [
+                { image: '/images/walk/login/01-console.webp', box: [13.56, 8.36, 9.39, 3.78], text: '[Google Cloud Console](https://console.cloud.google.com/)에 내 Google 계정으로 로그인하고, 위쪽 프로젝트 버튼에서 새 프로젝트를 만들어 골라요.', note: '그림의 openai-ws1 자리에 내 프로젝트 이름이 보여요.' },
+                { image: '/images/walk/login/01-console.webp', box: [29.28, 8.36, 49.37, 3.78], text: '위쪽 검색창에 auth를 입력해요.' },
+                { image: '/images/walk/login/02-search.webp', box: [10.41, 16.37, 25.65, 5.14], text: '검색 결과 맨 위의 Google Auth Platform을 눌러요.' },
+                { image: '/images/walk/login/03-clients.webp', box: [0.21, 30.31, 17.57, 4], text: '처음이라면 시작하기에서 앱 이름·지원 이메일을 넣고 대상은 외부를 골라요. 그다음 왼쪽 대상 메뉴의 테스트 사용자에 로그인해 볼 내 Gmail을 추가해요.' },
+                { image: '/images/walk/login/03-clients.webp', box: [29.58, 17.42, 10.83, 3.72], text: '왼쪽 클라이언트 메뉴에서 + 클라이언트 만들기를 눌러요.' },
+                { image: '/images/walk/login/04-create-client.webp', box: [20.52, 23.7, 36.01, 4.8], text: '애플리케이션 유형은 웹 애플리케이션을 고르고, 이름은 알아보기 쉽게 적어요.' },
+                { image: '/images/walk/login/04-create-client.webp', box: [20.31, 51.84, 17.79, 12.73], text: '승인된 JavaScript 원본의 + URI 추가를 눌러 http://localhost:5173 을 넣고, 한 번 더 눌러 http://localhost 도 넣어요.', note: '/starter/나 마지막 /는 붙이지 않아요. 리디렉션 URI는 Codex가 필요하다고 할 때만 넣어요.' },
+                { text: '맨 아래 만들기를 누르면 …apps.googleusercontent.com으로 끝나는 클라이언트 ID가 나와요. Codex가 알려준 설정 위치에 직접 넣어요.', note: '클라이언트 보안 비밀번호가 함께 나오면 대화창이나 공개 파일에 붙이지 말고 비공개 설정 파일에만 넣어요.', blank: '🔑 클라이언트 ID가 적힌 창이 열려요' }
+              ]
+            },
             hints: [
               `Google 로그인에는 Google Cloud에서 만든 ‘OAuth 클라이언트 ID(웹 애플리케이션)’가 필요해요. Google이 돌려준 로그인 결과를 확인할 서버도 필요해서 Codex가 서버 기능을 함께 추가해요. 기존 예제의 설정은 [로그인 설정 문서](${file('docs/AUTH.md')})에 있어요.`,
               '[Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 만들기 → Google Auth Platform → 동의 화면(대상은 외부, 테스트 사용자에 내 계정 추가) → Clients → 클라이언트 만들기 → 웹 애플리케이션. 승인된 JavaScript 원본에는 지금 접속한 주소의 앞부분만 경로와 마지막 / 없이 넣어요. 예) http://localhost:5173',

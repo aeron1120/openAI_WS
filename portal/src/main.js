@@ -167,7 +167,7 @@ function openWalk(box) {
   layer.innerHTML = `<div class="walk-card" role="dialog" aria-modal="true" aria-labelledby="walk-title" tabindex="-1">
 <div class="walk-head"><span class="walk-title" id="walk-title"></span><span class="walk-count"></span><button type="button" class="walk-close" aria-label="닫기">✕</button></div>
 <div class="walk-progress" aria-hidden="true"><span></span></div>
-<div class="walk-shot"><div class="walk-zoom"><img alt=""><span class="walk-box" aria-hidden="true"></span></div><p class="walk-noimg"><span aria-hidden="true">🔒</span> 로그인한 뒤의 화면이에요</p></div>
+<div class="walk-shot"><div class="walk-zoom"><img alt=""><span class="walk-box" aria-hidden="true"></span></div><p class="walk-noimg"></p></div>
 <p class="walk-text"></p>
 <p class="walk-note"></p>
 <div class="walk-actions"><button type="button" class="walk-prev">이전</button><button type="button" class="walk-next">다음</button></div>
@@ -204,6 +204,8 @@ function openWalk(box) {
     layer.querySelector('.walk-progress span').style.width = `${((index + 1) / steps.length) * 100}%`;
     shot.classList.toggle('is-text', !step.image);
     if (step.image) img.src = step.image;
+    // 그림이 없는 단계는 왜 그림이 없는지 짧게 알려줍니다(기본: 로그인한 뒤의 화면).
+    else shot.querySelector('.walk-noimg').textContent = step.blank ?? '🔒 로그인한 뒤의 화면이에요';
     mark.hidden = !step.box;
     if (step.box) {
       const [x, y, w, h] = step.box;

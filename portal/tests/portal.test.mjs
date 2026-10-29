@@ -656,10 +656,12 @@ test('the weather hint opens a screen-by-screen walkthrough with highlighted spo
     const walk = html.match(/<div class="walk" data-walk="([^"]+)" data-walk-title="기상청 인증키 받기">/);
     assert.ok(walk, `${page} has the walkthrough`);
     const steps = JSON.parse(walk[1].replaceAll('&quot;', '"').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&#39;', "'").replaceAll('&amp;', '&'));
-    assert.equal(steps.length, 6);
+    assert.equal(steps.length, 8);
     assert.deepEqual(steps[0].box, [81.34, 8.81, 8.24, 6.5]);
     assert.match(steps[0].text, /<a href="https:\/\/www\.data\.go\.kr\/"/);
+    // 신청서는 그림 없이 글로, 그 자리에 보일 문구와 함께 안내합니다.
     assert.equal(steps[4].image, null);
+    assert.match(steps[4].blank, /글로 안내/);
     for (const step of steps.filter(s => s.image)) assert.ok(await exists(path.join(outDir, step.image)), `${step.image} exists`);
     assert.match(html, /<button type="button" class="walk-open" data-walk-open hidden>/);
     assert.match(html, /<summary>화면 따라 하기를 글로 보기<\/summary>/);
