@@ -113,6 +113,16 @@ function tracks(content) {
 ${studioStrip(content.studio)}`;
 }
 
+// 장소 지도: event.mapImage(네이버 지도 캡처)가 있으면 그 그림을 누르면 네이버 지도가 열리고, 없으면 Google 지도를 넣습니다.
+function mapBlock(w, map) {
+  if (!w.event.mapImage) {
+    return h`<div class="map-frame"><iframe src="${map.embed}" title="${placeText(w)} 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>
+      <div class="next-card-actions">${link(map.naver, '네이버 지도', 'btn btn-ghost btn-sm')}${link(map.kakao, '카카오맵', 'btn btn-ghost btn-sm')}</div>`;
+  }
+  return h`<a class="map-frame map-shot" href="${map.naver}" target="_blank" rel="noopener"><img src="${w.event.mapImage}" alt="${placeText(w)} 위치를 표시한 네이버 지도" width="1200" height="750" loading="lazy" decoding="async"><span class="map-open">네이버 지도 ↗</span><span class="sr-only"> (새 창)</span></a>
+      <p class="map-meta"><span>© NAVER Corp.</span>${link(map.kakao, '카카오맵')}</p>`;
+}
+
 // 홈의 다음 워크숍: 날짜는 달력, 장소는 지도로 보여줍니다. 남은 날(D-day)은 main.js가 그날 기준으로 채웁니다.
 function nextWorkshop(content) {
   const { site, workshops } = content;
@@ -131,7 +141,6 @@ function nextWorkshop(content) {
   <div class="next-ws-head">
     <p class="track-kicker">다음 워크숍 ${eventBadge(w)}<span class="dday" data-dday="${w.event.start}" hidden></span></p>
     <h2 id="next-ws-title"><a href="${workshopPath(w)}">Workshop ${pad(w.number)} · ${w.title}</a></h2>
-    <p class="track-desc">${w.summary}</p>
   </div>
   <div class="next-ws-grid">
     <div class="next-card cal-card">
@@ -139,22 +148,21 @@ function nextWorkshop(content) {
       <p class="next-card-main">${scheduleText(w, site.timeZone)}</p>
       ${monthCalendar(w.event, site.timeZone, eventTitle(w))}
       <div class="next-card-actions">
-        ${link(googleCalendarUrl({ title: eventTitle(w), event: w.event, details: eventDetails(site, w) }), 'Google 캘린더에 추가', 'btn btn-ghost btn-sm')}
-        <a class="btn btn-ghost btn-sm" href="${icsPath(w)}" download="workshop-${w.slug}.ics">캘린더 파일 (아이폰·아웃룩)</a>
+        ${link(googleCalendarUrl({ title: eventTitle(w), event: w.event, details: eventDetails(site, w) }), 'Google 캘린더', 'btn btn-ghost btn-sm')}
+        <a class="btn btn-ghost btn-sm" href="${icsPath(w)}" download="workshop-${w.slug}.ics">아이폰·아웃룩</a>
       </div>
     </div>
     <div class="next-card map-card">
       <p class="next-card-label"><span aria-hidden="true">📍</span> 어디서</p>
       <p class="next-card-main">${placeText(w)}</p>
-      ${map ? h`<div class="map-frame"><iframe src="${map.embed}" title="${placeText(w)} 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>
-      <div class="next-card-actions">${link(map.naver, '네이버 지도', 'btn btn-ghost btn-sm')}${link(map.kakao, '카카오맵', 'btn btn-ghost btn-sm')}${link(map.google, 'Google 지도', 'btn btn-ghost btn-sm')}</div>` : ''}
+      ${map ? mapBlock(w, map) : ''}
     </div>
   </div>
   <div class="actions">
     ${isRecruiting(w) ? link(w.recruitment.url, h`신청하기${arrow()}`, 'btn btn-fill') : ''}
     ${live && w.materials === 'open'
       ? h`<a class="btn btn-fill" href="${workshopPath(w)}">실습 시작하기${arrow()}</a>`
-      : h`<a class="btn btn-ghost" href="${workshopPath(w)}">준비물·자세히 보기${arrow()}</a>`}
+      : h`<a class="btn btn-ghost" href="${workshopPath(w)}">자세히 보기${arrow()}</a>`}
   </div>
 </section>`;
 }

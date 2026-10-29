@@ -17,7 +17,7 @@ export const workshop2 = {
   outcome: '공개 주소와 변경 기록이 있는 내 사이트',
   summary: '사이트를 공개하고, GitHub에 원본을 보관한 뒤, 시험 주소에서 확인한 변경만 정식으로 반영해요.',
   doing: '첫 배포부터 GitHub 연동, Preview 확인, 정식 반영과 복구까지 한 번씩 해 봅니다.',
-  event: { status: 'scheduled', start: '2026-11-02T18:00:00+09:00', end: '2026-11-02T19:00:00+09:00', place: '서울대학교 관악캠퍼스 56동(자연과학관10) 105호', mapQuery: '서울대학교 56동' },
+  event: { status: 'scheduled', start: '2026-11-02T18:00:00+09:00', end: '2026-11-02T19:00:00+09:00', place: '서울대학교 관악캠퍼스 56동(자연과학관10) 105호', mapQuery: '서울대학교 56동', mapImage: '/images/place/ws-56dong-naver.jpg' },
   recruitment: { open: true, url: 'https://luma.com/54mgt7n8' },
   materials: 'open', materialsOpenAt: '2026-11-02T18:00:00+09:00',
   exampleDirs: ['workshop2/starter', 'workshop2/complete'],

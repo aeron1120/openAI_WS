@@ -8,6 +8,7 @@ import { workshop2 } from './workshop2.mjs';
 //   배포된 사이트가 요청마다 현재 시각을 확인하므로, 이 시각에 다시 배포하지 않아도 자동으로 열립니다.
 // - exampleDirs: 자료가 열릴 때 /examples/ 아래에 함께 공개할 저장소 폴더.
 // - event.mapQuery: 홈의 지도에서 찾을 장소 이름(예: '서울대학교 56동'). Google 지도에서 맞는 건물이 나오는지 확인하고 적으세요. 없으면 지도를 그리지 않습니다.
+// - event.mapImage: (선택) 네이버 지도에서 장소를 찍은 16:10 그림(public/images/place/). 있으면 홈에 이 그림을 보여 주고 누르면 네이버 지도가 열립니다.
 // - 확정되지 않은 값은 null로 둡니다. 임의의 주소나 '#'을 넣지 마세요.
 // - missions[].slideId: 이 단계의 강의가 시작되는 학생용 슬라이드 페이지 ID(Google Slides).
 // - missions[].taskSlides: 이 과제의 슬라이드 페이지 ID 목록(과제 페이지). 수업 화면의 '과제' 보기에서 이 페이지만 보여줍니다.

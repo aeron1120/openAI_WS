@@ -627,9 +627,11 @@ test('home shows the next workshop with a calendar, a map and calendar links ins
   assert.match(next, /<caption>2026년 11월/);
   assert.match(next, /<td data-date="2026-11-02" class="is-event"><span>2<\/span><\/td>/);
   assert.match(next, /data-dday="2026-11-02T18:00:00\+09:00"/);
-  assert.match(next, /<iframe src="https:\/\/www\.google\.com\/maps\?q=%EC%84%9C%EC%9A%B8%EB%8C%80%ED%95%99%EA%B5%90%2056%EB%8F%99&amp;hl=ko/);
-  assert.match(next, /href="https:\/\/map\.naver\.com\/p\/search\/[^"]+"[^>]*>네이버 지도/);
+  // mapImage가 있으면 네이버 지도 그림이 네이버 지도로 이어지고, Google 지도는 넣지 않습니다.
+  assert.match(next, /<a class="map-frame map-shot" href="https:\/\/map\.naver\.com\/p\/search\/[^"]+"[^>]*><img src="\/images\/place\/ws-56dong-naver\.jpg"/);
   assert.match(next, /href="https:\/\/map\.kakao\.com\/link\/search\/[^"]+"[^>]*>카카오맵/);
+  assert.doesNotMatch(next, /<iframe/);
+  assert.ok(await stat(path.join(outDir, 'images/place/ws-56dong-naver.jpg')), 'the map picture is published');
   assert.match(next, /href="https:\/\/calendar\.google\.com\/calendar\/render\?action=TEMPLATE[^"]*dates=20261102T090000Z%2F20261102T100000Z/);
   assert.match(next, /href="\/workshops\/02\/event\.ics" download/);
   assert.match(next, /href="https:\/\/luma\.com\/54mgt7n8"[^>]*>신청하기/);

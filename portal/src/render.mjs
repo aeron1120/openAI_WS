@@ -45,7 +45,7 @@ export function formatSchedule(event, timeZone) {
   const date = `${day} (${new Intl.DateTimeFormat('ko-KR', { timeZone, weekday: 'short' }).format(start)})`;
   const time = new Intl.DateTimeFormat('ko-KR', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const end = event.end ? `–${time.format(new Date(event.end))}` : '';
-  return `${date} ${time.format(start)}${end} (한국 시간)`;
+  return `${date} ${time.format(start)}${end}`;
 }
 
 const eventLabels = { done: ['진행 완료', 'done'], live: ['진행 중', 'open'], scheduled: ['일정 확정', 'scheduled'], tbd: ['준비 중', 'planning'], planning: ['준비 중', 'planning'], weekly: ['매주 월요일', 'scheduled'] };
