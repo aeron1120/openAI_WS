@@ -2,14 +2,20 @@
 
 지도 단계는 Google Maps JavaScript API를 실제로 불러옵니다. 모임마다 좌표로 마커를 만들고, 모임 카드를 선택하면 지도 중심을 이동합니다. 마커를 누르면 모임 이름과 장소를 열고 같은 모임을 선택합니다. 키가 없을 때는 연결 준비 안내를 보여주며, 가짜 지도로 대체하지 않습니다.
 
+## 지도 키 준비 (결제 없이)
+
+워크숍과 실습은 결제 정보 없이 받는 [지도 데모 키](https://developers.google.com/maps/demo-key?hl=ko)를 씁니다. 결제 계정은 연결하지 않습니다.
+
+1. 지도 데모 키 페이지에서 **데모 키 가져오기**를 누르고, 개인 Gmail 계정으로 로그인해 약관에 동의하면 키가 바로 보입니다. Google Workspace(학교·회사) 계정으로는 받을 수 없습니다.
+2. 데모 키는 지도 표시, 마커와 정보 창, 지도 스타일을 지원합니다. 하루 한도를 넘으면 다음 날까지 멈출 뿐 요금은 나오지 않습니다. 키는 안내 메일이나 Google Cloud 콘솔에서 다시 찾을 수 있습니다.
+3. 키는 대화창이나 공개 파일에 붙이지 않고 비공개 설정 파일(로컬은 `.env`·`.dev.vars`, 배포는 아래 Cloudflare 설정)에 넣습니다. 날씨 API 키, OAuth 비밀 키, 서버용 키를 재사용하지 않습니다.
+
 ## Cloudflare 설정
 
-1. 사용자가 관리하는 Google Cloud 프로젝트에서 Maps JavaScript API를 사용 설정합니다. API 사용에는 결제 계정 연결이 필요합니다. 결제 계정 연결, 예산, 할당량은 사용자가 직접 결정합니다.
-2. 지도 전용 브라우저 API 키를 만듭니다. 애플리케이션 제한은 **웹사이트(HTTP 리퍼러)** 로 지정하고 `https://openai-ws-workshop1.a01085519047.workers.dev/*`와 `https://v3-openai-ws-workshop1.a01085519047.workers.dev/*`를 등록합니다. 버전 해시 URL을 직접 시연하려면 해당 주소도 개별 등록합니다.
-3. API 제한은 **Maps JavaScript API** 만 허용합니다. 날씨 API 키, OAuth 비밀 키, 서버용 키를 재사용하지 않습니다.
-4. Cloudflare의 `openai-ws-workshop1` 설정 → Variables and Secrets에 `GOOGLE_MAPS_API_KEY`를 설정합니다. 저장 후 v3 코드를 다시 업로드해 v3 별칭에 새 설정을 반영해야 합니다. 이전 고정 버전은 이전 설정을 유지합니다.
-5. 워크숍 테스트는 `DEMO_MAP_ID`를 사용합니다. 운영 시에는 JavaScript 지도 ID를 만들고 `GOOGLE_MAPS_MAP_ID`에 넣습니다.
-6. 배포된 주소에서 실제 지도, 마커 클릭, 모임 카드 선택을 확인합니다. 인증 오류가 나면 브라우저 개발자 콘솔에서 API 사용 설정, 결제, 리퍼러 제한의 정확한 오류를 확인합니다.
+1. 공개 주소에서 쓸 때는 Google Cloud 콘솔에서 이 키의 웹사이트 제한에 `https://openai-ws-workshop1.a01085519047.workers.dev/*`와 `https://v3-openai-ws-workshop1.a01085519047.workers.dev/*`를 등록합니다. 버전 해시 URL을 직접 시연하려면 해당 주소도 개별 등록합니다.
+2. Cloudflare의 `openai-ws-workshop1` 설정 → Variables and Secrets에 `GOOGLE_MAPS_API_KEY`를 설정합니다. 저장 후 v3 코드를 다시 업로드해 v3 별칭에 새 설정을 반영해야 합니다. 이전 고정 버전은 이전 설정을 유지합니다.
+3. 지도 ID는 테스트용 `DEMO_MAP_ID`를 사용합니다. `GOOGLE_MAPS_MAP_ID`를 비워 두면 서버가 이 값을 돌려줍니다.
+4. 배포된 주소에서 실제 지도, 마커 클릭, 모임 카드 선택을 확인합니다. 인증 오류가 나면 브라우저 개발자 콘솔에서 키 값, 웹사이트 제한, 데모 키 하루 한도의 정확한 오류를 확인합니다.
 
 `/api/maps/config`는 `GOOGLE_MAPS_API_KEY`와 지도 ID만 반환합니다. 이 키는 Google 지도 요청을 위해 브라우저에 공개되는 키이므로 환경 변수에 저장하는 것만으로 비밀이 되지 않습니다. 웹사이트 및 API 제한이 필수입니다. 서버 전용 비밀은 이 응답에 포함하지 않습니다. 응답은 캐시하지 않고, 임의의 다른 사이트를 위한 CORS도 열지 않습니다.
 
@@ -34,10 +40,11 @@ controller.select(meetingId); // 모임 카드 클릭 시; onSelect를 다시 �
 
 `node --test tests/maps.test.mjs`
 
-설정 응답과 비밀 분리, 키 누락, 좌표 유효성, 카드/마커 선택 방향, 정보창 텍스트, 인증 실패, 스크립트 실패, 해제 동작을 가벼운 Maps API 모형으로 검증합니다. 실제 키와 결제가 연결된 배포 환경에서의 지도 표시는 별도 확인이 필요합니다.
+설정 응답과 비밀 분리, 키 누락, 좌표 유효성, 카드/마커 선택 방향, 정보창 텍스트, 인증 실패, 스크립트 실패, 해제 동작을 가벼운 Maps API 모형으로 검증합니다. 실제 지도 데모 키를 넣은 배포 환경에서의 지도 표시는 별도 확인이 필요합니다.
 
 ## 공식 문서
 
+- [지도 데모 키 가져오기](https://developers.google.com/maps/demo-key?hl=ko)
 - [Maps JavaScript API 로딩](https://developers.google.com/maps/documentation/javascript/load-maps-js-api)
 - [AdvancedMarkerElement와 지도 ID 준비](https://developers.google.com/maps/documentation/javascript/advanced-markers/start)
 - [접근 가능한 마커](https://developers.google.com/maps/documentation/javascript/advanced-markers/accessible-markers)

@@ -272,12 +272,13 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
             slideId: 'h2ea000745df279bf_2_421',
             taskSlides: ['ws1_task_20261029_map_1', 'ws1_task_20261029_map_2', 'ws1_task_20261029_map_3'],
             hintSlides: ['ws1_task_20261029_map_1', 'ws1_task_20261029_map_1'],
-            needs: '[Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/load-maps-js-api)를 쓸 지도 키. 실습은 결제 없이 받는 [지도 데모 키](https://developers.google.com/maps/demo-key?hl=ko)(개인 Gmail 계정)로 할 수 있어요. 정식 키는 결제 계정을 연결해야 하고 사용량에 따라 비용이 생길 수 있어요.',
+            needs: '결제 없이 받는 [지도 데모 키](https://developers.google.com/maps/demo-key?hl=ko). 개인 Gmail 계정이 필요하고, 하루 한도를 넘으면 다음 날까지 멈출 뿐 요금은 나오지 않아요.',
             prompt: `starter의 지도·위치정보 영역에 Google 지도를 구현해줘.
 서울대학교 정문 위치에 마커를 표시하고,
 마커를 누르면 장소 이름이 보이게 해줘.
-docs/MAPS.md를 참고해서 필요한 API 설정과 비용 발생 가능성을 먼저 설명해줘.
-좌표는 확인한 실제 위치를 사용하고, 설정할 항목과 확인 방법을 안내해줘.`,
+지도 키는 결제 없이 받은 지도 데모 키, Map ID는 DEMO_MAP_ID를 쓸 거야.
+docs/MAPS.md를 참고해 키를 넣을 위치와 확인 방법을 안내해줘.
+좌표는 확인한 실제 위치를 사용해줘.`,
             guide: file('guides/MAP.md'),
             walkthrough: {
               title: '결제 없이 지도 데모 키 받기',
@@ -285,21 +286,21 @@ docs/MAPS.md를 참고해서 필요한 API 설정과 비용 발생 가능성을 
                 { image: '/images/walk/map/01-demo.webp', box: [67.02, 51.73, 12.24, 6], text: '[지도 데모 키 페이지](https://developers.google.com/maps/demo-key?hl=ko)를 열고 데모 키 가져오기를 눌러요.', note: '결제 정보 없이 받는 무료 테스트용 키예요. 하루 사용량을 넘으면 다음 날까지 멈출 뿐 요금은 나오지 않아요.' },
                 { image: '/images/walk/map/02-login.webp', box: [51.4, 34.6, 30.6, 7.5], text: '개인 Gmail 계정으로 로그인해요.', note: '학교·회사에서 받은 Google Workspace 계정으로는 데모 키를 받을 수 없어요.' },
                 { text: '지도 데모 키 약관을 읽고 동의하면 키가 바로 보여요. 키를 복사해요.', note: '키를 다시 찾는 방법이 적힌 메일도 와요. 나중에는 Google Cloud 콘솔에서 찾을 수 있어요.', blank: '🔑 약관에 동의하면 키가 보여요' },
-                { image: '/images/walk/codex/03-codex-home.webp', box: [34.2, 84.4, 51.6, 11.6], text: '지도 요청문 끝에 “지도 키는 지도 데모 키를 쓸 거야”를 덧붙여 Codex에 보내요. 키는 Codex가 알려준 비공개 설정 파일에 직접 넣어요.', note: '키는 대화창에 붙이지 않아요. Map ID가 필요하면 테스트용 DEMO_MAP_ID를 쓸 수 있는지 Codex가 확인해 줘요.' },
+                { image: '/images/walk/codex/03-codex-home.webp', box: [34.2, 84.4, 51.6, 11.6], text: '지도 요청문을 Codex에 보내요. 키는 Codex가 알려준 비공개 설정 파일에 직접 넣어요.', note: '키는 대화창에 붙이지 않아요. Map ID는 테스트용 DEMO_MAP_ID를 써요.' },
                 { text: '서버를 다시 켜고 새로고침해 서울대학교 정문에 마커가 보이는지, 마커를 누르면 장소 이름이 나오는지 확인해요.', note: '회색 화면이나 오류가 나오면 개발자 도구(Windows F12, Mac ⌥⌘I)의 Console 오류 문구를 키는 가린 채 Codex에 보여줘요.', blank: '🗺️ 내 화면에서 지도와 마커를 확인해요' }
               ]
             },
             hints: [
-              `지도에는 Maps JavaScript API를 쓸 브라우저용 지도 키가 필요해요. 실습은 결제 없이 받는 [지도 데모 키](https://developers.google.com/maps/demo-key?hl=ko)로 충분해요. 정식 키는 결제 계정을 연결해야 하고 사용량에 따라 비용이 생길 수 있으니, 그때는 [지도 설정 문서](${file('docs/MAPS.md')})를 먼저 확인하세요.`,
-              '[Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 선택 → 결제 계정 연결 → API 및 서비스 → 라이브러리에서 Maps JavaScript API 사용 → 사용자 인증 정보 → API 키 만들기. 키를 만든 뒤 꼭 제한을 걸어요. 애플리케이션 제한은 웹사이트(HTTP 리퍼러)에 http://localhost:5173/*, API 제한은 Maps JavaScript API만 고릅니다.',
-              `1. [Google Cloud Console](https://console.cloud.google.com/)에 로그인하고 새 프로젝트를 만듭니다.
-2. 왼쪽 메뉴 결제에서 결제 계정을 연결합니다. 예산 알림도 함께 설정해 두면 좋아요.
-3. API 및 서비스 → 라이브러리에서 “Maps JavaScript API”를 검색해 사용을 누릅니다.
-4. API 및 서비스 → 사용자 인증 정보 → 사용자 인증 정보 만들기 → API 키를 누릅니다.
-5. 만든 키를 열어 웹사이트 제한에 http://localhost:5173/* 를 넣고, API 제한은 Maps JavaScript API만 고른 뒤 저장합니다.
-6. 지도 요청문을 Codex에 보내고, Codex가 알려준 로컬 설정 파일에 키를 넣고 저장합니다.
-7. 서버를 다시 켜고 지도, 마커 위치, 마커를 눌렀을 때 나오는 이름을 확인합니다.
-8. 회색 화면이나 오류가 나오면 개발자 도구(Windows F12, Mac ⌥⌘I)의 Console 오류 문구를 Codex에 보여주세요.`
+              `지도에는 Maps JavaScript API를 쓸 브라우저용 지도 키가 필요해요. 실습은 결제 정보 없이 받는 [지도 데모 키](https://developers.google.com/maps/demo-key?hl=ko)로 해요. 하루 한도를 넘으면 다음 날까지 멈출 뿐 요금은 나오지 않아요. 키를 넣는 곳은 [지도 설정 문서](${file('docs/MAPS.md')})에 있어요.`,
+              '[지도 데모 키 페이지](https://developers.google.com/maps/demo-key?hl=ko) → 데모 키 가져오기 → 개인 Gmail로 로그인 → 약관 동의 → 화면에 나온 키 복사. 학교·회사에서 받은 Google Workspace 계정으로는 받을 수 없어요. 키를 다시 찾을 때는 함께 온 안내 메일을 보거나 Google Cloud 콘솔에서 찾아요.',
+              `1. [지도 데모 키 페이지](https://developers.google.com/maps/demo-key?hl=ko)를 열고 데모 키 가져오기를 누릅니다.
+2. 개인 Gmail 계정으로 로그인합니다. 예) ○○○@gmail.com
+3. 지도 데모 키 약관을 읽고 동의하면 키가 바로 보여요. 키를 복사합니다.
+4. 지도 요청문을 Codex에 보내고, 내가 설정할 항목을 확인합니다.
+5. Codex가 알려준 비공개 설정 파일에 키를 직접 붙여 넣고 저장합니다. 키는 대화창에 붙이지 않아요.
+6. 서버를 Ctrl+C로 끄고 다시 켠 뒤 새로고침합니다.
+7. 지도, 마커 위치, 마커를 눌렀을 때 나오는 이름을 확인합니다.
+8. 회색 화면이나 오류가 나오면 개발자 도구(Windows F12, Mac ⌥⌘I)의 Console 오류 문구를 키는 가린 채 Codex에 보여주세요.`
             ]
           }
         ],
