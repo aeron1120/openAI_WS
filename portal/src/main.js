@@ -303,7 +303,57 @@ document.addEventListener('pointerdown', event => {
 // 페이지 묶음은 행사 시각에만 바뀌므로 날짜 계산은 브라우저가 맡습니다.
 const seoulDay = date => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(date);
 const today = seoulDay(new Date());
-document.querySelector(`.cal td[data-date="${today}"]`)?.classList.add('is-today');
+const DAY = 86400000;
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const shortDay = ms => { const d = new Date(ms); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}(${WEEKDAYS[d.getUTCDay()]})`; };
+
+// 달력에 오늘이 늘 보이도록: 오늘이 행사 달 밖이면 오늘이 든 주부터 행사 주까지로 다시 그립니다(8주 이내).
+// 오늘과 행사 사이 날은 옅게 칠하고, 달력 아래에 남은 날을 적습니다.
+function showToday(cal) {
+  const eventCell = cal.querySelector('td.is-event');
+  if (!eventCell) return;
+  const eventDay = eventCell.dataset.date;
+  const from = Date.parse(today), to = Date.parse(eventDay);
+  if (from < to && to - from <= 56 * DAY && !cal.querySelector(`td[data-date="${today}"]`)) {
+    const first = from - new Date(from).getUTCDay() * DAY;
+    const last = to + (6 - new Date(to).getUTCDay()) * DAY;
+    const rows = [];
+    for (let week = first; week <= last; week += 7 * DAY) {
+      rows.push(`<tr>${Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(week + i * DAY);
+        const date = d.toISOString().slice(0, 10);
+        const label = d.getUTCDate() === 1 ? `${d.getUTCMonth() + 1}/1` : d.getUTCDate();
+        return `<td data-date="${date}"${date === eventDay ? ' class="is-event"' : ''}><span>${label}</span></td>`;
+      }).join('')}</tr>`);
+    }
+    cal.tBodies[0].innerHTML = rows.join('');
+    const a = new Date(first), b = new Date(last);
+    const name = a.getUTCFullYear() === b.getUTCFullYear()
+      ? `${a.getUTCFullYear()}년 ${a.getUTCMonth() + 1}월 – ${b.getUTCMonth() + 1}월`
+      : `${a.getUTCFullYear()}년 ${a.getUTCMonth() + 1}월 – ${b.getUTCFullYear()}년 ${b.getUTCMonth() + 1}월`;
+    cal.caption.firstChild.textContent = name;
+  }
+  for (const cell of cal.querySelectorAll('td[data-date]')) {
+    const t = Date.parse(cell.dataset.date);
+    if (t < from) cell.classList.add('is-past');
+    else if (t > from && t < to) cell.classList.add('is-between');
+  }
+  const todayCell = cal.querySelector(`td[data-date="${today}"]`);
+  if (todayCell) {
+    todayCell.classList.add('is-today');
+    todayCell.insertAdjacentHTML('beforeend', '<small class="cal-today-label">오늘</small>');
+  }
+  if (from > to) return;
+  const days = Math.round((to - from) / DAY);
+  const note = document.createElement('p');
+  note.className = 'cal-note';
+  note.innerHTML = days === 0
+    ? '<b>오늘</b>이 워크숍 날이에요'
+    : `<span class="cal-note-today">오늘 ${shortDay(from)}</span> → 워크숍 ${shortDay(to)} · <b>${days}일 남았어요</b>`;
+  cal.after(note);
+}
+const homeCal = document.querySelector('.cal');
+if (homeCal) showToday(homeCal);
 for (const badge of document.querySelectorAll('[data-dday]')) {
   const start = new Date(badge.dataset.dday);
   if (Number.isNaN(start.getTime()) || Date.now() >= start.getTime()) continue;
