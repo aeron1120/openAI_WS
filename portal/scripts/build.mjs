@@ -9,6 +9,7 @@ import { workshops } from '../content/workshops.mjs';
 import { studio, showcase, projects, collaboration } from '../content/program.mjs';
 import { ws1Practice } from '../content/practice-pages.mjs';
 import { ws2Practice } from '../content/practice-pages-ws2.mjs';
+import { recaps } from '../content/recap.mjs';
 import { layout, learnLayout } from '../src/layout.mjs';
 import { isUsableUrl, inlineLinkUrls } from '../src/render.mjs';
 import { icsFile } from '../src/calendar.mjs';
@@ -28,7 +29,8 @@ const decks = existsSync(manifestFile) ? JSON.parse(readFileSync(manifestFile, '
 // 과제 페이지의 '글로 읽기': { <페이지 ID>: { title, text } }
 const transcripts = Object.fromEntries([...Object.values(ws1Practice), ...Object.values(ws2Practice)].map(p => [p.id, { title: p.title, text: p.text }]));
 
-export const defaultContent = { site, workshops, studio, showcase, projects, collaboration, decks, transcripts };
+// showDrafts: Recap 초안까지 보는 미리보기(PORTAL_DRAFTS=1). 배포 빌드에서는 꺼져 있습니다.
+export const defaultContent = { site, workshops, studio, showcase, projects, collaboration, decks, transcripts, recaps, showDrafts: process.env.PORTAL_DRAFTS === '1' };
 
 // 잘못된 링크가 버튼으로 공개되지 않도록 빌드 전에 콘텐츠를 검사합니다.
 export function validateContent(content) {
@@ -139,6 +141,27 @@ export function validateContent(content) {
     if (s.slides != null && !/^https:\/\/docs\.google\.com\/presentation\/d\/[A-Za-z0-9_-]{20,}\//.test(s.slides)) problems.push(`studio.sessions[${i}].slides: docs.google.com/presentation/d/<ID>/… 주소를 적어 주세요.`);
   });
   content.projects.forEach((p, i) => p.links?.forEach((l, j) => checkUrl(l.url, `projects[${i}].links[${j}]`)));
+  // Recap: 공개(published) 기록은 실제 날짜·글·사진(public/에 있는 파일, alt 필수)이 모두 있어야 합니다. 초안은 주소만 확인합니다.
+  const recapSlugs = new Set();
+  (content.recaps ?? []).forEach((r, i) => {
+    const where = `recaps[${i}]${r.slug ? ` ${r.slug}` : ''}`;
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(r.slug ?? '')) problems.push(`${where}: slug는 영문 소문자·숫자·-로 적어 주세요 (예: ws1-1026).`);
+    if (recapSlugs.has(r.slug)) problems.push(`${where}: slug 중복`);
+    recapSlugs.add(r.slug);
+    if (!['published', 'draft'].includes(r.status)) problems.push(`${where}: status는 'published' 또는 'draft'예요.`);
+    if (r.status !== 'published') return;
+    const [y, m, d] = (r.eventDate ?? '').split('-').map(Number);
+    const day = new Date(Date.UTC(y, m - 1, d));
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(r.eventDate ?? '') || day.getUTCMonth() !== m - 1 || day.getUTCDate() !== d) problems.push(`${where}: eventDate는 실제 행사 날짜(YYYY-MM-DD)로 적어 주세요.`);
+    for (const key of ['title', 'summary', 'intro']) if (typeof r[key] !== 'string' || !r[key].trim()) problems.push(`${where}: ${key}를 적어 주세요.`);
+    if (!Array.isArray(r.photos) || !r.photos.length) problems.push(`${where}: 공개하려면 사진(photos)이 한 장 이상 있어야 해요.`);
+    (r.photos ?? []).forEach((p, j) => {
+      if (!/^\/images\/[^\s]+\.(jpe?g|png|webp)$/i.test(p.src ?? '') || !existsSync(path.join(portal, 'public', p.src))) problems.push(`${where}.photos[${j}]: src "${p.src}"가 public/에 없어요.`);
+      if (typeof p.alt !== 'string' || !p.alt.trim()) problems.push(`${where}.photos[${j}]: 무엇이 보이는지 alt를 적어 주세요.`);
+    });
+    const cover = r.cover ?? 0;
+    if (!Number.isInteger(cover) || cover < 0 || cover >= (r.photos?.length ?? 0)) problems.push(`${where}: cover는 photos의 순번(0부터)이에요.`);
+  });
   if (problems.length) throw new Error(`콘텐츠를 확인해 주세요:\n- ${problems.join('\n- ')}`);
 }
 
@@ -150,6 +173,8 @@ export function routes(content) {
     ...content.workshops.map(w => ({ path: `/workshops/${w.slug}/`, title: `Workshop ${w.slug} · ${w.title}`, render: c => pages.workshopPage(c, w), description: [w.message, w.summary].filter(Boolean).join(' — ') })),
     { path: '/studio/', title: 'Studio Session', render: pages.studioPage, description: content.studio.description },
     { path: '/showcase/', title: 'Showcase', render: pages.showcasePage, description: content.showcase.description },
+    { path: '/recap/', title: 'Recap', render: pages.recapPage, description: '행사 사진과 그날 한 일을 모아 둔 활동 기록.' },
+    ...pages.visibleRecaps(content).map(r => ({ path: pages.recapPath(r), title: `${r.title} · Recap`, render: c => pages.recapDetailPage(c, r), description: r.summary || 'Recap' })),
     { path: '/about/', title: '운영 소개와 협력 안내', render: pages.aboutPage, description: `${content.site.name} 운영진, 진행 기록, 협력 방식 안내.` },
     { path: '/learn/', title: '수업 듣기', render: learnPages.learnPage, description: '서울대 계정으로 로그인하고 슬라이드를 보며 단계별로 실습해요.', script: ['learn.js', 'questions.js'], layout: 'learn' },
     { path: '/learn/questions/', title: '내 질문', render: learnPages.questionsPage, description: '수업 중 남긴 질문과 운영진의 답을 확인해요.', script: ['learn.js', 'questions.js'], layout: 'learn' },

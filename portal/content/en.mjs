@@ -235,6 +235,20 @@ const showcase = {
   '모임 카드 세 개에 즐겨찾기 버튼이 있는 화면.': 'Three meetup cards, each with a favorite button.'
 };
 
+// Recap 화면의 틀. 각 행사 기록(content/recap.mjs)의 제목·글·사진 설명은 기록을 더할 때 여기에 함께 더해 주세요.
+const recap = {
+  '활동 기록': 'Activity log',
+  '행사 사진과 그날 한 일을 모아 둬요.': 'Photos from our events and what we did that day.',
+  '행사 사진과 그날 한 일을 모아 둔 활동 기록.': 'An activity log of photos from our events and what we did that day.',
+  '아직 등록된 활동 기록이 없습니다.': 'No activity has been recorded yet.',
+  '사진을 불러오지 못했어요': 'Could not load the photo',
+  '사진을 준비하고 있어요.': 'Photos are on their way.',
+  '사진': 'Photos',
+  'Recap 목록': 'All Recaps',
+  '초안 · 공개 안 됨': 'Draft · not public',
+  '날짜 미정': 'Date to be added'
+};
+
 const about = {
   '운영 소개와 협력 안내': 'Team and partners',
   'OpenAI Student Collective | SNU는 서울대학교 학생이 직접 만들고 공유하는 경험을 돕는 학생 프로그램이에요.': 'OpenAI Student Collective | SNU is a student program that helps SNU students build things themselves and share them.',
@@ -261,7 +275,7 @@ const about = {
 };
 
 export const english = {
-  text: { ...workshopTitles, ...layout, ...home, ...roadmap, ...workshopsList, ...workshopPage, ...studio, ...showcase, ...about },
+  text: { ...workshopTitles, ...layout, ...home, ...roadmap, ...workshopsList, ...workshopPage, ...studio, ...showcase, ...recap, ...about },
   // 문장 안에 날짜·회차 번호가 들어가는 글. 날짜는 먼저 영어로 바뀐 뒤 이 규칙을 거칩니다.
   rules: [
     [/^(\d{4})년 (\d)학기$/, (_, y, t) => `${t === '1' ? 'Spring' : 'Fall'} ${y}`],

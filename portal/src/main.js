@@ -356,6 +356,13 @@ for (const badge of document.querySelectorAll('[data-dday]')) {
   badge.hidden = false;
 }
 
+// Recap 사진을 못 불러오면 틀은 그대로 두고 안내 글을 보여 줍니다.
+for (const img of document.querySelectorAll('.recap-frame img')) {
+  const broken = () => { img.hidden = true; img.nextElementSibling.hidden = false; };
+  if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) broken();
+  else img.addEventListener('error', broken, { once: true });
+}
+
 // 회차 페이지의 ? 도움말(막혔을 때): 바깥을 누르거나 Esc를 누르면 닫습니다. 주소가 #help면 열어 둡니다.
 const helpPop = document.querySelector('.help-pop');
 if (helpPop) {

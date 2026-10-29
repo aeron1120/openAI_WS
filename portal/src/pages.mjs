@@ -505,6 +505,62 @@ export function aboutPage(content) {
 </section>`;
 }
 
+// Recap(활동 기록): 행사 사진과 그날 한 일. 공개(published)한 기록만, 행사 날짜 최신순(같은 날이면 slug 순).
+// drafts: 미리보기(PORTAL_DRAFTS=1)에서만 초안도 보여 줍니다.
+export function visibleRecaps(content) {
+  return (content.recaps ?? [])
+    .filter(r => r.status === 'published' || (content.showDrafts && r.status === 'draft'))
+    .sort((a, b) => (b.eventDate ?? '').localeCompare(a.eventDate ?? '') || a.slug.localeCompare(b.slug));
+}
+export const recapPath = r => `/recap/${r.slug}/`;
+// '2026-10-26' → '2026년 10월 26일 (월)'. 날짜만 적는 기록이라 시간대 계산 없이 그대로 읽습니다.
+function recapDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value ?? '')) return '날짜 미정';
+  const [y, m, d] = value.split('-').map(Number);
+  return `${y}년 ${m}월 ${d}일 (${['일', '월', '화', '수', '목', '금', '토'][new Date(Date.UTC(y, m - 1, d)).getUTCDay()]})`;
+}
+// 사진 틀: 비율을 고정해 사진이 늦게 오거나 없어도 카드 모양이 그대로입니다. 못 불러오면 main.js가 안내 글을 켭니다.
+function recapFrame(photo, alt) {
+  return h`<span class="recap-frame">${photo?.src ? h`<img src="${photo.src}" alt="${alt}" loading="lazy" decoding="async">` : ''}<span class="recap-missing"${photo?.src ? raw(' hidden') : ''}>사진을 불러오지 못했어요</span></span>`;
+}
+const draftBadge = r => r.status === 'draft' ? h` <span class="badge badge-tbd">초안 · 공개 안 됨</span>` : '';
+
+export function recapPage(content) {
+  const list = visibleRecaps(content);
+  return h`<header class="page-head">
+  <h1>Recap</h1>
+  <p class="lead">행사 사진과 그날 한 일을 모아 둬요.</p>
+</header>
+<section class="block reveal">
+  ${list.length
+    ? h`<ul class="recap-grid">${list.map(r => h`<li><a class="recap-card" href="${recapPath(r)}">
+  ${recapFrame(r.photos?.[r.cover ?? 0], '')}
+  <span class="recap-body">
+    <time class="recap-date" datetime="${r.eventDate ?? ''}">${recapDate(r.eventDate)}</time>${draftBadge(r)}
+    <strong class="recap-title">${r.title}</strong>
+    <span class="recap-summary">${r.summary}</span>
+  </span>
+</a></li>`)}</ul>`
+    : h`<p class="empty">아직 등록된 활동 기록이 없습니다.</p>`}
+</section>`;
+}
+
+export function recapDetailPage(content, r) {
+  const photos = r.photos ?? [];
+  return h`<nav class="crumbs" aria-label="현재 위치"><a href="/recap/">Recap</a> › ${r.title}</nav>
+<header class="page-head recap-head">
+  <p class="track-kicker"><time datetime="${r.eventDate ?? ''}">${recapDate(r.eventDate)}</time>${draftBadge(r)}</p>
+  <h1>${r.title}</h1>
+  ${r.intro ? h`<p class="lead">${r.intro}</p>` : ''}
+</header>
+<section class="block reveal" aria-label="사진">
+  ${photos.length
+    ? h`<ul class="recap-gallery">${photos.map(p => h`<li><figure>${recapFrame(p, p.alt)}${p.caption ? h`<figcaption>${p.caption}</figcaption>` : ''}</figure></li>`)}</ul>`
+    : h`<p class="empty">사진을 준비하고 있어요.</p>`}
+</section>
+<div class="actions recap-back"><a class="btn btn-ghost" href="/recap/">${arrow('←')} Recap 목록</a></div>`;
+}
+
 export function notFoundPage() {
   return h`<header class="page-head">
   <h1>페이지를 찾을 수 없어요</h1>

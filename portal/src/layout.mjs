@@ -1,6 +1,6 @@
 import { h, raw, link, isUsableUrl } from './render.mjs';
 
-// 사이드바 메뉴: 홈 · 학기 과정(회차별) · 안내. 메뉴 아래 작은 줄에는 날짜나 '준비 중'만 적습니다.
+// 사이드바 메뉴: 홈 · 학기 과정(회차별) · 활동 기록(Recap) · 안내. 메뉴 아래 작은 줄에는 날짜나 '준비 중'만 적습니다.
 function navGroups(content) {
   const { workshops, studio, showcase } = content;
   return [
@@ -18,14 +18,18 @@ function navGroups(content) {
         { path: '/showcase/', label: showcase.title, sub: showcase.event?.badge ?? '준비 중', color: showcase.color }
       ]
     },
+    { title: '활동 기록', items: [{ path: '/recap/', label: 'Recap', color: 'violet', section: true }] },
     { title: '안내', items: [{ path: '/roadmap/', label: '학기 로드맵', color: 'line' }, { path: '/workshops/', label: '전체 워크숍', color: 'line' }, { path: '/about/', label: '운영·협력', color: 'line' }] }
   ];
 }
 
+// 지금 페이지 표시: 같은 주소면 page, section 메뉴(Recap)의 하위 페이지면 true. 영어 페이지(/en/…)도 같은 메뉴를 표시합니다.
 function navList(content, path) {
+  const here = path.replace(/^\/en(?=\/)/, '');
+  const current = item => here === item.path ? raw(' aria-current="page"') : item.section && here.startsWith(item.path) ? raw(' aria-current="true"') : '';
   return navGroups(content).map(group => h`<div class="nav-group">
   ${group.title ? h`<p class="nav-title">${group.title}</p>` : ''}
-  <ul>${group.items.map(item => h`<li><a href="${item.path}" ${item.path === path ? raw('aria-current="page"') : ''}><span class="dot dot-${item.color}" aria-hidden="true"></span><span class="nav-label">${item.label}${item.sub ? h`<small>${item.sub}</small>` : ''}</span></a></li>`)}</ul>
+  <ul>${group.items.map(item => h`<li><a href="${item.path}"${current(item)}><span class="dot dot-${item.color}" aria-hidden="true"></span><span class="nav-label">${item.label}${item.sub ? h`<small>${item.sub}</small>` : ''}</span></a></li>`)}</ul>
 </div>`);
 }
 

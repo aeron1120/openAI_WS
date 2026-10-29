@@ -51,9 +51,64 @@ test('portal pages have English copies under /en/ with a language switch, while 
   assert.doesNotMatch(await read('/learn/'), /lang-switch/);
 });
 
+// Recap 검사용: 실제 행사 기록이 아니라 테스트에서만 쓰는 값입니다. 사진은 저장소에 이미 있는 그림을 빌려 씁니다.
+const PHOTO = '/images/walk/codex/01-chatgpt-home.webp';
+const recapFixture = (slug, eventDate, extra = {}) => ({ slug, status: 'published', title: `Event ${slug}`, eventDate, summary: `summary ${slug}`, intro: `intro ${slug}`, photos: [{ src: PHOTO, alt: `photo ${slug}` }], ...extra });
+
+test('Recap sits alone under 활동 기록 in the menu and shows an empty state until a record is published', async t => {
+  const { read } = await build(t);
+  const home = await read('/');
+  const nav = home.match(/<aside class="sidebar">[\s\S]*?<\/aside>/)[0];
+  const titles = [...nav.matchAll(/<p class="nav-title">([^<]+)<\/p>/g)].map(m => m[1]);
+  assert.deepEqual(titles, ['학기 과정', '활동 기록', '안내']);
+  const group = nav.match(/<p class="nav-title">활동 기록<\/p>\s*<ul>([\s\S]*?)<\/ul>/)[1];
+  assert.equal((group.match(/<li>/g) ?? []).length, 1);
+  assert.match(group, /href="\/recap\/"[\s\S]*Recap/);
+  const recap = await read('/recap/');
+  assert.match(recap, /<h1>Recap<\/h1>/);
+  assert.match(recap, /아직 등록된 활동 기록이 없습니다\./);
+  assert.match(recap, /href="\/recap\/" aria-current="page"/);
+  assert.doesNotMatch(recap, /learn\.js/, 'Recap does not depend on the lesson scripts');
+});
+
+test('Recap lists published records newest event first with a stable order, hides drafts and opens a gallery page', async t => {
+  const content = clone(defaultContent);
+  content.recaps = [
+    recapFixture('older', '2026-10-01'),
+    recapFixture('b-same-day', '2026-10-26'),
+    recapFixture('a-same-day', '2026-10-26', { cover: 1, photos: [{ src: PHOTO, alt: 'first' }, { src: PHOTO, alt: 'second', caption: 'a caption' }] }),
+    { slug: 'not-ready', status: 'draft', title: 'Draft only' }
+  ];
+  const { read, pages, outDir } = await build(t, content);
+  const list = await read('/recap/');
+  const order = [...list.matchAll(/<a class="recap-card" href="\/recap\/([^/]+)\/">/g)].map(m => m[1]);
+  assert.deepEqual(order, ['a-same-day', 'b-same-day', 'older']);
+  assert.match(list, /<time class="recap-date" datetime="2026-10-26">2026년 10월 26일 \(월\)<\/time>/);
+  assert.doesNotMatch(list, /Draft only/);
+  assert.ok(!pages.includes('/recap/not-ready/'));
+  assert.ok(!(await exists(path.join(outDir, 'recap/not-ready/index.html'))), 'drafts are not built');
+  const detail = await read('/recap/a-same-day/');
+  assert.match(detail, /<nav class="crumbs"[^>]*><a href="\/recap\/">Recap<\/a> › Event a-same-day<\/nav>/);
+  assert.match(detail, /<h1>Event a-same-day<\/h1>/);
+  assert.match(detail, /<p class="lead">intro a-same-day<\/p>/);
+  assert.equal((detail.match(/<figure>/g) ?? []).length, 2);
+  assert.match(detail, /alt="second"[\s\S]*<figcaption>a caption<\/figcaption>/);
+  assert.match(detail, /href="\/recap\/">[\s\S]*Recap 목록<\/a>/);
+  assert.match(detail, /href="\/recap\/" aria-current="true"/, 'the menu keeps Recap selected on a record');
+  assert.match(await read('/en/recap/a-same-day/'), /All Recaps/);
+});
+
+test('a published Recap needs a real date, text and photos that exist with alt text', () => {
+  const content = clone(defaultContent);
+  content.recaps = [{ slug: 'Bad Slug', status: 'published', title: '', eventDate: '2026-13-40', summary: 's', intro: 'i', photos: [{ src: '/images/recap/none.jpg', alt: '' }], cover: 3 }];
+  assert.throws(() => validateContent(content), error => ['slug는', 'eventDate', 'title', 'public/에 없어요', 'alt', 'cover'].every(part => error.message.includes(part)));
+  content.recaps = [{ slug: 'half-done', status: 'draft', title: 'later' }];
+  assert.doesNotThrow(() => validateContent(content), 'drafts may be incomplete');
+});
+
 test('every route, 404, sitemap and one page set per schedule window are built', async t => {
   const { pages, outDir, read, variants } = await build(t);
-  const portalPages = ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/'];
+  const portalPages = ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/recap/', '/about/'];
   assert.deepEqual(pages, [...portalPages.flatMap(p => [p, `/en${p}`]), '/learn/', '/learn/questions/', '/admin/', '/learn/01/']);
   assert.ok(await exists(path.join(outDir, '404.html')));
   const sitemap = await read('sitemap.xml');
