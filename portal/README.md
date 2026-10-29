@@ -135,7 +135,8 @@ portal/
 │  ├─ screenshot.mjs  ← 예제 화면·공유 이미지 캡처 (운영진용)
 │  ├─ og-image.html   ← 공유 이미지 원본
 │  ├─ earth-mask.mjs  ← 지구에 쓰는 육지 지도(earth-mask.png) 만들기 (운영진용)
-│  └─ slides-snapshot.mjs ← 학생용 슬라이드를 한 장씩 이미지로 받기 (운영진용)
+│  ├─ slides-snapshot.mjs ← 학생용 슬라이드를 한 장씩 이미지로 받기 (운영진용)
+│  └─ refresh-practice.py ← 과제 페이지의 '글로 읽기' 내용 갱신 (운영진용)
 ├─ slides/            ← 수업 화면용 슬라이드 이미지와 목록(manifest.json). 자료가 열린 회차만 사이트에 복사
 ├─ tests/             ← 상태별 버튼 노출, 내부 링크, 누락 처리 검사
 ├─ functions/
@@ -192,11 +193,30 @@ npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-stud
 - `/learn/`은 회차별 진도 막대·단계 목록·"이어서 하기"(처음으로 안 끝낸 단계), `/learn/<회차>/`는 왼쪽 단계 목록과 오른쪽 슬라이드·지금 단계를 보여줍니다. 휴대폰(900px 이하)에서는 단계 목록이 슬라이드 위의 접는 칸이 됩니다.
 - 로그인 뒤 화면을 서버 없이 보려면 `npm run dev:portal`로 띄운 뒤 주소 끝에 `?preview`를 붙입니다(예: `http://localhost:5174/learn/01/?preview`). 가짜 이름·진도로 보여주며, `localhost`에서만 동작합니다.
 - 수업 화면은 **자료가 열렸고 학생용 슬라이드(`kind: 'slides'`)와 미션이 있는 회차**에만 만들어집니다. 공개 시각(`materialsOpenAt`) 전에는 페이지 자체가 없습니다.
-- 단계 내용은 `content/workshops.mjs`의 `missions`를 그대로 씁니다. 각 미션에 시작 슬라이드를 적습니다:
-  - `slide`: 학생용 슬라이드 번호(1부터, 사람이 확인하는 용도)
-  - `slideId`: Google Slides 페이지 ID. 슬라이드를 연 주소 끝의 `#slide=id.<페이지 ID>`에서 `<페이지 ID>` 부분입니다.
+- 단계 내용은 `content/workshops.mjs`의 `missions`를 그대로 씁니다. 각 미션에 슬라이드를 적습니다:
+  - `slideId`: 이 단계 강의가 시작되는 Google Slides 페이지 ID. 슬라이드를 연 주소 끝의 `#slide=id.<페이지 ID>`에서 `<페이지 ID>` 부분입니다.
+  - `taskSlides`·`hintSlides`: 과제 페이지와 힌트 연결(아래 '과제 페이지·글로 읽기·힌트 연결').
   - 기능 선택지(`options`)에도 같은 값을 넣으면, 학생이 그 선택지를 펼칠 때 해당 슬라이드로 넘어갑니다.
 - 단계를 바꾸거나 회차 공개 시각을 바꾸면 수업 서버의 `WORKSHOP_OPEN_AT`(Render 설정, `render.yaml`)도 같은 시각으로 맞춥니다. 서버는 열린 회차의 진도만 저장합니다.
+
+### 과제 페이지·글로 읽기·힌트 연결
+
+Workshop 1은 기존 강의 페이지 사이에 과제 페이지 17장을 넣었습니다(기존 페이지 ID는 그대로). 1번 2장, 2번 3장, 3번 2장, 4번 공통 1장과 기능별 3장이며, 각 과제의 `taskSlides`에 연결되어 있습니다. 날씨·로그인·지도 중 하나를 펼치면 그 기능의 3장만 보입니다.
+
+- **글로 읽기**: 과제 페이지를 띄우면 슬라이드 아래에 '이 페이지 글로 읽기'가 생깁니다. 내용은 `content/practice-pages.mjs`에 있습니다(페이지 ID별 제목·본문).
+- **힌트에서 슬라이드로**: 미션·선택지의 `hintSlides: ['페이지 ID', …]`는 힌트 1·2·3 순서대로 '관련 실습 페이지 보기' 버튼이 열 페이지입니다. 같은 과제의 `taskSlides` 안에서만 고를 수 있고, 버튼이 필요 없는 힌트는 뒤에서 빼면 됩니다. 이 버튼은 수업 화면에만 나옵니다.
+- 사이트의 슬라이드와 글은 **받아 둔 시점의 자료**입니다. Google Slides를 고쳐도 자동으로 바뀌지 않습니다.
+
+슬라이드를 고친 뒤에는 이미지와 글을 함께 다시 받습니다. 글은 Google Slides `get_presentation` 전체 JSON에서 꺼내며, 페이지 ID로 찾기 때문에 앞쪽에 강의 페이지가 추가되어도 엉뚱한 장을 가져오지 않습니다. 운영진용 도구이며 사이트 실행에는 필요 없습니다.
+
+```text
+node portal/scripts/slides-snapshot.mjs
+python portal/scripts/refresh-practice.py --presentation workshop1.json
+npm run test:portal
+npm run deploy:portal
+```
+
+새 과제 페이지를 추가하면 `practice-pages.mjs`의 페이지 항목과 `workshops.mjs`의 `taskSlides`·`hintSlides`도 추가합니다. 과제 자료에는 학생 개인정보나 비밀 키를 넣지 않습니다.
 
 ### 질문하기와 운영진 화면
 

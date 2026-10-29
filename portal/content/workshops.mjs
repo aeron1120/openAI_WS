@@ -11,6 +11,8 @@
 // - missions[].slideId: 이 단계의 강의가 시작되는 학생용 슬라이드 페이지 ID(Google Slides).
 // - missions[].taskSlides: 이 과제의 슬라이드 페이지 ID 목록(과제 페이지). 수업 화면의 '과제' 보기에서 이 페이지만 보여줍니다.
 //   없으면 slideId 한 장만 보여줍니다. 선택지(options)에도 따로 적을 수 있어요. 페이지 ID는 portal/slides/manifest.json에서 찾으세요.
+// - hintSlides: 힌트 1·2·3 순서대로 '관련 실습 페이지 보기'가 열 과제 페이지 ID. taskSlides 안의 ID만 쓸 수 있고, 버튼이 필요 없는 힌트는 뒤에서 빼면 됩니다.
+//   과제 페이지의 '글로 읽기' 내용은 content/practice-pages.mjs에 있습니다.
 // - walkthrough: { title, steps: [{ image?, box?, text, note? }] } 힌트 상자의 '화면으로 따라 하기'. 실제 화면 캡처에서 box(%) 자리를 강조합니다.
 //   캡처에 개인정보·인증키가 보이면 안 됩니다. 이미지는 public/images/walk/에 둡니다.
 
@@ -71,6 +73,7 @@ export const workshops = [
         id: 'open-starter',
         slideId: 'h2ea000745df279bf_2_24',
         taskSlides: ['ws1_task_20261029_open_1', 'ws1_task_20261029_open_2'],
+        hintSlides: ['ws1_task_20261029_open_1', 'ws1_task_20261029_open_2'],
         title: '기초 틀 받고 화면 열기',
         todo: `[GitHub 저장소](${repo})에서 Code → Download ZIP을 누르고 압축을 모두 풉니다. starter 폴더 안의 index.html을 브라우저로 엽니다.`,
         expected: '“이곳에 나의 아이디어를 담아보세요.” 제목과 로그인·지도·날씨·나만의 기능 박스가 보여요. 설치와 API 키는 아직 필요 없어요.',
@@ -92,6 +95,7 @@ export const workshops = [
         id: 'run-local',
         slideId: 'h2ea000745df279bf_2_62',
         taskSlides: ['ws1_task_20261029_local_1', 'ws1_task_20261029_local_2', 'ws1_task_20261029_local_3'],
+        hintSlides: ['ws1_task_20261029_local_1', 'ws1_task_20261029_local_1'],
         title: 'Codex에게 내 컴퓨터에서 실행해 달라고 하기',
         todo: `[Codex 데스크톱 또는 VS Code](${file('guides/START-HERE.md')})에서 압축을 푼 저장소 전체 폴더를 열고, 아래 요청문을 붙여 넣습니다.`,
         prompt: `이 저장소에서 Workshop 1 기초 틀을 실습하려고 해.
@@ -119,6 +123,7 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
         id: 'first-change',
         slideId: 'h2ea000745df279bf_2_62',
         taskSlides: ['ws1_task_20261029_change_1', 'ws1_task_20261029_change_2'],
+        hintSlides: ['ws1_task_20261029_change_1', 'ws1_task_20261029_change_2'],
         title: '작은 변화 하나 만들기',
         todo: `내 서비스의 [이름과 소개 문구](${file('starter/index.html')})를 바꿔 달라고 요청합니다. 예시 문장은 내 아이디어로 바꿔도 좋아요.`,
         prompt: `starter의 사이트 이름을 ‘나의 캠퍼스’로 바꾸고,
@@ -144,6 +149,7 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
         id: 'connect-feature',
         slideId: 'h2ea000745df279bf_2_126',
         taskSlides: ['ws1_task_20261029_choose'],
+        hintSlides: ['ws1_task_20261029_choose', 'ws1_task_20261029_choose'],
         title: '내 서비스에 필요한 기능 하나 연결하기',
         todo: `[로그인](${file('guides/LOGIN.md')})·[지도](${file('guides/MAP.md')})·[날씨](${file('guides/WEATHER.md')}) 중 내 서비스에 필요한 것 하나만 고릅니다. 각 기능은 외부 서비스의 계정·키 설정이 필요하므로, Codex가 먼저 준비 항목을 설명하게 하세요.`,
         options: [
@@ -151,6 +157,7 @@ Node.js가 있는지 먼저 확인하고, 없다면 설치 방법을 안내해�
             label: '날씨 — 기상청 단기예보',
             slideId: 'h2ea000745df279bf_2_126',
             taskSlides: ['ws1_task_20261029_weather_1', 'ws1_task_20261029_weather_2', 'ws1_task_20261029_weather_3'],
+            hintSlides: ['ws1_task_20261029_weather_1', 'ws1_task_20261029_weather_1'],
             needs: '[공공데이터포털 기상청 단기예보](https://www.data.go.kr/data/15084084/openapi.do) 이용 신청과 본인 인증키',
             prompt: `starter의 날씨 영역에 기상청 단기예보 API를 연결해줘.
 관악구 대학동의 내일 오후 6시 기온과 강수확률을 보여줘.
@@ -188,6 +195,7 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
             label: '로그인 — Google 계정',
             slideId: 'h2ea000745df279bf_2_267',
             taskSlides: ['ws1_task_20261029_login_1', 'ws1_task_20261029_login_2', 'ws1_task_20261029_login_3'],
+            hintSlides: ['ws1_task_20261029_login_1', 'ws1_task_20261029_login_1'],
             needs: 'Google 앱 등록과 [클라이언트 ID](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid), 로그인 결과를 확인할 서버',
             prompt: `starter의 로그인 영역에 Google 로그인 기능을 구현해줘.
 로그인하면 이름과 프로필 사진을 보여주고,
@@ -213,6 +221,7 @@ docs/WEATHER.md와 기존 서버 예제를 참고해 필요한 서버 기능을 
             label: '지도 — Google Maps',
             slideId: 'h2ea000745df279bf_2_421',
             taskSlides: ['ws1_task_20261029_map_1', 'ws1_task_20261029_map_2', 'ws1_task_20261029_map_3'],
+            hintSlides: ['ws1_task_20261029_map_1', 'ws1_task_20261029_map_1'],
             needs: '[Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/load-maps-js-api) 사용 설정과 지도 키. 결제 계정 설정과 사용량에 따른 비용을 먼저 확인하세요.',
             prompt: `starter의 지도·위치정보 영역에 Google 지도를 구현해줘.
 서울대학교 정문 위치에 마커를 표시하고,

@@ -583,6 +583,14 @@ body.study { background: #f3f5f8; }
 .deck-mode button[aria-pressed="true"] { background: var(--surface); color: var(--c-btn); box-shadow: 0 2px 6px rgba(17, 26, 46, .1); }
 .deck:fullscreen { display: flex; flex-direction: column; border: 0; border-radius: 0; background: #0b1020; }
 .deck:fullscreen .deck-stage { flex: 1; aspect-ratio: auto; background: #0b1020; }
+.deck:fullscreen .deck-text { display: none; }
+.deck-text { border-top: 1px solid var(--line); font-size: .9rem; }
+.deck-text[hidden] { display: none; }
+.deck-text summary { padding: 10px 14px; color: var(--muted); font-weight: 700; cursor: pointer; }
+.deck-text p { margin: 0; padding: 0 14px 14px; line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
+.hint-jump { display: flex; width: fit-content; align-items: center; gap: 4px; min-height: 36px; margin: 0 0 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--c-btn); font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; transition: transform .15s, border-color .2s; }
+.hint-jump:hover { border-color: var(--c); }
+.hint-jump:active { transform: scale(.96); }
 .lesson-steps { min-width: 0; padding: 24px 28px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
 .lesson-step > .track-kicker { color: var(--c-btn); }
 .lesson-step h2 { margin: 4px 0 12px; }

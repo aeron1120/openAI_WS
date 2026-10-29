@@ -238,19 +238,21 @@ function walkthrough(walk) {
     </div>`;
 }
 
-function hintBox(hints, walk) {
+// 수업 화면에서는 힌트마다 '관련 실습 페이지 보기'(pages[i])가 붙어, 누르면 슬라이드 보기가 그 과제 페이지로 넘어갑니다(learn.js).
+function hintBox(hints, walk, pages = []) {
   if (!hints?.length && !walk) return '';
   const label = i => i === 2 ? '힌트 3 · 자세한 따라하기' : h`힌트 ${i + 1} <span class="hint-verb">보기</span>`;
   return h`<div class="hints" data-hints>
       <p class="hints-title"><span aria-hidden="true">💡</span> 막히면 힌트를 열어 보세요</p>
       ${walkthrough(walk)}
-      ${(hints ?? []).map((text, i) => h`<details class="hint" data-hint="${i + 1}"><summary>${label(i)}</summary><div class="hint-text">${hintText(text)}</div></details>`)}
+      ${(hints ?? []).map((text, i) => h`<details class="hint" data-hint="${i + 1}"><summary>${label(i)}</summary><div class="hint-text">${pages[i] ? h`<button type="button" class="hint-jump" data-slide-jump="${pages[i]}">관련 실습 페이지 보기 <span aria-hidden="true">↑</span></button>` : ''}${hintText(text)}</div></details>`)}
     </div>`;
 }
 
-// 미션 본문: 공개 워크숍 페이지(접히는 미션)와 수업 화면(/learn/)이 함께 씁니다.
+// 미션 본문: 공개 워크숍 페이지(접히는 미션)와 수업 화면(/learn/, lesson: true)이 함께 씁니다.
 // 설명 글(todo·expected·verify·stuck·needs·hints)은 [글](주소) 링크를 쓸 수 있고, 요청문·명령은 그대로 복사됩니다.
-export function missionBody(m) {
+export function missionBody(m, { lesson = false } = {}) {
+  const jumps = item => (lesson ? item.hintSlides ?? [] : []);
   return h`<p>${richText(m.todo)}</p>
     ${m.prompt ? copyBlock(m.prompt) : ''}
     ${m.commands ? copyBlock(m.commands, '터미널 명령 (한 줄씩 실행)', { code: true }) : ''}
@@ -259,9 +261,9 @@ export function missionBody(m) {
       <p class="hint">먼저 필요한 것: ${richText(o.needs)}</p>
       ${copyBlock(o.prompt)}
       <p>${link(o.guide, '자세한 안내')}</p>
-      ${hintBox(o.hints, o.walkthrough)}
+      ${hintBox(o.hints, o.walkthrough, jumps(o))}
     </details>`)}</div>` : ''}
-    ${hintBox(m.hints, m.walkthrough)}
+    ${hintBox(m.hints, m.walkthrough, jumps(m))}
     <div class="result">
       <p><strong>예상 결과</strong>${richText(m.expected)}</p>
       ${m.verify?.length ? h`<div><strong>확인</strong>${checks(m.verify.map(richText))}</div>` : ''}

@@ -262,6 +262,7 @@
     const count = deck.querySelector('[data-deck-count]');
     const prev = deck.querySelector('[data-deck-prev]');
     const next = deck.querySelector('[data-deck-next]');
+    const text = deck.querySelector('[data-deck-text]');
     let task = [0];
     let all = false;
     let at = 0; // '이 과제만'에서는 task 안의 위치, '강의 전체'에서는 전체 슬라이드 번호
@@ -278,14 +279,18 @@
       next.disabled = at === items.length - 1;
       chip.hidden = !tasks[page.id];
       chip.textContent = tasks[page.id] ? `📝 ${tasks[page.id]}` : '';
+      text.hidden = !page.text;
+      text.querySelector('[data-deck-text-body]').textContent = page.text ?? '';
       for (const button of deck.querySelectorAll('[data-deck-mode]')) button.setAttribute('aria-pressed', String((button.dataset.deckMode === 'all') === all));
       const ahead = items[at + 1];
       if (ahead != null) new Image().src = pages[ahead].src;
     }
-    function show(ids) {
+    // ids: 보여줄 과제 페이지들, page: 그중 처음 띄울 페이지(힌트의 '관련 실습 페이지 보기')
+    function show(ids, page) {
       const found = String(ids ?? '').split(' ').map(id => index.get(id)).filter(i => i != null);
       task = found.length ? found : [0];
-      at = all ? task[0] : 0;
+      const start = task.includes(index.get(page)) ? index.get(page) : task[0];
+      at = all ? start : task.indexOf(start);
       render();
     }
     function setMode(wantAll) {
@@ -316,7 +321,8 @@
     const workshop = Number(content.dataset.lesson);
     const steps = [...content.querySelectorAll('[data-step]')];
     const items = new Map([...content.querySelectorAll('[data-goto]')].map(item => [item.dataset.goto, item]));
-    const viewer = slideViewer(content.querySelector('[data-deck]'), workshop);
+    const deck = content.querySelector('[data-deck]');
+    const viewer = slideViewer(deck, workshop);
     const tabs = content.querySelector('.step-tabs');
     const meter = content.querySelector('.lesson-head [data-progress]');
     const body = content.querySelector('.lesson-body');
@@ -432,6 +438,13 @@
       const open = option.closest('[data-step]').querySelector('details.option[open][data-task-slides]');
       viewer.show((open ?? option.closest('[data-step]')).dataset.taskSlides);
     }, true);
+    // 힌트의 '관련 실습 페이지 보기': 그 힌트가 속한 과제(또는 선택지)의 페이지로 넘깁니다. 좁은 화면에서는 슬라이드까지 올려 줍니다.
+    content.addEventListener('click', event => {
+      const jump = event.target.closest('[data-slide-jump]');
+      if (!jump) return;
+      viewer.show(jump.closest('[data-task-slides]').dataset.taskSlides, jump.dataset.slideJump);
+      if (matchMedia('(max-width: 900px)').matches) deck.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
 
     const start = steps.findIndex(step => location.hash === `#step-${step.dataset.step}`);
     go(start >= 0 ? start : 0, { focus: false });

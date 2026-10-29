@@ -276,6 +276,8 @@ test('hints render one details per hint before the result box, with the last of 
   m.hints = ['첫 힌트: [안내](https://github.com/example/hint) 보기', '둘째 힌트\n둘째 줄', '처음부터 차례로 따라 해요.'];
   const option = content.workshops[0].missions.find(x => x.options).options[0];
   option.hints = ['선택지 힌트'];
+  delete m.hintSlides; // 힌트 본문만 확인합니다. '관련 실습 페이지 보기'는 practice.test.mjs에서 확인해요.
+  delete option.hintSlides;
   const { read } = await build(t, content);
   for (const page of ['/workshops/01/', '/learn/01/']) {
     const html = await read(page);
@@ -289,7 +291,7 @@ test('hints render one details per hint before the result box, with the last of 
   }
   // 힌트도 화면 따라 하기도 없는 미션에는 힌트 상자가 없습니다.
   const plain = clone(defaultContent);
-  for (const w of plain.workshops) for (const x of w.missions) for (const item of [x, ...(x.options ?? [])]) { delete item.hints; delete item.walkthrough; }
+  for (const w of plain.workshops) for (const x of w.missions) for (const item of [x, ...(x.options ?? [])]) { delete item.hints; delete item.walkthrough; delete item.hintSlides; }
   assert.doesNotMatch(await (await build(t, plain)).read('/workshops/01/'), /data-hints/);
 });
 

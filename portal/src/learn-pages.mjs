@@ -111,7 +111,7 @@ function lessonStep(m, i, total) {
   return h`<section class="lesson-step" id="step-${m.id}" data-step="${m.id}" data-task-slides="${taskSlidesOf(m)}" ${i ? raw('hidden') : ''}>
   <p class="track-kicker">${i + 1} / ${total} 단계</p>
   <h2 tabindex="-1">${m.title}</h2>
-  ${missionBody(m)}
+  ${missionBody(m, { lesson: true })}
   <div class="lesson-actions">
     <button type="button" class="btn btn-ghost" data-prev ${i === 0 ? raw('disabled') : ''}>← 이전</button>
     ${last
@@ -146,11 +146,12 @@ function finishScreen(content, w) {
 }
 
 // 슬라이드 보기: 처음에는 지금 단계의 과제 페이지(taskSlides)만 넘겨 보고, '강의 전체'를 누르면 모든 슬라이드를 순서대로 봅니다.
-// 넘기기·보기 전환·크게 보기는 learn.js가 맡습니다. 과제 페이지에는 어느 과제인지 표시가 붙습니다.
+// 넘기기·보기 전환·크게 보기는 learn.js가 맡습니다. 과제 페이지에는 어느 과제인지 표시가 붙고,
+// 글이 있는 페이지(content/practice-pages.mjs)는 아래 '이 페이지 글로 읽기'로 읽을 수 있어요.
 function slideViewer(content, w) {
   const id = deckId(slidesOf(w).url);
   const deck = deckOf(content, w);
-  const pages = deck.pages.map((p, i) => ({ id: p.id, src: `/slides/${id}/${p.file}`, no: i + 1 }));
+  const pages = deck.pages.map((p, i) => ({ id: p.id, src: `/slides/${id}/${p.file}`, no: i + 1, ...(content.transcripts?.[p.id] ?? {}) }));
   const tasks = {};
   w.missions.forEach((m, i) => {
     for (const item of [m, ...(m.options ?? [])]) for (const page of item.taskSlides ?? []) tasks[page] = `과제 ${i + 1}${item === m ? '' : ` · ${item.label.split(' — ')[0]}`}`;
@@ -171,6 +172,7 @@ function slideViewer(content, w) {
     </div>
     <button type="button" class="deck-nav" data-deck-full aria-label="크게 보기" title="크게 보기">⛶</button>
   </div>
+  <details class="deck-text" data-deck-text${first.text ? '' : raw(' hidden')}><summary>이 페이지 글로 읽기</summary><p data-deck-text-body>${first.text ?? ''}</p></details>
 </div>`;
 }
 

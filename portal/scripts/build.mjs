@@ -7,6 +7,7 @@ import path from 'node:path';
 import { site } from '../content/site.mjs';
 import { workshops } from '../content/workshops.mjs';
 import { studio, showcase, projects, collaboration } from '../content/program.mjs';
+import { ws1Practice } from '../content/practice-pages.mjs';
 import { layout, learnLayout } from '../src/layout.mjs';
 import { isUsableUrl, inlineLinkUrls } from '../src/render.mjs';
 import { icsFile } from '../src/calendar.mjs';
@@ -21,8 +22,10 @@ const repoRoot = path.resolve(portal, '..');
 const slidesDir = path.join(portal, 'slides');
 const manifestFile = path.join(slidesDir, 'manifest.json');
 const decks = existsSync(manifestFile) ? JSON.parse(readFileSync(manifestFile, 'utf8')) : {};
+// 과제 페이지의 '글로 읽기': { <페이지 ID>: { title, text } }
+const transcripts = Object.fromEntries(Object.values(ws1Practice).map(p => [p.id, { title: p.title, text: p.text }]));
 
-export const defaultContent = { site, workshops, studio, showcase, projects, collaboration, decks };
+export const defaultContent = { site, workshops, studio, showcase, projects, collaboration, decks, transcripts };
 
 // 잘못된 링크가 버튼으로 공개되지 않도록 빌드 전에 콘텐츠를 검사합니다.
 export function validateContent(content) {
@@ -70,6 +73,12 @@ export function validateContent(content) {
           if (item !== m && item.slideId != null && missing(item.slideId)) problems.push(`${at}: slideId가 슬라이드에 없어요.`);
           if (item.taskSlides != null && (!Array.isArray(item.taskSlides) || !item.taskSlides.length)) problems.push(`${at}: taskSlides는 과제 페이지 ID 목록으로 적어 주세요.`);
           for (const id of item.taskSlides ?? []) if (missing(id)) problems.push(`${at}: taskSlides의 "${id}"가 슬라이드에 없어요. slides-snapshot.mjs를 다시 실행했는지 확인하세요.`);
+          // 힌트의 '관련 실습 페이지 보기'는 같은 과제의 페이지로만 보냅니다.
+          if (item.hintSlides != null) {
+            const own = item.taskSlides ?? [item.slideId];
+            const ok = Array.isArray(item.hintSlides) && item.hintSlides.length <= (item.hints?.length ?? 0) && item.hintSlides.every(id => own.includes(id));
+            if (!ok) problems.push(`${at}: hintSlides는 힌트 개수 이하로, 이 과제의 taskSlides 안의 ID만 적어 주세요.`);
+          }
         }
       }
     }
