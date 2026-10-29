@@ -46,7 +46,6 @@ export const workshops = [
     materials: 'open',
     duration: '60분',
     audience: '전공 무관 · 코딩 경험 없어도 OK',
-    joinNote: '워크숍에 오지 못했어도 수업 듣기에서 단계별로 따라 할 수 있어요.',
     prepare: [
       '노트북과 충전기',
       'Codex를 쓸 수 있는 ChatGPT 계정',
@@ -59,8 +58,8 @@ export const workshops = [
       { label: '기초 틀 받기', kind: 'starter', audience: 'student', url: repo, checked: '2026-10-27', note: 'GitHub → Code → Download ZIP' },
       { label: '시작 안내', kind: 'guide', audience: 'student', url: file('guides/START-HERE.md'), checked: '2026-10-27' },
       { label: '기능별 안내', kind: 'guide', audience: 'student', url: file('guides/README.md'), checked: '2026-10-27', note: '로그인 · 지도 · 날씨' },
-      { label: '운영진 예제 ‘틈’', kind: 'demo', audience: 'student', url: 'https://openai-ws-workshop1.a01085519047.workers.dev/versions/', checked: '2026-10-27', note: '발표용 예제예요. 열어도 내 프로젝트가 생기지는 않아요. 2026-10-26 기록 기준으로 로그인·지도는 아직 확인 중이에요.' },
-      { label: '실습 슬라이드', kind: 'slides', audience: 'student', url: 'https://docs.google.com/presentation/d/1pUcnsVa0Ab_z_ZxbVnO6cCHCIcTYVVvz10C9Tt52xuU/edit?usp=sharing', checked: '2026-10-27', note: '발표본에서 실습 부분만 모았어요' }
+      { label: '운영진 예제 ‘틈’', kind: 'demo', audience: 'student', url: 'https://openai-ws-workshop1.a01085519047.workers.dev/versions/', checked: '2026-10-27', note: '발표용 예제 · 로그인·지도 확인 중' },
+      { label: '실습 슬라이드', kind: 'slides', audience: 'student', url: 'https://docs.google.com/presentation/d/1pUcnsVa0Ab_z_ZxbVnO6cCHCIcTYVVvz10C9Tt52xuU/edit?usp=sharing', checked: '2026-10-27', note: '실습 부분만' }
     ],
     checks: [
       '압축 푼 폴더에 starter 폴더가 보인다',
@@ -337,7 +336,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
 다시 확인할 방법도 알려줘.`,
       guide: file('guides/TROUBLESHOOTING.md')
     },
-    share: '완료 목표는 “내 서비스에 필요한 실제 연결 하나 + 내가 바꾼 문구나 배치 하나”예요. 완성하지 못했어도 괜찮아요. 현재 화면과 막힌 부분을 Studio Session에 가져오세요.'
+    share: '실제 연결 1개 + 내가 바꾼 문구·배치 1개'
   },
   workshop2,
   {
@@ -356,7 +355,6 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     materials: 'planning',
     duration: null,
     audience: null,
-    joinNote: null,
     prepare: [],
     preview: null,
     video: null,
@@ -383,7 +381,6 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     materials: 'planning',
     duration: null,
     audience: null,
-    joinNote: null,
     prepare: [],
     preview: null,
     video: null,

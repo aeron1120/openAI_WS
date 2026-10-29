@@ -15,22 +15,21 @@ export const workshop2 = {
   highlights: ['내 사이트를 공개 주소로 배포', 'GitHub에 원본과 변경 기록', 'Preview에서 확인한 뒤 정식 반영'],
   message: '공개한 사이트를 계속 고쳐 나가는 방법',
   outcome: '공개 주소와 변경 기록이 있는 내 사이트',
-  summary: '사이트를 공개하고, GitHub에 원본을 보관한 뒤, 시험 주소에서 확인한 변경만 정식으로 반영해요.',
+  summary: '사이트 공개 → GitHub에 원본 보관 → 시험 주소에서 확인한 변경만 반영',
   doing: '첫 배포부터 GitHub 연동, Preview 확인, 정식 반영과 복구까지 한 번씩 해 봅니다.',
   event: { status: 'scheduled', start: '2026-11-02T18:00:00+09:00', end: '2026-11-02T19:00:00+09:00', place: '서울대학교 관악캠퍼스 56동(자연과학관10) 105호', mapQuery: '서울대학교 56동', mapImage: '/images/place/ws-56dong-naver.jpg' },
   recruitment: { open: true, url: 'https://luma.com/54mgt7n8' },
   materials: 'open', materialsOpenAt: '2026-11-02T18:00:00+09:00',
   exampleDirs: ['workshop2/starter', 'workshop2/complete'],
   duration: '60분 예정', audience: '전공 무관 · Workshop 1 안 들어도 OK',
-  joinNote: '지난번 만든 사이트가 없어도 기본 예제로 따라갈 수 있어요. GitHub 웹 화면을 쓰므로 Git 설치는 필수가 아닙니다.',
   prepare: ['노트북과 충전기', 'GitHub · Cloudflare 계정', '지난번 만든 사이트의 원본 ZIP (없으면 기본 예제)', 'Codex 계정 · 빌드에 필요한 Node.js는 내 프로젝트에 맞춰 준비'],
   preview: { image: '/images/examples/ws2-complete.png', alt: '배포와 변경 연습에 사용할 캠퍼스 모임 예제 화면.', caption: '내 사이트가 없다면 캠퍼스 모임 예제로 시작해요.' },
   video: null,
   resources: [
-    { label: '기본 예제 ZIP 받기', kind: 'starter', audience: 'student', url: '/downloads/workshop2-site.zip', checked: '2026-10-29', note: '압축을 풀면 바로 배포할 HTML·CSS·JS 세 파일' },
+    { label: '기본 예제 ZIP 받기', kind: 'starter', audience: 'student', url: '/downloads/workshop2-site.zip', checked: '2026-10-29', note: 'HTML·CSS·JS 세 파일' },
     { label: '기본 예제 화면', kind: 'demo', audience: 'student', url: '/examples/workshop2/starter/', checked: '2026-10-29' },
     { label: '전체 실습 안내', kind: 'guide', audience: 'student', url: `${repo}/blob/main/guides/WORKSHOP2.md`, checked: '2026-10-29' },
-    { label: '실습 슬라이드', kind: 'slides', audience: 'student', url: 'https://docs.google.com/presentation/d/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE/edit?usp=sharing', checked: '2026-10-29', note: '기존 강의 48장 + 파트별 과제 19장' }
+    { label: '실습 슬라이드', kind: 'slides', audience: 'student', url: 'https://docs.google.com/presentation/d/1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE/edit?usp=sharing', checked: '2026-10-29', note: '강의 48장 + 과제 19장' }
   ],
   checks: ['GitHub와 Cloudflare에 로그인할 수 있다', '사이트 ZIP의 압축을 풀고 원본 파일을 찾았다', 'HTML 사이트인지, 빌드가 필요한 프로젝트인지 확인했다'],
   checkHelp: [
@@ -115,5 +114,5 @@ export const workshop2 = {
     prompt: '내 사이트에 [작은 기능 하나]를 추가하려고 해. 현재 main을 기준으로 작업 branch를 만들고, 바꿀 파일과 확인할 동작부터 정리해줘. 한 번에 작은 변경만 해줘. Preview에서 검증한 결과를 PR에 남기고, 내가 확인한 뒤 main에 합칠 수 있게 해줘.'
   },
   help: { prompt: '현재 과제: [1~5]\n작업 위치: [Cloudflare 프로젝트 / GitHub 저장소와 branch]\n기대한 결과: [어떤 화면이나 동작]\n실제 결과: [오류 문구와 상태]\n비밀값을 제외한 설정과 오류를 보고 원인을 찾아줘. 다시 확인할 순서도 알려줘.', guide: `${repo}/blob/main/guides/WORKSHOP2.md` },
-  share: '정식 URL, 원본 저장소, PR, 확인한 Preview를 함께 남기세요. “무엇을 바꿨고, 어디서 무엇을 눌러 확인했는지”까지 적으면 다음 작업의 출발점이 됩니다.'
+  share: '정식 URL · 원본 저장소 · PR · 확인한 Preview'
 };

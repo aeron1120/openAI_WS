@@ -281,7 +281,6 @@ function lessonCard(w) {
   <span class="learn-icon" aria-hidden="true">▶</span>
   <span class="learn-text">
     <strong>수업 듣기에서 실습하기</strong>
-    <small>서울대 계정으로 로그인하면 슬라이드를 보며 단계별로 따라 하고, 힌트·화면 따라 하기·진도 저장·질문을 한곳에서 써요.</small>
     <span class="learn-steps">${w.missions.map((m, i) => h`<span>${pad(i + 1)} ${m.title}</span>`)}</span>
   </span>
   <span class="res-go" aria-hidden="true">→</span>
@@ -320,22 +319,18 @@ export function workshopPage(content, w) {
   ${open || isRecruiting(w) ? h`<div class="actions">
     ${isRecruiting(w) ? link(w.recruitment.url, '신청하기', 'btn btn-fill') : ''}
     ${open && w.missions.length ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="${lessonHref(w)}">수업 듣기에서 실습하기${arrow()}</a>` : ''}
-    ${open ? h`<a class="btn btn-ghost" href="#materials">예제·슬라이드 모음${arrow('↓')}</a>` : ''}
   </div>` : ''}
   <dl class="info">
     <div><dt>일정</dt><dd>${scheduleText(w, site.timeZone)}</dd></div>
     <div><dt>장소</dt><dd>${placeText(w)}</dd></div>
-    ${w.duration ? h`<div><dt>시간</dt><dd>${w.duration}</dd></div>` : ''}
     ${w.audience ? h`<div><dt>대상</dt><dd>${w.audience}</dd></div>` : ''}
   </dl>
 </header>`;
 
   if (locked) {
     return h`<div class="c-${color}">${head}
-${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
 <section class="pending locked">
   <h2><span aria-hidden="true">🔒</span> 실습과 슬라이드는 ${w.opensLabel}에 열려요</h2>
-  <p class="hint">워크숍이 시작하면 수업 듣기에서 단계별 실습을, 이 페이지에서 예제와 슬라이드를 볼 수 있어요. 그 전에 아래 준비만 끝내 오세요.</p>
 </section>
 <section class="block reveal two">
   ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
@@ -358,7 +353,6 @@ ${pager}</div>`;
 
   const resources = w.resources.filter(r => isUsableUrl(r.url));
   return h`<div class="c-${color}">${head}
-${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
 
 <section class="block reveal" id="materials">
   <h2>실습과 자료</h2>
@@ -387,8 +381,8 @@ ${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
 </section>
 
 ${w.share ? h`<section class="block reveal next-box">
-  <h2>다 했다면</h2>
-  <p>${w.share}</p>
+  <h2>완료 목표</h2>
+  <p class="goal">${w.share}</p>
   <div class="actions"><a class="btn btn-ghost" href="/studio/">Studio Session</a>${next ? h`<a class="btn btn-ghost" href="${workshopPath(next)}">다음 회차${arrow()}</a>` : ''}</div>
 </section>` : ''}
 ${pager}</div>`;
