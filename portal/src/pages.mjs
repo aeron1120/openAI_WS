@@ -5,6 +5,8 @@ const pad = n => String(n).padStart(2, '0');
 const workshopPath = w => `/workshops/${w.slug}/`;
 // 버튼 글 끝의 화살표: 마우스를 올리면 살짝 움직입니다.
 const arrow = (dir = '→') => h` <span class="arrow" aria-hidden="true">${dir}</span>`;
+// '시간·이름 : 내용' 위계: 앞(때·항목)과 뒤(내용)는 쌍점으로, 뒤의 내용끼리는 가운뎃점(·)으로 나눕니다.
+const keyed = (key, value) => h`<span class="kv-key">${key}</span><span class="kv-sep" aria-hidden="true">:</span> ${value}`;
 // 캘린더에 넣을 행사 이름과 캘린더 파일(.ics) 주소. 파일은 build.mjs가 회차 폴더에 만듭니다.
 export const eventTitle = w => `Workshop ${w.number} · ${w.title}`;
 export const icsPath = w => `${workshopPath(w)}event.ics`;
@@ -101,7 +103,7 @@ function showcaseCard(showcase) {
 function studioStrip(studio) {
   return h`<a class="strip reveal" href="/studio/">
   <span class="dot dot-navy" aria-hidden="true"></span>
-  <span><strong>${studio.title}</strong> ${studio.next?.topic ? h`${studio.next.badge} · ${studio.next.topic}` : studio.message}</span>
+  <span><strong>${studio.title}</strong> ${studio.next?.topic ? keyed(studio.next.badge, studio.next.topic) : studio.message}</span>
   <span class="strip-arrow" aria-hidden="true">→</span>
 </a>`;
 }
@@ -118,7 +120,7 @@ function mapBlock(w, map) {
       <div class="next-card-actions">${link(map.naver, '네이버 지도', 'btn btn-ghost btn-sm')}${link(map.kakao, '카카오맵', 'btn btn-ghost btn-sm')}</div>`;
   }
   return h`<a class="map-frame map-shot" href="${map.naver}" target="_blank" rel="noopener"><img src="${w.event.mapImage}" alt="${placeText(w)} 위치를 표시한 네이버 지도" width="1200" height="750" loading="lazy" decoding="async"><span class="map-open">네이버 지도 ↗</span><span class="sr-only"> (새 창)</span></a>
-      <p class="map-meta"><span>© NAVER Corp.</span>${link(map.kakao, '카카오맵')}</p>`;
+      <p class="map-meta"><span>© NAVER Corp.</span><span class="map-more">${link(map.kakao, '카카오맵')}${link(map.google, 'Google 지도')}</span></p>`;
 }
 
 // 홈의 다음 워크숍: 날짜는 달력, 장소는 지도로 보여줍니다. 남은 날(D-day)은 main.js가 그날 기준으로 채웁니다.
@@ -214,7 +216,7 @@ export function roadmapPage(content) {
     <div class="tl-body">
       <p class="track-kicker">${s.kicker} ${s.status}${s.item === next ? h` <span class="badge badge-next">다음 단계</span>` : ''}</p>
       <h2><a href="${s.url}">${s.title}</a></h2>
-      ${s.outcome ? h`<p class="tl-outcome">남는 것 · ${s.outcome}</p>` : ''}
+      ${s.outcome ? h`<p class="tl-outcome">${keyed('남는 것', s.outcome)}</p>` : ''}
       ${s.item.event?.start ? h`<p class="tl-date">${formatSchedule(s.item.event, site.timeZone)}</p>` : ''}
     </div>
   </li>`)}
@@ -409,11 +411,11 @@ export function studioPage(content) {
   ${isUsableUrl(site.links.openChat) ? h`<div class="actions">${link(site.links.openChat, '오픈채팅에서 일정 받기', 'btn btn-primary')}</div>` : ''}
 </header>
 ${next?.topic ? h`<section class="block reveal next-session">
-  <p class="next-label">다음 세션 · ${next.badge}${next.tag ? h` <span class="badge badge-open">${next.tag}</span>` : ''}</p>
+  <p class="next-label">${keyed('다음 세션', next.badge)}${next.tag ? h` <span class="badge badge-open">${next.tag}</span>` : ''}</p>
   <h2>${next.topic}</h2>
   <p>${next.detail}</p>
   ${next.call ? h`<p class="next-call">${next.call}</p>` : ''}
-  <p class="hint">${formatSchedule(next, site.timeZone)} · ${[next.note, next.place ?? '장소 추후 안내'].filter(Boolean).join(' · ')}</p>
+  <p class="hint">${keyed(formatSchedule(next, site.timeZone), [next.note, next.place ?? '장소 추후 안내'].filter(Boolean).join(' · '))}</p>
   ${next.slides ? h`<div class="actions">${link(next.slides, '📑 세션 슬라이드 보기', 'btn btn-primary')}</div>` : ''}
 </section>` : ''}
 <section class="block reveal two">
@@ -483,7 +485,7 @@ export function aboutPage(content) {
   <div class="box">
     <h2>진행 기록</h2>
     ${done.length
-      ? h`<ul class="checks">${done.map(w => h`<li><a href="${workshopPath(w)}">Workshop ${pad(w.number)}</a> · ${formatSchedule(w.event, site.timeZone)}<br><small>${w.event.place}</small></li>`)}</ul>`
+      ? h`<ul class="checks">${done.map(w => h`<li>${keyed(h`<a href="${workshopPath(w)}">Workshop ${pad(w.number)}</a>`, formatSchedule(w.event, site.timeZone))}<br><small>${w.event.place}</small></li>`)}</ul>`
       : h`<p class="hint">첫 회차를 준비하고 있어요.</p>`}
   </div>
 </section>

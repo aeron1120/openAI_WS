@@ -64,11 +64,11 @@ small { color: var(--muted); }
 
 .mobile-menu summary { list-style: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-weight: 700; cursor: pointer; }
 .mobile-menu summary::-webkit-details-marker { display: none; }
-/* 언어 전환(EN / 한국어): 로고 옆 작은 알약. 휴대폰에서는 메뉴 버튼 왼쪽에 붙습니다. */
+/* 언어 전환(EN / 한국어): 휴대폰은 메뉴 버튼 왼쪽, 넓은 화면은 본문 위 오른쪽 끝(.content-bar). */
 .lang-switch { flex: none; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; min-width: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--navy); font-size: .82rem; font-weight: 800; text-decoration: none; transition: background-color .2s, border-color .2s; }
 .lang-switch:hover { border-color: var(--navy); background: var(--navy-soft); }
 .topbar .lang-switch { margin-left: auto; }
-.sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.content-bar { display: none; }
 .mobile-menu summary::before { content: "☰"; font-size: 1rem; }
 .mobile-menu[open] summary::before { content: "✕"; }
 .mobile-menu nav { position: absolute; z-index: 10; top: calc(100% - 4px); left: 12px; right: 12px; background: var(--surface); border-radius: 18px; padding: 12px; box-shadow: 0 16px 40px rgba(17, 26, 46, .16); }
@@ -138,7 +138,8 @@ small { color: var(--muted); }
   html.warp-in body::before { content: ""; position: fixed; inset: 0; z-index: 3000; background: #6431f2; pointer-events: none; animation: warp-out .6s ease .05s forwards; }
 }
 @keyframes warp-out { to { opacity: 0; visibility: hidden; } }
-.globe-text { pointer-events: none; }
+/* 글씨 층은 지구보다 20% 넓게: 돌릴 때 지구가 커지고 빛나도 그 바깥 글씨까지 위에 다시 그립니다(home.js LETTER_D와 같게). */
+.globe-text { width: calc(43.3% * 1.2); pointer-events: none; }
 .banner.is-ready .globe, .banner.is-ready .globe-text { opacity: 1; }
 .banner.is-dragging .globe { cursor: grabbing; }
 .globe-tip { position: absolute; right: 12px; bottom: 10px; margin: 0; padding: 3px 10px; border-radius: 999px; background: rgba(20, 8, 70, .35); color: #fff; font-size: .72rem; font-weight: 700; pointer-events: none; animation: tip-bob 2.4s ease-in-out infinite; }
@@ -213,6 +214,8 @@ small { color: var(--muted); }
 
 .strip { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 14px 18px; border-radius: 16px; background: var(--navy-soft); color: var(--ink); text-decoration: none; font-size: .94rem; min-height: 56px; }
 .strip strong { color: var(--navy); margin-right: 4px; }
+.kv-key { font-weight: 700; }
+.kv-sep { margin: 0 .1em 0 .3em; color: var(--muted); }
 .strip:hover { color: var(--ink); background: #dfe7f8; }
 .strip-arrow { margin-left: auto; font-weight: 800; color: var(--navy); transition: translate .2s cubic-bezier(.2, .8, .2, 1); }
 .strip:hover .strip-arrow { translate: 4px 0; }
@@ -252,6 +255,7 @@ small { color: var(--muted); }
 .map-open { position: absolute; right: 10px; bottom: 10px; padding: 6px 12px; border-radius: 999px; background: #03c75a; color: #fff; font-size: .8rem; font-weight: 800; box-shadow: 0 4px 12px rgba(0, 0, 0, .18); }
 .map-meta { display: flex; justify-content: space-between; gap: 8px; margin: 6px 2px 0; color: var(--muted); font-size: .74rem; }
 .map-meta a { color: var(--muted); font-weight: 700; }
+.map-more { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 14px; }
 .cal td.is-event span { background: var(--c-btn); color: #fff; font-weight: 800; box-shadow: 0 6px 14px color-mix(in srgb, var(--c-btn) 40%, transparent); animation: cal-pop .6s cubic-bezier(.3, 1.6, .5, 1) .3s both; }
 .cal td.is-event span::after { content: ""; position: absolute; inset: -4px; border: 2px solid var(--c); border-radius: 50%; animation: cal-ring 2s ease-out 1s infinite; }
 @keyframes cal-pop { from { transform: scale(.3); } }
@@ -433,7 +437,8 @@ ol.step-list > li::before { content: "Step " counter(step); color: var(--em); fo
   .topbar { display: none; }
   .sidebar { display: block; position: sticky; top: 0; height: 100vh; overflow-y: auto; background: rgba(255, 255, 255, .85); border-right: 1px solid var(--line); padding: 18px 14px; }
   .sidebar .brand { padding: 0 6px 14px; margin-bottom: 8px; border-bottom: 1px solid var(--line); width: 100%; }
-  .content { padding: 28px 32px 32px; }
+  .content { padding: 12px 32px 32px; }
+  .content-bar { display: flex; justify-content: flex-end; max-width: 1440px; margin: 0 auto 10px; }
   .panel { padding: 44px 48px; }
 }
 @media (min-width: 1200px) {
@@ -444,13 +449,13 @@ ol.step-list > li::before { content: "Step " counter(step); color: var(--em); fo
 }
 /* 넓은 화면: 워크숍 카드를 한 줄에, 글자는 조금 크게 */
 @media (min-width: 1400px) {
-  .content { padding: 32px 40px 40px; }
+  .content { padding: 14px 40px 40px; }
   .panel { padding: 52px 56px; }
 }
 @media (min-width: 1700px) {
   :root { font-size: 17px; }
   .shell { grid-template-columns: 288px minmax(0, 1fr); }
-  .panel { max-width: 1560px; }
+  .panel, .content-bar { max-width: 1560px; }
   .site-footer { max-width: 1560px; }
 }
 @media (max-width: 380px) {

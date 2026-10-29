@@ -324,7 +324,7 @@ function showToday(cal) {
       rows.push(`<tr>${Array.from({ length: 7 }, (_, i) => {
         const d = new Date(week + i * DAY);
         const date = d.toISOString().slice(0, 10);
-        const label = d.getUTCDate() === 1 ? `${d.getUTCMonth() + 1}/1` : d.getUTCDate();
+        const label = d.getUTCDate();
         return `<td data-date="${date}"${date === eventDay ? ' class="is-event"' : ''}><span>${label}</span></td>`;
       }).join('')}</tr>`);
     }

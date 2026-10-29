@@ -31,7 +31,7 @@ function navList(content, path) {
 
 const brand = h`<a class="brand" href="/"><img class="brand-mark" src="/images/brand/logo-192.png" alt="" width="36" height="36"><span class="brand-text"><strong>Student Collective</strong><small>OpenAI · SNU</small></span></a>`;
 
-// 언어 전환: 영어 페이지가 있는 주소에서만 로고 옆에 보입니다. 같은 페이지의 다른 언어로 갑니다.
+// 언어 전환: 영어 페이지가 있는 주소에서만 보입니다(휴대폰은 메뉴 버튼 옆, 넓은 화면은 본문 오른쪽 위). 같은 페이지의 다른 언어로 갑니다.
 // (영어 페이지는 i18n.mjs가 링크를 /en/…으로 바꾸므로, 여기 주소는 그 뒤에 바뀌지 않도록 data-lang-switch로 따로 둡니다.)
 function langSwitch(lang, alt) {
   if (!alt) return '';
@@ -93,10 +93,11 @@ ${head({ site, path, title, description, assets, script, lang, alt })}
     </details>
   </header>
   <aside class="sidebar">
-    <div class="sidebar-head">${brand}${langSwitch(lang, alt)}</div>
+    ${brand}
     <nav aria-label="주요 메뉴">${navList(content, path)}</nav>
   </aside>
   <div class="content">
+    ${alt ? h`<div class="content-bar">${langSwitch(lang, alt)}</div>` : ''}
     <main id="main" class="panel">
 ${raw(body)}
     </main>

@@ -374,14 +374,15 @@ test('studio shows weekly sessions and promotes the next one until it ends', asy
   const before = await build(t);
   const page = await before.read('/studio/');
   assert.match(page, /매주 월요일/);
-  assert.match(page, /다음 세션 · 11\/2 \(월\) 19:00/);
+  assert.match(page, /<span class="kv-key">다음 세션<\/span><span class="kv-sep" aria-hidden="true">:<\/span> 11\/2 \(월\) 19:00/);
   assert.match(page, /VS Code 세팅 · GitHub·Cloudflare 실습 Q&amp;A/);
   assert.match(page, /처음이라면 추천/);
   assert.match(page, /못 와도 다음 워크숍을 따라가는 데 문제없어요/);
   assert.doesNotMatch(page, /필수 참여|꼭 참여/);
   assert.match(page, /2026년 10월 26일 \(월\) 19:00–20:00[\s\S]*?진행 완료/);
   const homeStrip = (await before.read('/')).match(/<a class="strip[\s\S]*?<\/a>/)[0];
-  assert.match(homeStrip, /<\/strong> 11\/2 \(월\) 19:00 · VS Code 세팅/);
+  // 시간 : 내용1 · 내용2
+  assert.match(homeStrip, /<\/strong> <span class="kv-key">11\/2 \(월\) 19:00<\/span><span class="kv-sep" aria-hidden="true">:<\/span> VS Code 세팅 · GitHub·Cloudflare/);
   assert.doesNotMatch(homeStrip, /처음이라면 추천/, 'the home strip stays to one line');
   // 세션 슬라이드: 다음 세션 상자와 일정 목록 양쪽에서 열 수 있고, 세션이 끝나도 목록에 남습니다.
   const deck = 'https://docs.google.com/presentation/d/1TwJDjzG1Oo24YirHCgSs3BGoOPhncrmkVkVTDjmOpCQ/edit?usp=sharing';
@@ -666,6 +667,7 @@ test('home shows the next workshop with a calendar, a map and calendar links ins
   // mapImage가 있으면 네이버 지도 그림이 네이버 지도로 이어지고, Google 지도는 넣지 않습니다.
   assert.match(next, /<a class="map-frame map-shot" href="https:\/\/map\.naver\.com\/p\/search\/[^"]+"[^>]*><img src="\/images\/place\/ws-56dong-naver\.jpg"/);
   assert.match(next, /href="https:\/\/map\.kakao\.com\/link\/search\/[^"]+"[^>]*>카카오맵/);
+  assert.match(next, /href="https:\/\/www\.google\.com\/maps\/search\/\?api=1&amp;query=[^"]+"[^>]*>Google 지도/);
   assert.doesNotMatch(next, /<iframe/);
   assert.ok(await stat(path.join(outDir, 'images/place/ws-56dong-naver.jpg')), 'the map picture is published');
   assert.match(next, /href="https:\/\/calendar\.google\.com\/calendar\/render\?action=TEMPLATE[^"]*dates=20261102T090000Z%2F20261102T100000Z/);

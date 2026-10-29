@@ -12,6 +12,7 @@ const MAX_SIZE = 640;
 // 그림 속 지구의 초록 테두리를 모두 덮는 원에 3px(2000px 그림 기준) 여유를 더한 값입니다.
 const GLOBE_X = 0.498, GLOBE_Y = 0.5065, GLOBE_D = 0.433;
 const TEXT_RIGHT = 0.35; // 배너 왼쪽 글씨가 끝나는 곳. 이보다 왼쪽의 흰 글씨는 지구 위에 다시 그려 줍니다.
+const LETTER_D = GLOBE_D * 1.2; // 글씨 층의 지름: 돌릴 때 커지는 지구(최대 6%)와 빛까지 덮도록 (styles.css .globe-text와 같게)
 const FULL_TURN = 2 * Math.PI; // 손으로 이만큼 돌리면 수업 목록으로
 const LEARN_URL = '/learn/';
 
@@ -81,8 +82,8 @@ function startGlobe(banner) {
     lettering.width = lettering.height = box;
     const c = lettering.getContext('2d', { willReadFrequently: true });
     const size = box;
-    const k = size / (GLOBE_D * w);
-    const left = (GLOBE_X - GLOBE_D / 2) * w, top = GLOBE_Y * h - GLOBE_D * w / 2;
+    const k = size / (LETTER_D * w);
+    const left = (GLOBE_X - LETTER_D / 2) * w, top = GLOBE_Y * h - LETTER_D * w / 2;
     c.drawImage(picture, -left * k, -top * k, w * k, h * k);
     const text = Math.max(0, Math.min(size, Math.ceil((TEXT_RIGHT * w - left) * k)));
     if (!text) { c.clearRect(0, 0, size, size); return; }

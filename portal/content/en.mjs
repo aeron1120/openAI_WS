@@ -53,6 +53,7 @@ const home = {
   '네이버 지도 ↗': 'Naver Map ↗',
   '네이버 지도': 'Naver Map',
   '카카오맵': 'Kakao Map',
+  'Google 지도': 'Google Maps',
   '신청하기': 'Sign up',
   '자세히 보기': 'Details',
   '서울대학교 관악캠퍼스 56동(자연과학관10) 105호': 'SNU Gwanak Campus, Building 56 (Natural Sciences 10), Room 105',
@@ -66,11 +67,12 @@ const home = {
 
 const roadmap = {
   '워크숍 4번과 매주 월요일 Studio Session, 마지막에 Showcase. 중간에 합류해도 괜찮아요.': 'Four workshops, a Studio Session every Monday, and a Showcase at the end. You can join at any point.',
-  '남는 것 · 첫 기능이 작동하는 웹앱': 'You leave with · a web app with its first working feature',
+  '남는 것': 'You leave with',
+  '첫 기능이 작동하는 웹앱': 'a web app with its first working feature',
   '다음 단계': 'Next step',
-  '남는 것 · 공개 주소와 변경 기록이 있는 내 사이트': 'You leave with · your site at a public address, with a change history',
+  '공개 주소와 변경 기록이 있는 내 사이트': 'your site at a public address, with a change history',
   '만든 것을 소개하는 날': 'A day to present what you made',
-  '남는 것 · 프로젝트 시연과 소개 경험': 'You leave with · experience demoing and presenting your project',
+  '프로젝트 시연과 소개 경험': 'experience demoing and presenting your project',
   '워크숍 4회와 Studio Session, Showcase로 이어지는 한 학기 과정과 단계별 결과물.': 'The semester path through four workshops, Studio Sessions and a Showcase, and what you make at each step.'
 };
 
