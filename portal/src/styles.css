@@ -408,7 +408,8 @@ ol.step-list > li::before { content: "Step " counter(step); color: var(--em); fo
   .panel { padding: 44px 48px; }
 }
 @media (min-width: 1200px) {
-  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 48px; align-items: center; }
+  /* 공개된 학생 프로젝트가 있을 때만 오른쪽에 화면을 둡니다. */
+  .hero.has-shot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 48px; align-items: center; }
   .hero-shot { display: block; grid-column: 2; grid-row: 1; }
   .hero-copy { grid-column: 1; grid-row: 1; }
 }

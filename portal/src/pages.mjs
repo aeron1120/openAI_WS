@@ -162,13 +162,14 @@ function nextWorkshop(content) {
 export function homePage(content) {
   const { site, workshops, projects } = content;
   const primary = primaryAction(workshops);
-  const featured = projects.find(p => p.kind === 'student' && p.published) ?? projects.find(p => p.kind === 'operator' && p.published);
+  // 홈 오른쪽에는 공개된 학생 프로젝트만 보여줍니다. 운영진 예제는 Showcase·회차 페이지에서 봐요.
+  const featured = projects.find(p => p.kind === 'student' && p.published);
   // 배너 그림의 지구 자리에 돌아가는 지구(home.js)를 겹칩니다. 스크립트가 없으면 그림만 보여요.
   return h`<figure class="banner" data-globe><img src="/images/brand/banner-2000.jpg" srcset="/images/brand/banner-1000.jpg 1000w, /images/brand/banner-2000.jpg 2000w" sizes="(min-width: 1024px) calc(100vw - 340px), 100vw" width="2000" height="770" alt="OpenAI Student Collective, Seoul National University 배너" fetchpriority="high"><canvas class="globe" aria-hidden="true"></canvas><p class="globe-tip" aria-hidden="true" hidden>끌어서 돌려 보세요</p></figure>
-<section class="hero">
+<section class="hero${featured ? ' has-shot' : ''}">
   ${featured ? h`<figure class="hero-shot">
     <div class="shot-frame"><img src="${featured.image}" alt="${featured.alt}" width="1280" height="800" loading="lazy" decoding="async"></div>
-    <figcaption>${featured.kind === 'operator' ? h`<span class="tag-operator">운영진 예제</span> ` : ''}${featured.title}</figcaption>
+    <figcaption>${featured.title}</figcaption>
   </figure>` : ''}
   <div class="hero-copy">
   <p class="hero-pill"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${site.operators.role} · ${site.semester}</p>
