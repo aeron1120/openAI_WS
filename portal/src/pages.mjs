@@ -183,7 +183,6 @@ export function homePage(content) {
   <p class="hero-pill"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${site.operators.role} · ${site.semester}</p>
   <h1>아이디어를 직접 구현하고,<br><em>사람들에게 공유해요.</em></h1>
   <p class="hero-lead">ChatGPT·Codex로 한 학기 동안 내 서비스를 만들어요.</p>
-  <ul class="tags" aria-label="프로그램 특징"><li>전공 무관</li><li>코딩 경험 없어도 OK</li><li>워크숍 4회 + Showcase</li></ul>
   <div class="actions">
     ${link(primary.url, h`${primary.label}${arrow()}`, 'btn btn-primary')}
     <a class="btn btn-ghost" href="/roadmap/">학기 과정 한눈에 보기</a>
