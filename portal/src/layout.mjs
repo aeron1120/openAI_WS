@@ -31,8 +31,17 @@ function navList(content, path) {
 
 const brand = h`<a class="brand" href="/"><img class="brand-mark" src="/images/brand/logo-192.png" alt="" width="36" height="36"><span class="brand-text"><strong>Student Collective</strong><small>OpenAI · SNU</small></span></a>`;
 
+// 언어 전환: 영어 페이지가 있는 주소에서만 로고 옆에 보입니다. 같은 페이지의 다른 언어로 갑니다.
+// (영어 페이지는 i18n.mjs가 링크를 /en/…으로 바꾸므로, 여기 주소는 그 뒤에 바뀌지 않도록 data-lang-switch로 따로 둡니다.)
+function langSwitch(lang, alt) {
+  if (!alt) return '';
+  return lang === 'en'
+    ? h`<a class="lang-switch" href="${alt.ko}" hreflang="ko" lang="ko" data-lang-switch>한국어</a>`
+    : h`<a class="lang-switch" href="${alt.en}" hreflang="en" lang="en" data-lang-switch>EN</a>`;
+}
+
 // <head>: 포털과 학습실이 같은 메타·스타일·스크립트를 씁니다.
-function head({ site, path, title, description, assets, script }) {
+function head({ site, path, title, description, assets, script, lang = 'ko', alt }) {
   const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.promise}`;
   const url = site.url + path;
   return h`<head>
@@ -41,8 +50,10 @@ function head({ site, path, title, description, assets, script }) {
 <title>${pageTitle}</title>
 <meta name="description" content="${description}">
 <link rel="canonical" href="${url}">
+${alt ? h`<link rel="alternate" hreflang="ko" href="${site.url + alt.ko}">
+<link rel="alternate" hreflang="en" href="${site.url + alt.en}">` : ''}
 <meta property="og:type" content="website">
-<meta property="og:locale" content="ko_KR">
+<meta property="og:locale" content="${lang === 'en' ? 'en_US' : 'ko_KR'}">
 <meta property="og:site_name" content="${site.name}">
 <meta property="og:title" content="${title ?? site.name}">
 <meta property="og:description" content="${description}">
@@ -64,23 +75,25 @@ ${[script ?? []].flat().map(name => h`<script src="/${name}?v=${assets[name]}" d
 </head>`;
 }
 
-export function layout({ site, content, path, title, description, body, assets, script }) {
+// lang: 'ko' | 'en'. alt: { ko, en } 이 페이지의 두 언어 주소(영어 페이지가 없으면 없음).
+export function layout({ site, content, path, title, description, body, assets, script, lang = 'ko', alt }) {
   const openChat = site.links.openChat;
   return `<!doctype html>
-${h`<html lang="ko">
-${head({ site, path, title, description, assets, script })}
+${h`<html lang="${lang}">
+${head({ site, path, title, description, assets, script, lang, alt })}
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
 <div class="shell">
   <header class="topbar">
     ${brand}
+    ${langSwitch(lang, alt)}
     <details class="mobile-menu">
       <summary>메뉴</summary>
       <nav aria-label="주요 메뉴">${navList(content, path)}</nav>
     </details>
   </header>
   <aside class="sidebar">
-    ${brand}
+    <div class="sidebar-head">${brand}${langSwitch(lang, alt)}</div>
     <nav aria-label="주요 메뉴">${navList(content, path)}</nav>
   </aside>
   <div class="content">

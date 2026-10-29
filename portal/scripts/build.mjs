@@ -15,6 +15,8 @@ import { icsFile } from '../src/calendar.mjs';
 import * as pages from '../src/pages.mjs';
 import * as learnPages from '../src/learn-pages.mjs';
 import { resolveContent, boundaries } from '../src/schedule.mjs';
+import { createTranslator, localizeHtml } from '../src/i18n.mjs';
+import { english } from '../content/en.mjs';
 
 const portal = fileURLToPath(new URL('../', import.meta.url));
 const repoRoot = path.resolve(portal, '..');
@@ -145,7 +147,7 @@ export function routes(content) {
     { path: '/', render: pages.homePage, description: content.site.description, script: 'home.js' },
     { path: '/roadmap/', title: '학기 로드맵', render: pages.roadmapPage, description: '워크숍 4회와 Studio Session, Showcase로 이어지는 한 학기 과정과 단계별 결과물.' },
     { path: '/workshops/', title: '워크숍과 실습 자료', render: pages.workshopsPage, description: '회차별 주제, 진행 상태, 실습 자료를 한곳에서 확인하세요.' },
-    ...content.workshops.map(w => ({ path: `/workshops/${w.slug}/`, title: `Workshop ${w.slug} · ${w.title}`, render: c => pages.workshopPage(c, w), description: `${w.message} — ${w.summary}` })),
+    ...content.workshops.map(w => ({ path: `/workshops/${w.slug}/`, title: `Workshop ${w.slug} · ${w.title}`, render: c => pages.workshopPage(c, w), description: [w.message, w.summary].filter(Boolean).join(' — ') })),
     { path: '/studio/', title: 'Studio Session', render: pages.studioPage, description: content.studio.description },
     { path: '/showcase/', title: 'Showcase', render: pages.showcasePage, description: content.showcase.description },
     { path: '/about/', title: '운영 소개와 협력 안내', render: pages.aboutPage, description: `${content.site.name} 운영진, 진행 기록, 협력 방식 안내.` },
@@ -160,16 +162,28 @@ const PRIVATE_PATHS = ['/learn/questions/', '/admin/'];
 const hash = text => createHash('sha256').update(text).digest('hex').slice(0, 10);
 
 // 한 시점의 페이지 묶음(HTML·404·예제)을 dir에 씁니다.
-async function writePages(dir, content, assets) {
+// 포털 화면(학습실 제외)은 /en/<주소>에 영어 페이지도 씁니다(src/i18n.mjs, content/en.mjs).
+async function writePages(dir, content, assets, translator = createTranslator(english)) {
   const written = [];
-  for (const route of routes(content)) {
+  const all = routes(content);
+  const enPaths = new Set(all.filter(r => r.layout !== 'learn').map(r => r.path));
+  for (const route of all) {
     const body = String(route.render(content));
     const file = path.join(dir, route.path, 'index.html');
     await mkdir(path.dirname(file), { recursive: true });
     // layout: 'learn' → 학습실 화면(포털 사이드바 없이 상단 바만)
-    const wrap = route.layout === 'learn' ? learnLayout : layout;
-    await writeFile(file, wrap({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets, script: route.script }));
-    written.push(route.path);
+    if (route.layout === 'learn') {
+      await writeFile(file, learnLayout({ site: content.site, content, path: route.path, title: route.title, description: route.description, body, assets, script: route.script }));
+      written.push(route.path);
+      continue;
+    }
+    const alt = { ko: route.path, en: `/en${route.path}` };
+    const page = { site: content.site, content, title: route.title, description: route.description, body, assets, script: route.script, alt };
+    await writeFile(file, layout({ ...page, path: route.path }));
+    const enFile = path.join(dir, 'en', route.path, 'index.html');
+    await mkdir(path.dirname(enFile), { recursive: true });
+    await writeFile(enFile, localizeHtml(layout({ ...page, path: alt.en, lang: 'en' }), translator, enPaths));
+    written.push(route.path, alt.en);
   }
   // 날짜가 정해진 회차는 '캘린더에 추가'용 파일(/workshops/<slug>/event.ics)을 함께 만듭니다.
   for (const w of content.workshops.filter(w => w.event?.start)) {
@@ -212,13 +226,14 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
   await cp(path.join(portal, 'public'), out, { recursive: true });
 
   // 루트: 빌드 시각 기준 화면(미리보기, 그리고 함수가 실패했을 때의 안전한 기본값)
-  const written = await writePages(out, resolveContent(content, now), assets);
+  const translator = createTranslator(english);
+  const written = await writePages(out, resolveContent(content, now), assets, translator);
 
   // _v/<n>/: 화면이 바뀌는 시각마다 한 묶음. 공개 경로로는 열리지 않고 함수만 꺼내 씁니다.
   const times = boundaries(content);
   for (let i = 0; i <= times.length; i++) {
     const time = i === 0 ? (times[0] ?? now) - 1 : times[i - 1];
-    await writePages(path.join(out, '_v', String(i)), resolveContent(content, time), assets);
+    await writePages(path.join(out, '_v', String(i)), resolveContent(content, time), assets, translator);
   }
   await writeFile(path.join(out, '_v', 'schedule.json'), JSON.stringify({ boundaries: times.map(t => new Date(t).toISOString()) }));
   await writeFile(path.join(out, '_routes.json'), JSON.stringify({
@@ -232,7 +247,7 @@ export async function buildSite({ outDir = path.join(portal, 'dist'), content = 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${listed.map(p => `  <url><loc>${content.site.url}${p}</loc></url>`).join('\n')}\n</urlset>\n`;
   await writeFile(path.join(out, 'sitemap.xml'), sitemap);
   await writeFile(path.join(out, 'robots.txt'), `User-agent: *\nAllow: /\n${PRIVATE_PATHS.map(p => `Disallow: ${p}\n`).join('')}Sitemap: ${content.site.url}/sitemap.xml\n`);
-  return { outDir: out, pages: written, variants: times.length + 1 };
+  return { outDir: out, pages: written, variants: times.length + 1, untranslated: [...translator.left] };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -240,4 +255,8 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (Number.isNaN(now)) throw new Error('PORTAL_NOW 형식 예: 2026-11-02T18:00:00+09:00');
   const result = await buildSite({ now });
   console.log(`포털 ${result.pages.length}개 페이지 (시간대별 ${result.variants}묶음)를 ${path.relative(process.cwd(), result.outDir)}에 만들었습니다.${process.env.PORTAL_NOW ? ` 미리보기 기준 시각: ${process.env.PORTAL_NOW}` : ''}`);
+  // 영어 페이지에 한국어로 남은 글: content/en.mjs에 번역을 더하면 사라집니다. PORTAL_I18N=list로 목록을 봅니다.
+  if (result.untranslated.length) {
+    console.log(`영어 페이지에 번역 안 된 글 ${result.untranslated.length}개${process.env.PORTAL_I18N === 'list' ? ':\n' + result.untranslated.map(t => `  ${t}`).join('\n') : ' (PORTAL_I18N=list로 목록 보기)'}`);
+  }
 }

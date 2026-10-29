@@ -1,3 +1,7 @@
+// 영어 페이지(/en/, <html lang="en">)에서는 버튼·안내 글을 영어로 씁니다.
+const EN = document.documentElement.lang === 'en';
+const say = (ko, en) => (EN ? en : ko);
+
 // 요청문 복사. 클립보드를 쓸 수 없으면 글을 선택해 두고 직접 복사하도록 안내합니다.
 function selectText(element) {
   const range = document.createRange();
@@ -42,13 +46,13 @@ document.addEventListener('click', async event => {
   }
   if (!copied) copied = legacyCopy(target);
   if (copied) {
-    report(status, button.closest('.help-card') ? '복사했어요. 터미널에 붙여 넣으세요.' : '복사했어요. Codex 입력창에 붙여 넣으세요.', true);
-    button.textContent = '복사됨 ✓';
+    report(status, button.closest('.help-card') ? say('복사했어요. 터미널에 붙여 넣으세요.', 'Copied. Paste it into the terminal.') : say('복사했어요. Codex 입력창에 붙여 넣으세요.', 'Copied. Paste it into Codex.'), true);
+    button.textContent = say('복사됨 ✓', 'Copied ✓');
     button.classList.add('is-copied');
-    setTimeout(() => { button.textContent = '복사'; button.classList.remove('is-copied'); }, 2000);
+    setTimeout(() => { button.textContent = say('복사', 'Copy'); button.classList.remove('is-copied'); }, 2000);
   } else {
     selectText(target);
-    report(status, '자동 복사가 되지 않았어요. 글을 선택해 두었으니 Ctrl+C(⌘C)를 누르거나 길게 눌러 복사하세요.', false);
+    report(status, say('자동 복사가 되지 않았어요. 글을 선택해 두었으니 Ctrl+C(⌘C)를 누르거나 길게 눌러 복사하세요.', 'Could not copy automatically. The text is selected: press Ctrl+C (⌘C) or long-press to copy.'), false);
   }
 });
 for (const button of document.querySelectorAll('[data-copy-target]')) button.hidden = false;
@@ -82,11 +86,11 @@ function startGuide(box) {
   card.className = 'help-card';
   card.setAttribute('role', 'dialog');
   card.setAttribute('aria-labelledby', 'help-card-title');
-  card.innerHTML = `<div class="help-head"><span><span class="help-dot" aria-hidden="true"></span>시작 전 확인 도움말</span><span class="help-count"></span></div>
+  card.innerHTML = `<div class="help-head"><span><span class="help-dot" aria-hidden="true"></span>${say('시작 전 확인 도움말', 'Before you start')}</span><span class="help-count"></span></div>
 <div class="help-progress" aria-hidden="true"><span></span></div>
 <div class="help-body" tabindex="-1"></div>
-<div class="help-actions"><button type="button" class="help-close">닫기</button><button type="button" class="help-prev">이전</button><button type="button" class="help-next">다음</button></div>
-<p class="help-keys">← → 항목 이동 · Esc 닫기</p>`;
+<div class="help-actions"><button type="button" class="help-close">${say('닫기', 'Close')}</button><button type="button" class="help-prev">${say('이전', 'Back')}</button><button type="button" class="help-next">${say('다음', 'Next')}</button></div>
+<p class="help-keys">${say('← → 항목 이동 · Esc 닫기', '← → move · Esc close')}</p>`;
   document.body.append(spot, card);
 
   const docked = () => innerWidth < 720;
@@ -119,7 +123,7 @@ function startGuide(box) {
     body.querySelectorAll('[data-copy-target]').forEach(button => { button.hidden = false; });
     body.scrollTop = 0;
     card.querySelector('.help-prev').disabled = index === 0;
-    card.querySelector('.help-next').textContent = index === items.length - 1 ? '완료' : '다음';
+    card.querySelector('.help-next').textContent = index === items.length - 1 ? say('완료', 'Done') : say('다음', 'Next');
     reveal();
     requestAnimationFrame(place);
     body.focus({ preventScroll: true });
@@ -165,12 +169,12 @@ function openWalk(box) {
   const layer = document.createElement('div');
   layer.className = 'walk-layer';
   layer.innerHTML = `<div class="walk-card" role="dialog" aria-modal="true" aria-labelledby="walk-title" tabindex="-1">
-<div class="walk-head"><span class="walk-title" id="walk-title"></span><span class="walk-count"></span><button type="button" class="walk-close" aria-label="닫기">✕</button></div>
+<div class="walk-head"><span class="walk-title" id="walk-title"></span><span class="walk-count"></span><button type="button" class="walk-close" aria-label="${say('닫기', 'Close')}">✕</button></div>
 <div class="walk-progress" aria-hidden="true"><span></span></div>
 <div class="walk-shot"><div class="walk-zoom"><img alt=""><span class="walk-box" aria-hidden="true"></span></div><p class="walk-noimg"></p></div>
 <p class="walk-text"></p>
 <p class="walk-note"></p>
-<div class="walk-actions"><button type="button" class="walk-prev">이전</button><button type="button" class="walk-next">다음</button></div>
+<div class="walk-actions"><button type="button" class="walk-prev">${say('이전', 'Back')}</button><button type="button" class="walk-next">${say('다음', 'Next')}</button></div>
 </div>`;
   layer.querySelector('.walk-title').textContent = `🎬 ${box.dataset.walkTitle}`;
   document.body.append(layer);
@@ -220,7 +224,7 @@ function openWalk(box) {
       shown = step.image;
     // 그림이 없는 단계는 왜 그림이 없는지 짧게 알려줍니다(기본: 로그인한 뒤의 화면).
     } else {
-      shot.querySelector('.walk-noimg').textContent = step.blank ?? '🔒 로그인한 뒤의 화면이에요';
+      shot.querySelector('.walk-noimg').textContent = step.blank ?? say('🔒 로그인한 뒤의 화면이에요', '🔒 This screen appears after signing in');
       shown = '';
     }
     mark.hidden = !step.box;
@@ -231,7 +235,7 @@ function openWalk(box) {
     layer.querySelector('.walk-text').innerHTML = `<strong>Step ${index + 1}</strong> ${step.text}`;
     layer.querySelector('.walk-note').textContent = step.note;
     layer.querySelector('.walk-prev').disabled = index === 0;
-    layer.querySelector('.walk-next').textContent = index === steps.length - 1 ? '다 했어요' : '다음';
+    layer.querySelector('.walk-next').textContent = index === steps.length - 1 ? say('다 했어요', 'Done') : say('다음', 'Next');
     const ahead = steps[index + 1]?.image;
     if (ahead) new Image().src = ahead;
     // 강조 상자는 넘길 때마다 다시 깜빡여 눈이 가게 합니다.
@@ -327,7 +331,8 @@ function showToday(cal) {
     cal.tBodies[0].innerHTML = rows.join('');
     const a = new Date(first), b = new Date(last);
     // 연도는 바로 위 날짜 줄에 있으니 달만 적습니다.
-    const name = a.getUTCMonth() === b.getUTCMonth() ? `${a.getUTCMonth() + 1}월` : `${a.getUTCMonth() + 1}월 – ${b.getUTCMonth() + 1}월`;
+    const month = d => EN ? d.toLocaleString('en', { month: 'long', timeZone: 'UTC' }) : `${d.getUTCMonth() + 1}월`;
+    const name = a.getUTCMonth() === b.getUTCMonth() ? month(a) : `${month(a)} – ${month(b)}`;
     cal.caption.firstChild.textContent = name;
   }
   for (const cell of cal.querySelectorAll('td[data-date]')) {
@@ -338,7 +343,7 @@ function showToday(cal) {
   const todayCell = cal.querySelector(`td[data-date="${today}"]`);
   if (todayCell) {
     todayCell.classList.add('is-today');
-    todayCell.insertAdjacentHTML('beforeend', '<small class="cal-today-label">오늘</small>');
+    todayCell.insertAdjacentHTML('beforeend', `<small class="cal-today-label">${say('오늘', 'Today')}</small>`);
   }
 }
 const homeCal = document.querySelector('.cal');
@@ -347,6 +352,6 @@ for (const badge of document.querySelectorAll('[data-dday]')) {
   const start = new Date(badge.dataset.dday);
   if (Number.isNaN(start.getTime()) || Date.now() >= start.getTime()) continue;
   const days = Math.round((Date.parse(seoulDay(start)) - Date.parse(today)) / 86400000);
-  badge.textContent = days === 0 ? 'D-DAY · 오늘' : `D-${days}`;
+  badge.textContent = days === 0 ? say('D-DAY · 오늘', 'D-DAY · Today') : `D-${days}`;
   badge.hidden = false;
 }

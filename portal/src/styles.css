@@ -64,6 +64,11 @@ small { color: var(--muted); }
 
 .mobile-menu summary { list-style: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-weight: 700; cursor: pointer; }
 .mobile-menu summary::-webkit-details-marker { display: none; }
+/* 언어 전환(EN / 한국어): 로고 옆 작은 알약. 휴대폰에서는 메뉴 버튼 왼쪽에 붙습니다. */
+.lang-switch { flex: none; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; min-width: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--navy); font-size: .82rem; font-weight: 800; text-decoration: none; transition: background-color .2s, border-color .2s; }
+.lang-switch:hover { border-color: var(--navy); background: var(--navy-soft); }
+.topbar .lang-switch { margin-left: auto; }
+.sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .mobile-menu summary::before { content: "☰"; font-size: 1rem; }
 .mobile-menu[open] summary::before { content: "✕"; }
 .mobile-menu nav { position: absolute; z-index: 10; top: calc(100% - 4px); left: 12px; right: 12px; background: var(--surface); border-radius: 18px; padding: 12px; box-shadow: 0 16px 40px rgba(17, 26, 46, .16); }

@@ -25,9 +25,36 @@ async function exists(file) {
   try { return (await stat(file)).isFile(); } catch { return false; }
 }
 
+test('portal pages have English copies under /en/ with a language switch, while lessons stay Korean', async t => {
+  const { read, untranslated } = await build(t);
+  assert.deepEqual(untranslated, [], 'every Korean piece on the English pages has a translation in content/en.mjs');
+  const ko = await read('/');
+  const en = await read('/en/');
+  assert.match(ko, /<html lang="ko">/);
+  assert.match(en, /<html lang="en">/);
+  assert.match(en, /<meta property="og:locale" content="en_US">/);
+  for (const page of [ko, en]) {
+    assert.match(page, /<link rel="alternate" hreflang="ko" href="https:\/\/[^"]+\/">/);
+    assert.match(page, /<link rel="alternate" hreflang="en" href="https:\/\/[^"]+\/en\/">/);
+  }
+  // 같은 페이지의 다른 언어로 가는 전환 버튼
+  assert.match(ko, /<a class="lang-switch" href="\/en\/" hreflang="en" lang="en" data-lang-switch>EN<\/a>/);
+  assert.match(en, /<a class="lang-switch" href="\/" hreflang="ko" lang="ko" data-lang-switch>한국어<\/a>/);
+  assert.match(en, /Build your idea yourself,/);
+  assert.match(en, /href="\/en\/roadmap\/"/, 'portal links stay in English');
+  const ws1 = await read('/en/workshops/01/');
+  assert.match(ws1, /<a class="lang-switch" href="\/workshops\/01\/"/);
+  assert.match(ws1, /href="\/learn\/01\/"[^>]*>Practice in Lessons \(Korean\)/, 'lessons open the Korean lesson page');
+  assert.doesNotMatch(ws1, /href="\/en\/learn/);
+  assert.match(ws1, /Mon, Oct 26, 2026 18:00–19:00/, 'dates are written in English');
+  // 학습실은 영어 페이지를 만들지 않고 전환 버튼도 없습니다.
+  assert.doesNotMatch(await read('/learn/'), /lang-switch/);
+});
+
 test('every route, 404, sitemap and one page set per schedule window are built', async t => {
   const { pages, outDir, read, variants } = await build(t);
-  assert.deepEqual(pages, ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/', '/learn/', '/learn/questions/', '/admin/', '/learn/01/']);
+  const portalPages = ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/about/'];
+  assert.deepEqual(pages, [...portalPages.flatMap(p => [p, `/en${p}`]), '/learn/', '/learn/questions/', '/admin/', '/learn/01/']);
   assert.ok(await exists(path.join(outDir, '404.html')));
   const sitemap = await read('sitemap.xml');
   const privatePages = ['/learn/questions/', '/admin/'];
