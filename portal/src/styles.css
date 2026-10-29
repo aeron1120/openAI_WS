@@ -335,6 +335,19 @@ ol.step-list > li::before { content: "Step " counter(step); color: var(--em); fo
 .res-card:hover .res-go { transform: translateX(3px); background: var(--c-btn); color: #fff; }
 .res-card.is-demo { border-color: color-mix(in srgb, var(--c) 40%, var(--line)); background: linear-gradient(135deg, var(--c-soft), var(--surface) 75%); }
 .res-card.is-demo .res-icon { background: var(--surface); box-shadow: 0 4px 12px color-mix(in srgb, var(--c) 22%, transparent); }
+/* 회차 페이지의 '수업 듣기에서 실습하기': 자료 카드들 위에 놓이는 가장 큰 카드 */
+.learn-card { position: relative; overflow: hidden; isolation: isolate; display: flex; align-items: center; gap: 16px; margin-top: 10px; padding: 18px 16px 18px 18px; border: 1px solid color-mix(in srgb, var(--c) 45%, var(--line)); border-radius: 18px; background: linear-gradient(135deg, var(--c-soft), var(--surface) 70%); color: var(--ink); text-decoration: none; -webkit-tap-highlight-color: transparent; transition: transform .2s cubic-bezier(.2, .8, .2, 1), box-shadow .2s; }
+.learn-card:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgba(17, 26, 46, .12); color: var(--ink); }
+.learn-card:active { transform: translateY(0) scale(.98); transition-duration: .06s; }
+.learn-card .ripple { color: var(--c); }
+.learn-icon { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--c-btn); color: #fff; font-size: 1.2rem; box-shadow: 0 6px 16px color-mix(in srgb, var(--c) 35%, transparent); }
+.learn-text { min-width: 0; display: grid; gap: 4px; }
+.learn-text strong { font-size: 1.12rem; }
+.learn-text small { color: var(--muted); font-size: .86rem; line-height: 1.55; }
+.learn-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.learn-steps span { padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: .8rem; font-weight: 600; }
+.learn-card:hover .res-go { transform: translateX(3px); background: var(--c-btn); color: #fff; }
+.learn-card + .res-cards { margin-top: 10px; }
 .next-box { border-radius: 16px; background: #f6f8fc; padding: 18px; }
 
 /* Timeline (roadmap) */
@@ -609,6 +622,9 @@ body.study { background: #f3f5f8; }
 .finish-step { display: flex; gap: 6px; }
 .finish-step span { flex: none; color: var(--c-btn); font-weight: 700; }
 .finish-next { margin: 0 0 16px; color: var(--muted); font-size: .92rem; }
+.finish-apply { max-width: 640px; margin: 0 auto 18px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); text-align: left; }
+.finish-apply h3 { margin: 0 0 6px; font-size: 1.02rem; }
+.finish-apply p { margin: 0 0 10px; }
 .finish-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 @keyframes finish-pop { from { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } to { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .finish-mark { animation: none; } }

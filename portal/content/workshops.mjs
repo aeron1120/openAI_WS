@@ -45,7 +45,7 @@ export const workshops = [
     materials: 'open',
     duration: '60분',
     audience: '전공 무관 · 코딩 경험 없어도 OK',
-    joinNote: '워크숍에 오지 못했어도 이 페이지만으로 따라 할 수 있어요.',
+    joinNote: '워크숍에 오지 못했어도 수업 듣기에서 단계별로 따라 할 수 있어요.',
     prepare: [
       '노트북과 충전기',
       'Codex를 쓸 수 있는 ChatGPT 계정',

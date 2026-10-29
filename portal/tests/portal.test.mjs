@@ -80,7 +80,7 @@ test('before Workshop 2 starts, its missions, slides and examples are not publis
 test('at the start time Workshop 2 opens, and after it ends it is marked done', async t => {
   const opened = await build(t, defaultContent, WS2_OPENS);
   const page = await opened.read('/workshops/02/');
-  assert.match(page, /class="mission"/);
+  assert.match(page, /class="learn-card" href="\/learn\/02\/"/);
   assert.match(page, /docs\.google\.com\/presentation/);
   assert.match(page, /진행 중/);
   assert.ok(await exists(path.join(opened.outDir, 'examples/workshop2/complete/index.html')));
@@ -111,9 +111,9 @@ test('the deployed function serves the page set for the request time and hides f
   };
   const before = await get('/workshops/02/', WS2_OPENS - 1);
   assert.equal(before.status, 200);
-  assert.doesNotMatch(before.body, /class="mission"/);
+  assert.doesNotMatch(before.body, /class="learn-card"/);
   const after = await get('/workshops/02/', WS2_OPENS);
-  assert.match(after.body, /class="mission"/);
+  assert.match(after.body, /class="learn-card"/);
   assert.equal((await get('/examples/workshop2/complete/', WS2_OPENS - 1)).status, 404);
   assert.equal((await get('/examples/workshop2/complete/', WS2_OPENS)).status, 200);
   assert.equal((await get('/_v/1/workshops/02/', WS2_OPENS - 1)).status, 404);
@@ -241,9 +241,26 @@ test('a ready video loads only on play, never autoplays, and replaces the screen
   assert.match(html, /즐겨찾기를 눌러보는 장면/);
 });
 
-test('copy buttons start hidden so they only appear when the script can run', async t => {
+test('an open workshop page gathers info and materials and sends practice to the lesson page', async t => {
   const { read } = await build(t);
   const html = await read('/workshops/01/');
+  // 실습 단계는 수업 듣기에만 있고, 회차 페이지에는 큰 카드와 단계 제목만 있습니다.
+  assert.doesNotMatch(html, /class="mission" id="mission-/);
+  assert.doesNotMatch(html, /data-hints/);
+  assert.match(html, /<a class="btn btn-fill" href="\/learn\/01\/">수업 듣기에서 실습하기/);
+  const materials = html.match(/<section class="block reveal" id="materials">[\s\S]*?<\/section>/)[0];
+  assert.match(materials, /<a class="learn-card" href="\/learn\/01\/">[\s\S]*01 기초 틀 받고 화면 열기[\s\S]*04 내 서비스에 필요한 기능 하나 연결하기/);
+  assert.match(materials, /class="res-card/);
+  assert.match(html, /id="help"/);
+  // 내 아이디어로 넓히기는 수업 듣기의 완료 화면으로 옮겼고, 수업 화면에서 자료 모음으로 돌아올 수 있어요.
+  const lesson = await read('/learn/01/');
+  assert.match(lesson, /<div class="finish-apply">/);
+  assert.match(lesson, /href="\/workshops\/01\/#materials">예제·자료 모음/);
+});
+
+test('copy buttons start hidden so they only appear when the script can run', async t => {
+  const { read } = await build(t);
+  const html = await read('/learn/01/');
   const buttons = html.match(/<button[^>]*copy-button[^>]*>/g) ?? [];
   assert.ok(buttons.length >= 4);
   for (const button of buttons) assert.match(button, /\shidden>/);
@@ -257,8 +274,8 @@ test('mission text turns [글](주소) into links, but copy blocks stay plain', 
   m.verify = ['[확인 화면](/workshops/01/) 열기'];
   m.stuck = ['[문제 해결](https://github.com/example/help) 보기'];
   m.prompt = '[요청](https://github.com/example/prompt) 그대로';
-  const html = await (await build(t, content)).read('/workshops/01/');
-  const body = html.match(/<details class="mission" id="mission-open-starter"[\s\S]*?<\/details>\s*<details class="mission"/)[0];
+  const html = await (await build(t, content)).read('/learn/01/');
+  const body = html.match(/id="step-open-starter"[\s\S]*?<\/section>/)[0];
   assert.match(body, /<a href="https:\/\/github\.com\/example\/repo" target="_blank" rel="noopener">저장소<span class="ext" aria-hidden="true">↗<\/span><span class="sr-only"> \(새 창\)<\/span><\/a>를 열고/);
   assert.match(body, /<a href="\/learn\/">수업 목록<\/a>/);
   assert.match(body, /&lt;b&gt;굵게&lt;\/b&gt;/);
@@ -279,9 +296,9 @@ test('hints render one details per hint before the result box, with the last of 
   delete m.hintSlides; // 힌트 본문만 확인합니다. '관련 실습 페이지 보기'는 practice.test.mjs에서 확인해요.
   delete option.hintSlides;
   const { read } = await build(t, content);
-  for (const page of ['/workshops/01/', '/learn/01/']) {
+  for (const page of ['/learn/01/']) {
     const html = await read(page);
-    const step = html.split(`id="${page === '/learn/01/' ? 'step' : 'mission'}-${m.id}"`)[1].split('class="result"')[0];
+    const step = html.split(`id="step-${m.id}"`)[1].split('class="result"')[0];
     assert.match(step, /<div class="hints" data-hints>/);
     assert.match(step, /<details class="hint" data-hint="1"><summary>힌트 1 <span class="hint-verb">보기<\/span><\/summary><div class="hint-text">첫 힌트: <a href="https:\/\/github\.com\/example\/hint" target="_blank" rel="noopener">안내/);
     assert.match(step, /<details class="hint" data-hint="2"><summary>힌트 2 <span class="hint-verb">보기<\/span><\/summary><div class="hint-text">둘째 힌트\n둘째 줄<\/div>/);
@@ -292,7 +309,7 @@ test('hints render one details per hint before the result box, with the last of 
   // 힌트도 화면 따라 하기도 없는 미션에는 힌트 상자가 없습니다.
   const plain = clone(defaultContent);
   for (const w of plain.workshops) for (const x of w.missions) for (const item of [x, ...(x.options ?? [])]) { delete item.hints; delete item.walkthrough; delete item.hintSlides; }
-  assert.doesNotMatch(await (await build(t, plain)).read('/workshops/01/'), /data-hints/);
+  assert.doesNotMatch(await (await build(t, plain)).read('/learn/01/'), /data-hints/);
 });
 
 test('content validation rejects unusable inline links and malformed hints', () => {
@@ -658,7 +675,7 @@ test('the lesson shows only the current task pages, can switch to the whole lect
 
 test('the weather hint opens a screen-by-screen walkthrough with highlighted spots', async t => {
   const { outDir, read } = await build(t);
-  for (const page of ['/learn/01/', '/workshops/01/']) {
+  for (const page of ['/learn/01/']) {
     const html = await read(page);
     const walk = html.match(/<div class="walk" data-walk="([^"]+)" data-walk-title="기상청 인증키 받기">/);
     assert.ok(walk, `${page} has the walkthrough`);

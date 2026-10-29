@@ -1,7 +1,7 @@
 // 수업 듣기(/learn/) 화면의 HTML. 로그인 확인·진도·단계 이동은 learn.js가 맡습니다.
 // 화면 내용은 로그인 전에는 숨겨 두고(hidden), learn.js가 로그인을 확인한 뒤 엽니다.
 // 상단 바·사용자 칸은 layout.mjs의 learnLayout(학습실 화면)이 그립니다.
-import { h, raw, link } from './render.mjs';
+import { h, raw, link, copyBlock } from './render.mjs';
 import { missionBody, slidesOf, taskSlidesOf } from './pages.mjs';
 
 const pad = n => String(n).padStart(2, '0');
@@ -111,7 +111,7 @@ function lessonStep(m, i, total) {
   return h`<section class="lesson-step" id="step-${m.id}" data-step="${m.id}" data-task-slides="${taskSlidesOf(m)}" ${i ? raw('hidden') : ''}>
   <p class="track-kicker">${i + 1} / ${total} 단계</p>
   <h2 tabindex="-1">${m.title}</h2>
-  ${missionBody(m, { lesson: true })}
+  ${missionBody(m)}
   <div class="lesson-actions">
     <button type="button" class="btn btn-ghost" data-prev ${i === 0 ? raw('disabled') : ''}>← 이전</button>
     ${last
@@ -136,6 +136,11 @@ function finishScreen(content, w) {
   <ol class="finish-steps">
     ${w.missions.map((m, i) => h`<li class="finish-step"><span aria-hidden="true">✔</span> ${pad(i + 1)} ${m.title}</li>`)}
   </ol>
+  ${w.apply ? h`<div class="finish-apply">
+    <h3>${w.apply.title}</h3>
+    <p>${w.apply.body}</p>
+    ${w.apply.prompt ? copyBlock(w.apply.prompt, '빈칸을 내 아이디어로 바꿔 쓰세요') : ''}
+  </div>` : ''}
   ${locked ? h`<p class="finish-next">다음 수업 Workshop ${pad(next.number)}는 ${next.opensLabel}에 열려요.</p>` : ''}
   <div class="finish-actions">
     <a class="btn btn-fill" href="/learn/">수업 목록으로</a>
@@ -201,7 +206,7 @@ export function lessonPage(content, w) {
   <div class="lesson-body">
     <div class="lesson-slides">
       ${slideViewer(content, w)}
-      <p class="hint">${link(slides.url, '원본 슬라이드 새 창으로 열기')}</p>
+      <p class="hint">${link(slides.url, '원본 슬라이드 새 창으로 열기')} · <a href="/workshops/${w.slug}/#materials">예제·자료 모음</a></p>
     </div>
     <div class="lesson-steps">${w.missions.map((m, i) => lessonStep(m, i, total))}</div>
   </div>

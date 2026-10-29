@@ -15,7 +15,6 @@ const checks = items => items?.length ? h`<ul class="checks">${items.map(item =>
 export const slidesOf = w => w.resources.find(r => r.kind === 'slides' && isUsableUrl(r.url));
 // 수업 화면에서 이 단계(또는 선택지)의 '이 과제만' 보기에 넣을 슬라이드 페이지 ID: 과제 페이지, 없으면 시작 슬라이드 한 장
 export const taskSlidesOf = item => (item.taskSlides?.length ? item.taskSlides : [item.slideId]).filter(Boolean).join(' ');
-const demoOf = w => w.resources.find(r => r.kind === 'demo' && isUsableUrl(r.url));
 
 function scheduleText(item, timeZone) {
   return formatSchedule(item.event, timeZone) ?? '일정 준비 중';
@@ -249,10 +248,10 @@ function hintBox(hints, walk, pages = []) {
     </div>`;
 }
 
-// 미션 본문: 공개 워크숍 페이지(접히는 미션)와 수업 화면(/learn/, lesson: true)이 함께 씁니다.
+// 미션 본문: 수업 화면(/learn/)의 단계마다 씁니다. 공개 회차 페이지는 단계 제목만 보여주고 수업 화면으로 보냅니다.
 // 설명 글(todo·expected·verify·stuck·needs·hints)은 [글](주소) 링크를 쓸 수 있고, 요청문·명령은 그대로 복사됩니다.
-export function missionBody(m, { lesson = false } = {}) {
-  const jumps = item => (lesson ? item.hintSlides ?? [] : []);
+export function missionBody(m) {
+  const jumps = item => item.hintSlides ?? [];
   return h`<p>${richText(m.todo)}</p>
     ${m.prompt ? copyBlock(m.prompt) : ''}
     ${m.commands ? copyBlock(m.commands, '터미널 명령 (한 줄씩 실행)', { code: true }) : ''}
@@ -271,13 +270,18 @@ export function missionBody(m, { lesson = false } = {}) {
     ${m.stuck?.length ? h`<details class="stuck"><summary>막혔을 때</summary><ul>${m.stuck.map(s => h`<li>${richText(s)}</li>`)}</ul></details>` : ''}`;
 }
 
-function missionBlock(m, index) {
-  return h`<details class="mission" id="mission-${m.id}" ${index === 0 ? raw('open') : ''}>
-  <summary><span class="mission-no">${index + 1}</span><span class="mission-title">${m.title}</span></summary>
-  <div class="mission-body">
-    ${missionBody(m)}
-  </div>
-</details>`;
+// 실습은 수업 듣기(/learn/)에서만 합니다. 회차 페이지에는 그리로 가는 큰 카드와 단계 제목만 둡니다.
+const lessonHref = w => `/learn/${w.slug}/`;
+function lessonCard(w) {
+  return h`<a class="learn-card" href="${lessonHref(w)}">
+  <span class="learn-icon" aria-hidden="true">▶</span>
+  <span class="learn-text">
+    <strong>수업 듣기에서 실습하기</strong>
+    <small>서울대 계정으로 로그인하면 슬라이드를 보며 단계별로 따라 하고, 힌트·화면 따라 하기·진도 저장·질문을 한곳에서 써요.</small>
+    <span class="learn-steps">${w.missions.map((m, i) => h`<span>${pad(i + 1)} ${m.title}</span>`)}</span>
+  </span>
+  <span class="res-go" aria-hidden="true">→</span>
+</a>`;
 }
 
 // 자료는 눌러 보고 싶은 카드로: 종류별 아이콘, 마우스를 올리면 떠오르고 화살표가 움직입니다.
@@ -300,9 +304,6 @@ export function workshopPage(content, w) {
   const open = w.materials === 'open';
   const locked = w.materials === 'locked';
   const color = w.materials === 'planning' ? 'muted' : w.color;
-  // 자료가 열리기 전에는 예제·슬라이드 주소를 페이지에 넣지 않습니다.
-  const demo = open ? demoOf(w) : null;
-  const slides = open ? slidesOf(w) : null;
   const pager = h`<nav class="pager" aria-label="다른 회차">
   ${prev ? h`<a href="${workshopPath(prev)}">← Workshop ${pad(prev.number)}</a>` : raw('<span></span>')}
   ${next ? h`<a href="${workshopPath(next)}">Workshop ${pad(next.number)} →</a>` : h`<a href="/showcase/">Showcase →</a>`}
@@ -314,9 +315,8 @@ export function workshopPage(content, w) {
   <p class="lead">${w.summary}</p>
   ${open || isRecruiting(w) ? h`<div class="actions">
     ${isRecruiting(w) ? link(w.recruitment.url, '신청하기', 'btn btn-fill') : ''}
-    ${open ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="#missions">실습 시작하기${arrow('↓')}</a>` : ''}
-    ${demo ? link(demo.url, '예제 열기', 'btn btn-ghost') : ''}
-    ${slides ? link(slides.url, '슬라이드', 'btn btn-ghost') : ''}
+    ${open && w.missions.length ? h`<a class="btn ${isRecruiting(w) ? 'btn-ghost' : 'btn-fill'}" href="${lessonHref(w)}">수업 듣기에서 실습하기${arrow()}</a>` : ''}
+    ${open ? h`<a class="btn btn-ghost" href="#materials">예제·슬라이드 모음${arrow('↓')}</a>` : ''}
   </div>` : ''}
   <dl class="info">
     <div><dt>일정</dt><dd>${scheduleText(w, site.timeZone)}</dd></div>
@@ -331,7 +331,7 @@ export function workshopPage(content, w) {
 ${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
 <section class="pending locked">
   <h2><span aria-hidden="true">🔒</span> 실습과 슬라이드는 ${w.opensLabel}에 열려요</h2>
-  <p class="hint">워크숍이 시작하면 이 페이지에서 단계별 미션과 예제, 슬라이드를 바로 볼 수 있어요. 그 전에 아래 준비만 끝내 오세요.</p>
+  <p class="hint">워크숍이 시작하면 수업 듣기에서 단계별 실습을, 이 페이지에서 예제와 슬라이드를 볼 수 있어요. 그 전에 아래 준비만 끝내 오세요.</p>
 </section>
 <section class="block reveal two">
   ${w.prepare.length ? h`<div class="box"><h2>준비물</h2>${checks(w.prepare)}</div>` : ''}
@@ -356,6 +356,12 @@ ${pager}</div>`;
   return h`<div class="c-${color}">${head}
 ${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
 
+<section class="block reveal" id="materials">
+  <h2>실습과 자료</h2>
+  ${w.missions.length ? lessonCard(w) : ''}
+  ${resources.length ? h`<ul class="res-cards">${resources.map(resourceCard)}</ul>` : ''}
+</section>
+
 <section class="block reveal">
   ${video(w) || figure(w.preview)}
 </section>
@@ -365,17 +371,7 @@ ${w.joinNote ? h`<p class="note">${w.joinNote}</p>` : ''}
   ${checkBox(w)}
 </section>
 
-${w.missions.length ? h`<section class="block reveal" id="missions">
-  <h2>단계별 미션</h2>
-  <p class="hint">단계를 눌러 펼쳐요. 요청문은 복사해서 Codex에 붙여 넣으세요.</p>
-  ${w.missions.map(missionBlock)}
-</section>` : ''}
-
 <section class="block reveal">
-  ${w.apply ? h`<details class="mission more">
-    <summary><span class="mission-no">+</span><span class="mission-title">${w.apply.title}</span></summary>
-    <div class="mission-body"><p>${w.apply.body}</p>${w.apply.prompt ? copyBlock(w.apply.prompt, '빈칸을 내 아이디어로 바꿔 쓰세요') : ''}</div>
-  </details>` : ''}
   <details class="mission more" id="help">
     <summary><span class="mission-no">?</span><span class="mission-title">막혔을 때</span></summary>
     <div class="mission-body">
@@ -385,11 +381,6 @@ ${w.missions.length ? h`<section class="block reveal" id="missions">
     </div>
   </details>
 </section>
-
-${resources.length ? h`<section class="block reveal" id="materials">
-  <h2>자료</h2>
-  <ul class="res-cards">${resources.map(resourceCard)}</ul>
-</section>` : ''}
 
 ${w.share ? h`<section class="block reveal next-box">
   <h2>다 했다면</h2>

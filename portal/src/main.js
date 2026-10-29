@@ -287,7 +287,7 @@ if ('IntersectionObserver' in window && !reduceMotion) {
 }
 
 document.addEventListener('pointerdown', event => {
-  const target = event.target.closest('.btn, .copy-button, .res-card, .help-start, .walk-open');
+  const target = event.target.closest('.btn, .copy-button, .res-card, .learn-card, .help-start, .walk-open');
   if (!target || reduceMotion) return;
   const box = target.getBoundingClientRect();
   const size = Math.max(box.width, box.height) * 2;
