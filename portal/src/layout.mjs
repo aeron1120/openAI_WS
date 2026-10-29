@@ -63,7 +63,7 @@ ${alt ? h`<link rel="alternate" hreflang="ko" href="${site.url + alt.ko}">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="${site.name} — ${site.promise}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#eef2fb">
+<meta name="theme-color" content="#f1ecfd">
 <link rel="icon" href="/images/brand/icon-64.png" type="image/png">
 <link rel="apple-touch-icon" href="/images/brand/apple-touch-icon.png">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>

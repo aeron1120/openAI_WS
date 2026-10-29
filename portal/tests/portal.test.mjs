@@ -97,7 +97,7 @@ test('before Workshop 2 starts, its missions, slides and examples are not publis
   const outsideHelp = page.replace(/<template>[\s\S]*?<\/template>/g, '');
   assert.doesNotMatch(outsideHelp, /class="mission"|copy-block|docs\.google\.com\/presentation|\/examples\//);
   const list = await read('/workshops/');
-  const ws2Card = list.match(/<article class="track c-blue[\s\S]*?<\/article>/)[0];
+  const ws2Card = list.match(/<article class="track c-violet[\s\S]*?<\/article>/)[0];
   assert.match(ws2Card, /11\/2 \(월\) 18:00/);
   assert.doesNotMatch(ws2Card, /실습 시작하기|슬라이드<|docs\.google/);
   assert.equal(await exists(path.join(outDir, 'examples/workshop2/complete/index.html')), false);
@@ -113,7 +113,7 @@ test('at the start time Workshop 2 opens, and after it ends it is marked done', 
   assert.ok(await exists(path.join(opened.outDir, 'examples/workshop2/complete/index.html')));
   assert.match(await opened.read('/showcase/'), /즐겨찾기 추가/);
   const ended = await build(t, defaultContent, WS2_ENDS);
-  assert.match((await ended.read('/workshops/')).match(/<article class="track c-blue[\s\S]*?<\/article>/)[0], /진행 완료/);
+  assert.match((await ended.read('/workshops/')).match(/<article class="track c-violet[\s\S]*?<\/article>/)[0], /진행 완료/);
 });
 
 test('the deployed function serves the page set for the request time and hides future pages', async t => {
@@ -595,7 +595,7 @@ test('the course list links every step of an open workshop and shows locked ones
   assert.match(panel, new RegExp(`data-continue href="/learn/01/#step-${ws1.missions[0].id}"`));
   assert.match(panel, new RegExp(`0/${ws1.missions.length} 완료`));
   assert.match(html, /data-progress-text>0 \/ 4 단계</);
-  const locked = html.match(/<section class="course is-locked c-blue"[\s\S]*?<\/section>/)[0];
+  const locked = html.match(/<section class="course is-locked c-violet"[\s\S]*?<\/section>/)[0];
   assert.match(locked, /🔒<\/span> 11\/2 \(월\) 18:00에 열려요 · 5단계/);
   assert.doesNotMatch(locked, /href=|data-step-link/);
   assert.doesNotMatch(html, /class="learn-links"/);

@@ -40,7 +40,7 @@ export const showcase = {
   korean: '만든 것을 소개하는 날',
   message: '내가 만든 것을 사람들에게 보여준다',
   outcome: '프로젝트 시연과 소개 경험',
-  color: 'rose',
+  color: 'orange',
   description: '학기 동안 만든 서비스를 사람들 앞에서 시연하고 소개해요.',
   event: { status: 'tbd', start: null, end: null, place: null },
   timingNote: '학기 말 개최를 검토하고 있어요. 일정은 확정되면 안내합니다.'

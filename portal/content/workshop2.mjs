@@ -9,7 +9,7 @@ const practice = (...keys) => ({
 });
 
 export const workshop2 = {
-  number: 2, slug: '02', color: 'blue',
+  number: 2, slug: '02', color: 'violet',
   title: '고치고, 기록하고, 공개하기',
   shortTitle: '고치고 기록하고 공개하기',
   highlights: ['내 사이트를 공개 주소로 배포', 'GitHub에 원본과 변경 기록', 'Preview에서 확인한 뒤 정식 반영'],
