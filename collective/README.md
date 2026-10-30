@@ -53,7 +53,7 @@
 
 ## 운영 배포 준비 (사용자가 할 일)
 
-지금은 **로컬에서만 검증된 상태**입니다. 운영 Supabase·Cloudflare·Google에는 아직 아무것도 만들지 않았습니다.
+2026-10-30 아래 순서로 운영 연결을 마쳤습니다(<https://student-collective.pages.dev>). 주소를 옮기거나 다시 만들 때 같은 순서를 따릅니다.
 
 1. **Supabase (기존 프로젝트)**: SQL Editor에 `collective/schema.sql`을 붙여 넣고 Run(추가만 하고 기존 테이블은 건드리지 않음). Project Settings → API Keys에서 **CMS 전용 secret 키를 새로 만듭니다**(학습 서버 키와 따로 끊을 수 있게).
 2. **Google Cloud**: 기존 프로젝트에서 OAuth 클라이언트(웹)를 **새로** 만들고 승인된 리디렉션 URI에 `https://<새 주소>/manage/auth/callback/`을 넣습니다. 기존 SNU 학습실 클라이언트는 그대로 둡니다.
@@ -89,4 +89,5 @@
 - 2026-10-30 로컬(이전): `npm run test:collective` 31개 통과. 기존 `npm test`(40), `test:portal`(49), `test:learn`(70) 통과.
 - 2026-10-30 로컬 브라우저(Edge headless): 360·768·1440px에서 통합 메인·학교 찾기·SNU 홈·일정·워크숍 상세·행사·프로젝트·참여 안내·없는 학교 주소 모두 가로 넘침 없음(`check-layout.mjs`). 관리 화면에서 로컬 로그인 → 일정 저장(저장됨 표시·미저장 표시 해제) → 오래된 revision 저장 시 충돌 안내 → 잘못된 링크 저장 시 칸 오류·포커스 → 게시 요약 확인 → 게시 → 공개 화면 반영 확인.
 - 2026-10-30 실제 SNU `/api/health` 응답으로 Workshop 1 ‘자료 열림’, Workshop 2 ‘아직 공개 전’ 표시 확인(로컬 서버에서 실제 출처 호출).
-- 아직 안 한 것: Supabase·Cloudflare·Google 운영 연결(위 ‘운영 배포 준비’), 실제 기기 성능 측정.
+- 2026-10-30 운영: `/healthz`가 `configured: true, store: "supabase"`, 허용 계정 Google 로그인, SNU·통합 메인 게시, SNU 카드가 기존 포털로 연결·`/campuses/snu/` 302 확인.
+- 아직 운영에서 확인하지 않은 것: 사진 올리기(`cms-media` 버킷), 이전 게시본 복원, 새 학교 추가부터 게시까지, 실제 기기 성능 측정.
