@@ -154,7 +154,7 @@ main:focus { outline: none; }
 .hero:has(.hero-photo) .hero-art { background: linear-gradient(180deg, rgba(42, 21, 128, .55), rgba(42, 21, 128, .85)); }
 .hero-eyebrow { font-weight: 750; font-size: clamp(1.05rem, 1.8vw, 1.3rem); letter-spacing: -0.01em; color: #e4dbff; margin-bottom: 1em; }
 .hero-title, .section-title, .page-title { text-wrap: balance; }
-.hero-title { font-size: clamp(2.25rem, 8.4vw, 6.6rem); font-weight: 850; letter-spacing: -0.045em; line-height: 1.08; margin-bottom: .35em; max-width: 14ch; }
+.hero-title { font-size: clamp(2.1rem, 7vw, 5.6rem); font-weight: 850; letter-spacing: -0.045em; line-height: 1.08; margin-bottom: .35em; }
 .hero-lead { font-size: clamp(1.05rem, 2.2vw, 1.4rem); color: #ece6ff; max-width: 34em; margin-bottom: 2em; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 1em; }
 .last-campus { margin-top: 1.2em; font-size: .95rem; }
