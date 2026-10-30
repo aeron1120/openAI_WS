@@ -35,16 +35,34 @@ const progress = (text, className = '') => h`<div class="progress${className ? `
 // 단계 줄의 표시(✔ 완료 · ▶ 지금 · ○ 아직)는 learn.js가 바꿉니다. 화면 읽기 프로그램용 상태는 data-step-state.
 const stepRow = (m, i) => h`<span class="step-mark" aria-hidden="true">○</span><span class="step-no">${pad(i + 1)}</span><span class="step-title">${m.title}</span><span class="sr-only" data-step-state></span>`;
 
-// 수업 지도의 칸 하나 = 회차 하나. 동그라미(stage-node)는 진도만큼 테두리가 차고(--p), 다 끝내면 ★,
-// 지금 할 칸에는 '지금 여기' 표시가 붙습니다(learn.js). 단계 목록은 접어 두고 바로 들어갈 때만 펼칩니다.
-// 동그라미는 같은 곳으로 가는 버튼이 카드에 있으므로 키보드 순서에서 뺍니다.
+// 수업 지도의 칸 하나 = 회차 하나. 칸마다 떠 있는 섬 그림(public/images/learn-map/)과 둘레를 떠다니는 작은 그림(파티클)이 있고,
+// 다 끝낸 섬에는 완료 표시, 지금 할 섬에는 '지금 여기' 표시가 붙습니다(learn.js). 단계 목록은 접어 두고 바로 들어갈 때만 펼칩니다.
+// 섬 그림은 같은 곳으로 가는 버튼이 카드에 있으므로 키보드 순서·화면 읽기에서 뺍니다. 그림이 없는 회차(5회차부터)는 번호 동그라미입니다.
+const MAP = '/images/learn-map';
+const ISLANDS = { 1: 'island-01', 2: 'island-02', 3: 'island-03', 4: 'island-04', goal: 'island-05' };
+const SPARKS = {
+  1: ['laurel-leaf', 'rose-petal', 'sparkle'],
+  2: ['star', 'lapis', 'comet'],
+  3: ['lavender-mist', 'lily-petal', 'crescent'],
+  4: ['motes', 'cloud', 'feather'],
+  goal: ['gold-dust', 'celebration', 'coral-blossom']
+};
+const sparks = key => SPARKS[key] ? h`<span class="stage-sparks" aria-hidden="true">${SPARKS[key].map(name => h`<i class="spark spark-${name}"></i>`)}</span>` : '';
+// 섬 그림(또는 번호 동그라미)과 상태 표시 자리
+const nodeArt = (key, label) => ISLANDS[key]
+  ? h`<img class="stage-art" src="${MAP}/${ISLANDS[key]}.webp" alt="" width="720" height="720" loading="lazy" decoding="async"><i class="emblem emblem-complete stage-star"></i>`
+  : h`<span class="stage-no">${label}</span><i class="emblem emblem-complete stage-star"></i>`;
+const nodeClass = key => `stage-node${ISLANDS[key] ? ' is-island' : ''}`;
+
 function openStage(w) {
   const path = lessonPath(w);
   const first = `${path}#step-${w.missions[0].id}`;
   return h`<li class="stage c-${w.color}" data-course="${w.number}">
   <div class="stage-spot">
-    <span class="stage-pin" data-here hidden>지금 여기</span>
-    <a class="stage-node" href="${first}" data-continue tabindex="-1" aria-hidden="true"><span class="stage-no">${pad(w.number)}</span><span class="stage-star">★</span></a>
+    <span class="emblem emblem-focus stage-ring" aria-hidden="true"></span>
+    ${sparks(w.number)}
+    <span class="stage-pin" data-here hidden><i class="emblem emblem-location" aria-hidden="true"></i>지금 여기</span>
+    <a class="${nodeClass(w.number)}" href="${first}" data-continue tabindex="-1" aria-hidden="true">${nodeArt(w.number, pad(w.number))}</a>
   </div>
   <div class="stage-card">
     <p class="track-kicker">Workshop ${pad(w.number)}</p>
@@ -61,9 +79,11 @@ function openStage(w) {
 </li>`;
 }
 
-// 자료가 아직 열리지 않은 회차: 단계 이름·링크 없이 여는 시각과 단계 수만 보여줍니다.
+// 자료가 아직 열리지 않은 회차: 단계 이름·링크 없이 여는 시각과 단계 수만 보여줍니다. 섬은 빛이 빠지고 자물쇠가 걸립니다.
 const lockedStage = w => h`<li class="stage is-locked c-${w.color}">
-  <div class="stage-spot"><span class="stage-node" aria-hidden="true"><span class="stage-no">🔒</span></span></div>
+  <div class="stage-spot">
+    <span class="${nodeClass(w.number)}" aria-hidden="true">${nodeArt(w.number, '🔒')}<i class="emblem emblem-locked stage-lock"></i></span>
+  </div>
   <div class="stage-card">
     <p class="track-kicker">Workshop ${pad(w.number)}</p>
     <h2 id="course-${w.slug}">${w.title}</h2>
@@ -71,19 +91,26 @@ const lockedStage = w => h`<li class="stage is-locked c-${w.color}">
   </div>
 </li>`;
 
-// 주제를 정하는 중인 회차: 이름 대신 준비 중이라고만 보여줍니다.
+// 주제를 정하는 중인 회차: 제목만 보여주고 열리지 않습니다. 섬은 안개에 가린 것처럼 흐립니다.
 const planningStage = w => h`<li class="stage is-fog">
-  <div class="stage-spot"><span class="stage-node" aria-hidden="true"><span class="stage-no">${pad(w.number)}</span></span></div>
+  <div class="stage-spot">
+    ${sparks(w.number)}
+    <span class="${nodeClass(w.number)}" aria-hidden="true">${nodeArt(w.number, pad(w.number))}</span>
+  </div>
   <div class="stage-card">
     <p class="track-kicker">Workshop ${pad(w.number)}</p>
-    <h2>준비 중이에요</h2>
-    <p class="stage-note">주제가 정해지면 이 칸이 열려요.</p>
+    <h2>${w.title}</h2>
+    <p class="stage-note">자세한 내용이 정해지면 이 칸이 열려요.</p>
   </div>
 </li>`;
 
 // 마지막 칸: 학기 마무리 Showcase
 const goalStage = showcase => h`<li class="stage is-goal c-${showcase.color}">
-  <div class="stage-spot"><a class="stage-node" href="/showcase/" tabindex="-1" aria-hidden="true"><span class="stage-no">🏁</span></a></div>
+  <div class="stage-spot">
+    <span class="emblem emblem-focus stage-ring" aria-hidden="true"></span>
+    ${sparks('goal')}
+    <a class="${nodeClass('goal')}" href="/showcase/" tabindex="-1" aria-hidden="true">${nodeArt('goal', '🏁')}</a>
+  </div>
   <div class="stage-card">
     <p class="track-kicker">마지막 칸 · Showcase</p>
     <h2><a href="/showcase/">${showcase.korean}</a></h2>

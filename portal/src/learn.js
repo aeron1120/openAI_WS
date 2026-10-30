@@ -252,7 +252,7 @@
     map.querySelector('[data-map-done]').replaceChildren(...segments);
   }
 
-  // 수업 지도: 칸마다 진도(테두리·막대)와 "시작하기/이어서 하기"(처음으로 안 끝낸 단계), 다 끝낸 칸은 ★,
+  // 수업 지도: 칸마다 진도 막대와 "시작하기/이어서 하기"(처음으로 안 끝낸 단계), 다 끝낸 칸은 완료 표시,
   // 아직 다 끝내지 않은 첫 칸에 '지금 여기'를 붙입니다. 진도를 못 불러와도 지도는 그대로 씁니다.
   function initList(content) {
     const map = content.querySelector('[data-map]');
@@ -275,7 +275,6 @@
           else next ??= link;
         }
         setProgress(course.querySelector('[data-progress]'), count, links.length, `${count}/${links.length} 단계`);
-        course.style.setProperty('--p', links.length ? Math.round((count / links.length) * 100) : 0);
         course.classList.toggle('is-clear', links.length > 0 && !next);
         if (next) here ??= course;
         for (const resume of course.querySelectorAll('[data-continue]')) {
@@ -294,7 +293,32 @@
       }
       setProgress(content.querySelector('.course-head [data-progress]'), allDone, all, `${allDone} / ${all} 단계`);
       redraw();
+      celebrate(content);
     }).catch(() => {});
+  }
+
+  // 지난번 지도를 본 뒤 새로 끝낸 섬에서 별빛이 짧게(0.9초, 10개) 퍼집니다. 본 섬은 이 브라우저에 기억합니다.
+  const CLEARED_KEY = 'learn-map-cleared';
+  function celebrate(content) {
+    let seen = [];
+    try { seen = JSON.parse(localStorage.getItem(CLEARED_KEY) ?? '[]'); } catch { /* 저장소가 막혀 있으면 매번 새로 봐요. */ }
+    const cleared = [...content.querySelectorAll('.stage.is-clear[data-course]')];
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    for (const stage of cleared) {
+      if (still || seen.includes(stage.dataset.course)) continue;
+      const burst = el('span', 'stage-burst');
+      burst.setAttribute('aria-hidden', 'true');
+      for (let i = 0; i < 10; i++) {
+        const spark = el('i', `spark spark-${['star', 'sparkle', 'gold-dust', 'celebration'][i % 4]}`);
+        const angle = (i / 10) * Math.PI * 2;
+        spark.style.setProperty('--x', `${Math.round(Math.cos(angle) * 120)}px`);
+        spark.style.setProperty('--y', `${Math.round(Math.sin(angle) * 90)}px`);
+        burst.append(spark);
+      }
+      stage.querySelector('.stage-spot').append(burst);
+      setTimeout(() => burst.remove(), 1000);
+    }
+    try { localStorage.setItem(CLEARED_KEY, JSON.stringify(cleared.map(stage => stage.dataset.course))); } catch { /* 무시 */ }
   }
 
   // 슬라이드 보기: '이 과제만'은 지금 과제의 페이지만, '강의 전체'는 모든 슬라이드를 순서대로 넘깁니다.
