@@ -31,7 +31,8 @@ Windows PowerShell에서 `npm.ps1` 실행이 막히면 `npm.cmd run dev:portal`�
 **배포는 GitHub 연동으로 자동입니다(2026-10-30부터).** Cloudflare Pages 프로젝트 `snu-student-collective`가 이 저장소의 `main`에 연결되어 있어, push하면 Cloudflare가 직접 검사·빌드·배포합니다. 설정(대시보드 Settings → Build):
 
 - Root directory `portal`, Build command `node --test tests/*.test.mjs && node scripts/build.mjs`, Build output `dist` (검사가 실패하면 배포하지 않음)
-- Build watch paths: `portal/*`, `workshop2/*` (회차의 `exampleDirs`로 복사하는 폴더). `exampleDirs`에 다른 폴더를 더하면 여기에도 추가하세요.
+- Build watch paths: Include `*` (모든 push에서 빌드). `portal/*`처럼 좁히면 Root directory 기준으로 계산되어 모든 push가 "skipped"로 건너뛰어졌습니다(2026-10-30). 포털은 `portal` 밖의 `workshop2/` 예제도 복사하므로 좁히지 마세요.
+- 빌드가 skipped/Idle로 남으면 Deployments에서 해당 항목의 Retry deployment로 수동 실행할 수 있습니다(수동 실행은 watch paths를 무시).
 - 변수 `NODE_VERSION` = `22`
 
 `npm run deploy:portal`은 자동 배포가 막혔을 때만 씁니다(먼저 `npx --yes wrangler@4.152.0 login`). 검사 → 빌드 → `portal/dist` 업로드 순서로 진행합니다.
