@@ -644,19 +644,27 @@ test('learn pages use the study layout without the portal menu, other pages keep
   }
 });
 
-test('the course list links every step of an open workshop and shows locked ones without steps', async t => {
+test('the course map puts every workshop on one trail, links open steps, and ends at Showcase', async t => {
   const { read } = await build(t);
   const html = await read('/learn/');
   const ws1 = defaultContent.workshops[0];
-  const panel = html.match(/<section class="course c-green" data-course="1"[\s\S]*?<\/section>/)[0];
+  assert.match(html, /<h1>수업 지도<\/h1>/);
+  assert.match(html, /<svg class="quest-path" aria-hidden="true"[\s\S]*?data-map-path[\s\S]*?data-map-done/);
+  const stages = [...html.matchAll(/<li class="stage[^"]*"/g)].map(m => m[0]);
+  assert.equal(stages.length, defaultContent.workshops.length + 1, 'one stage per workshop plus the goal');
+  const panel = html.match(/<li class="stage c-green" data-course="1">[\s\S]*?<\/li>\s*<\/ol>[\s\S]*?<\/li>/)[0];
   for (const m of ws1.missions) assert.match(panel, new RegExp(`<a class="course-step" href="/learn/01/#step-${m.id}" data-step-link="${m.id}">`));
-  assert.match(panel, new RegExp(`data-continue href="/learn/01/#step-${ws1.missions[0].id}"`));
-  assert.match(panel, new RegExp(`0/${ws1.missions.length} 완료`));
+  assert.match(panel, new RegExp(`class="btn btn-fill stage-go" data-continue href="/learn/01/#step-${ws1.missions[0].id}">시작하기 →`));
+  // 동그라미도 같은 곳으로 가지만 키보드 순서·화면 읽기에서는 빠집니다.
+  assert.match(panel, /<a class="stage-node" href="\/learn\/01\/#step-[^"]+" data-continue tabindex="-1" aria-hidden="true">/);
+  assert.match(panel, /<span class="stage-pin" data-here hidden>지금 여기<\/span>/);
+  assert.match(panel, new RegExp(`0/${ws1.missions.length} 단계`));
   assert.match(html, /data-progress-text>0 \/ 4 단계</);
-  const locked = html.match(/<section class="course is-locked c-violet"[\s\S]*?<\/section>/)[0];
+  const locked = html.match(/<li class="stage is-locked c-violet">[\s\S]*?<\/li>/)[0];
   assert.match(locked, /🔒<\/span> 11\/2 \(월\) 18:00에 열려요 · 5단계/);
   assert.doesNotMatch(locked, /href=|data-step-link/);
-  assert.doesNotMatch(html, /class="learn-links"/);
+  assert.equal((html.match(/<li class="stage is-fog">/g) ?? []).length, 2, 'workshops still in planning are fogged');
+  assert.match(html, /<li class="stage is-goal c-orange">[\s\S]*?<a href="\/showcase\/">만든 것을 소개하는 날<\/a>[\s\S]*?<\/ol>/);
 });
 
 test('the lesson page has a step tab bar, then the slides beside the current step, and a progress header', async t => {
@@ -671,7 +679,7 @@ test('the lesson page has a step tab bar, then the slides beside the current ste
   assert.doesNotMatch(html, /data-lesson-toc|data-toc-count|class="lesson-nav"|class="toc/);
   // 탭 줄 다음에 슬라이드(왼쪽)와 단계 설명(오른쪽)이 같은 줄에 놓입니다.
   assert.match(html, /<\/nav>\s*<div class="lesson-body">\s*<div class="lesson-slides">[\s\S]*?<\/div>\s*<div class="lesson-steps">/);
-  assert.match(html, /<a class="lesson-back" href="\/learn\/">← 수업 목록<\/a>/);
+  assert.match(html, /<a class="lesson-back" href="\/learn\/">← 수업 지도<\/a>/);
   assert.match(html, /<header class="lesson-head">[\s\S]*?data-progress-text>0\/4 완료</);
   assert.doesNotMatch(html, /lesson-dots/);
   const script = await readFile(new URL('../src/learn.js', import.meta.url), 'utf8');
@@ -688,7 +696,7 @@ test('the lesson page has a finish screen that opens once every step is done', a
   assert.match(html, /<\/div>\s*<\/div>\s*<section class="lesson-finish"/);
   assert.match(finish, /Workshop 01을 모두 마쳤어요!/);
   assert.equal((finish.match(/class="finish-step"/g) ?? []).length, ws1.missions.length);
-  assert.match(finish, /<a class="btn btn-fill" href="\/learn\/">수업 목록으로<\/a>/);
+  assert.match(finish, /<a class="btn btn-fill" href="\/learn\/">지도로 돌아가기<\/a>/);
   assert.match(finish, /<button type="button" class="btn btn-ghost" data-restart>단계 다시 보기<\/button>/);
   // 다음 회차가 아직 잠겨 있으면 여는 시각을, 열려 있으면 바로가기를 보여줍니다.
   assert.match(finish, /Workshop 02는 11\/2 \(월\) 18:00에 열려요/);

@@ -594,7 +594,7 @@ body.study { background: #f3f5f8; }
 .study-user .btn { min-height: 38px; padding: 6px 14px; font-size: .88rem; }
 .study-user .learn-error { flex-basis: 100%; text-align: right; font-size: .84rem; }
 .study-main { max-width: 1320px; margin-inline: auto; padding: 28px 20px 56px; }
-.study-main:has(> .course-list), .study-main:has(> [data-questions]) { max-width: 1000px; }
+.study-main:has(> .quest), .study-main:has(> [data-questions]) { max-width: 1000px; }
 .study-head { margin-bottom: 16px; }
 .study-head h1, .course-head h1 { font-size: clamp(1.6rem, 4.6vw, 2rem); }
 
@@ -616,20 +616,81 @@ body.study { background: #f3f5f8; }
 .meter span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--c); transition: width .3s; }
 .progress-text { margin: 0; color: var(--muted); font-size: .88rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-/* 수업 목록 */
-.course-list { display: grid; gap: 16px; }
-.course-head { padding: 4px 0 8px; }
+/* 수업 지도: 회차 칸을 S자 길로 잇습니다. 넓은 화면에서는 칸 동그라미가 가운데 길에서 좌우로 번갈아 놓이고
+   카드가 그 반대쪽에, 좁은 화면에서는 동그라미가 왼쪽 줄에서 조금씩 흔들리고 카드는 오른쪽에 놓입니다.
+   길(svg)은 learn.js가 동그라미 위치를 재서 그립니다. */
+.quest { display: grid; gap: 20px; }
+.course-head { padding: 4px 0 0; }
 .course-head .track-kicker { margin-bottom: 4px; }
-.progress-overall { max-width: 520px; margin-top: 12px; }
-.progress-overall .progress-text { color: var(--ink); }
-.course { padding: 22px 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: inset 5px 0 0 var(--c); }
-.course-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
-.course-name { min-width: 0; }
-.course-name .track-kicker { margin: 0 0 2px; color: var(--c-btn); }
-.course-name h2 { margin: 0; font-size: 1.25rem; }
-.course-name h2 a { color: var(--ink); text-decoration: none; }
-.course-name h2 a:hover { color: var(--c-btn); text-decoration: underline; }
-.course .progress { margin: 16px 0 8px; }
+.course-head .lead { margin: 0; font-size: 1.08rem; }
+.progress-overall { max-width: 520px; margin-top: 14px; }
+.progress-overall .progress-text { color: var(--ink); font-size: 1rem; }
+.quest-map {
+  position: relative; padding: 56px clamp(16px, 4vw, 44px) 44px; border: 1px solid var(--line); border-radius: 28px;
+  background:
+    radial-gradient(rgba(63, 31, 174, .07) 1.2px, transparent 1.4px) 0 0 / 22px 22px,
+    radial-gradient(55% 30% at 0% 0%, #dcf5e6 0, transparent 70%),
+    radial-gradient(50% 30% at 100% 42%, #ebe2fe 0, transparent 70%),
+    radial-gradient(60% 28% at 0% 78%, #f8e3f2 0, transparent 70%),
+    radial-gradient(60% 26% at 100% 100%, #ffe6d6 0, transparent 70%),
+    #fcfbff;
+}
+.quest-path { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.quest-path path { fill: none; stroke-linecap: round; }
+.quest-path-base { stroke: #cdd2e1; stroke-width: 7; stroke-dasharray: .1 17; }
+.quest-path-done path { stroke-width: 9; }
+.quest-stages { position: relative; display: grid; gap: 48px; margin: 0; padding: 0; list-style: none; }
+.stage { display: grid; grid-template-columns: minmax(0, 1fr) 220px minmax(0, 1fr); align-items: center; gap: 0 28px; }
+.stage-spot { grid-column: 2; grid-row: 1; position: relative; display: grid; place-items: center; justify-self: start; }
+.stage:nth-child(even) .stage-spot { justify-self: end; }
+.stage-card { grid-column: 3; grid-row: 1; }
+.stage:nth-child(even) .stage-card { grid-column: 1; }
+
+/* 칸 동그라미: 누르는 게임 버튼처럼 아래에 두께가 있고, 바깥 테두리가 진도(--p %)만큼 찹니다. */
+.stage-node {
+  position: relative; display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%;
+  background: var(--c); color: #fff; font-size: 1.7rem; font-weight: 850; letter-spacing: -.02em; text-decoration: none;
+  box-shadow: 0 7px 0 var(--c-btn), 0 16px 28px rgba(17, 26, 46, .18); transition: transform .15s, box-shadow .15s;
+}
+.stage-node::before {
+  content: ""; position: absolute; inset: -11px; border-radius: 50%;
+  background: conic-gradient(var(--c) calc(var(--p, 0) * 1%), #e3e0f0 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+}
+a.stage-node:hover { color: #fff; transform: translateY(-3px); box-shadow: 0 10px 0 var(--c-btn), 0 20px 32px rgba(17, 26, 46, .2); }
+a.stage-node:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--c-btn), 0 8px 16px rgba(17, 26, 46, .16); }
+.stage-star { position: absolute; top: -10px; right: -10px; display: none; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #ffc83a; color: #7a4300; font-size: 1.15rem; box-shadow: 0 3px 0 #d99500; }
+.stage.is-clear .stage-star { display: grid; }
+/* 지금 할 칸: 위에 '지금 여기' 말풍선이 통통 뛰고, 동그라미 둘레에 빛이 퍼집니다. */
+.stage-pin { position: absolute; bottom: calc(100% + 20px); left: 50%; z-index: 1; padding: 6px 14px; border-radius: 999px; background: var(--ink); color: #fff; font-size: .95rem; font-weight: 800; white-space: nowrap; translate: -50% 0; animation: pin-bob 1.6s ease-in-out infinite; }
+.stage-pin::after { content: ""; position: absolute; top: 100%; left: 50%; border: 7px solid transparent; border-top-color: var(--ink); translate: -50% 0; }
+@keyframes pin-bob { 50% { transform: translateY(-6px); } }
+.stage.is-here .stage-spot::before { content: ""; position: absolute; width: 96px; height: 96px; border-radius: 50%; background: var(--c); opacity: .35; animation: here-glow 2s ease-out infinite; }
+@keyframes here-glow { from { transform: scale(1); opacity: .4; } to { transform: scale(1.9); opacity: 0; } }
+
+.stage-card { min-width: 0; padding: 18px 20px 16px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: 0 10px 30px rgba(17, 26, 46, .07); }
+.stage-card .track-kicker { margin: 0 0 2px; color: var(--c-btn); font-size: .9rem; }
+.stage-card h2 { margin: 0 0 12px; font-size: 1.3rem; line-height: 1.35; }
+.stage-card h2 a { color: var(--ink); text-decoration: none; }
+.stage-card h2 a:hover { color: var(--c-btn); text-decoration: underline; }
+.stage-card .progress { margin: 0 0 14px; }
+.stage-card .progress-text { font-size: .95rem; }
+.stage-go { width: 100%; }
+.stage-steps { margin-top: 10px; }
+.stage-steps summary { display: flex; align-items: center; min-height: 40px; color: var(--muted); font-size: .95rem; font-weight: 700; cursor: pointer; }
+.stage-steps summary:hover { color: var(--ink); }
+.stage-steps .course-steps { margin-top: 4px; }
+.stage-note { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--c-soft); color: var(--c-btn); font-weight: 700; }
+
+.stage.is-locked .stage-node { background: #c4cad7; box-shadow: 0 7px 0 #9aa3b4, 0 16px 28px rgba(17, 26, 46, .12); font-size: 2rem; }
+.stage.is-locked h2 { color: #3b4558; }
+.stage.is-fog .stage-node { background: rgba(255, 255, 255, .85); color: #9aa3b4; border: 3px dashed #c4cad7; box-shadow: none; }
+.stage.is-fog .stage-node::before, .stage.is-goal .stage-node::before, .stage.is-locked .stage-node::before { display: none; }
+.stage.is-fog .stage-card { border-style: dashed; background: rgba(255, 255, 255, .7); box-shadow: none; }
+.stage.is-fog .track-kicker, .stage.is-fog h2 { color: var(--muted); }
+.stage.is-fog .stage-note { background: #f2f4f8; color: var(--muted); }
+.stage.is-goal .stage-node { width: 112px; height: 112px; font-size: 2.4rem; background: linear-gradient(140deg, #ff8a3d, #fd650a 55%, #e2470a); }
 .course-steps { list-style: none; margin: 0; padding: 0; }
 .course-steps li + li { border-top: 1px solid var(--line); }
 .course-step { display: grid; grid-template-columns: 24px 2.2em minmax(0, 1fr); align-items: center; gap: 8px; min-height: 50px; padding: 8px 8px; border-radius: 10px; color: var(--ink); text-decoration: none; }
@@ -640,9 +701,6 @@ body.study { background: #f3f5f8; }
 .is-current .step-mark { color: var(--c-btn); }
 .step-no { color: var(--muted); font-size: .84rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .course-step.is-done .step-title { color: var(--muted); }
-.course.is-locked { background: #fafbfc; box-shadow: inset 5px 0 0 #c7cdd8; }
-.course.is-locked h2 { color: #3b4558; }
-.course-lock { margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--c-soft); color: var(--c-btn); font-size: .9rem; font-weight: 700; }
 
 /* 수업 화면: 머리말 + 단계 탭 줄 + 왼쪽 슬라이드(스크롤해도 고정)·오른쪽 지금 단계 */
 .lesson-head { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(200px, 300px); align-items: center; gap: 8px 24px; margin-bottom: 12px; padding: 14px 22px; border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 16px; background: var(--surface); }
@@ -739,8 +797,20 @@ body.study { background: #f3f5f8; }
   .study-nav a { min-height: 44px; padding: 0 10px; }
   .study-main { padding: 18px 16px 40px; }
   .study-login { margin-top: 3vh; padding: 24px 20px; }
-  .course { padding: 18px 16px; }
-  .course-continue { width: 100%; }
+  .quest-map { padding: 52px 14px 32px; border-radius: 22px; }
+  .quest-stages { gap: 40px; }
+  .stage { grid-template-columns: 96px minmax(0, 1fr); gap: 0 14px; }
+  .stage-spot, .stage:nth-child(even) .stage-spot { grid-column: 1; justify-self: start; }
+  .stage:nth-child(even) .stage-spot { justify-self: end; }
+  .stage-card, .stage:nth-child(even) .stage-card { grid-column: 2; }
+  .stage-node, .stage.is-here .stage-spot::before { width: 68px; height: 68px; font-size: 1.3rem; }
+  .stage-node::before { inset: -8px; }
+  .stage.is-goal .stage-node { width: 76px; height: 76px; font-size: 1.8rem; }
+  .stage.is-locked .stage-node { font-size: 1.5rem; }
+  .stage-star { top: -8px; right: -8px; width: 28px; height: 28px; font-size: .95rem; }
+  .stage-pin { bottom: calc(100% + 14px); font-size: .85rem; padding: 5px 10px; }
+  .stage-card { padding: 14px 14px 12px; border-radius: 16px; }
+  .stage-card h2 { font-size: 1.12rem; }
 }
 @media (max-width: 480px) {
   .learn-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

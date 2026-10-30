@@ -222,11 +222,47 @@
     node.querySelector('[data-step-state]').textContent = finished ? ' (완료)' : '';
   }
 
-  // 수업 목록: 회차별 진도 막대·단계 표시와 "이어서 하기"(처음으로 안 끝낸 단계). 못 불러와도 목록은 그대로 씁니다.
+  // 수업 지도의 길: 칸 동그라미의 가운데를 차례로 잇는 곡선을 그립니다. 지나온 길(data-map-done)은 '지금 여기' 칸까지
+  // 한 칸 사이씩 떠나온 칸의 색으로 칠합니다.
+  function drawMap(map) {
+    const svg = map.querySelector('svg');
+    const box = map.getBoundingClientRect();
+    const points = [...map.querySelectorAll('.stage-node')].map(node => {
+      const r = node.getBoundingClientRect();
+      return [r.left - box.left + r.width / 2, r.top - box.top + r.height / 2];
+    });
+    const line = list => list.map(([x, y], i) => {
+      if (!i) return `M${x} ${y}`;
+      const [px, py] = list[i - 1];
+      const bend = (y - py) / 2;
+      return `C${px} ${py + bend} ${x} ${y - bend} ${x} ${y}`;
+    }).join(' ');
+    svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    map.querySelector('[data-map-path]').setAttribute('d', line(points));
+    const stages = [...map.querySelectorAll('.stage')];
+    const here = stages.findIndex(stage => stage.classList.contains('is-here'));
+    const reached = here >= 0 ? here : stages.findLastIndex(stage => stage.classList.contains('is-clear'));
+    const segments = [];
+    for (let i = 0; i < reached; i++) {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', line(points.slice(i, i + 2)));
+      path.style.stroke = getComputedStyle(stages[i]).getPropertyValue('--c');
+      segments.push(path);
+    }
+    map.querySelector('[data-map-done]').replaceChildren(...segments);
+  }
+
+  // 수업 지도: 칸마다 진도(테두리·막대)와 "시작하기/이어서 하기"(처음으로 안 끝낸 단계), 다 끝낸 칸은 ★,
+  // 아직 다 끝내지 않은 첫 칸에 '지금 여기'를 붙입니다. 진도를 못 불러와도 지도는 그대로 씁니다.
   function initList(content) {
+    const map = content.querySelector('[data-map]');
+    const redraw = () => map && drawMap(map);
+    redraw();
+    if (map && 'ResizeObserver' in window) new ResizeObserver(redraw).observe(map);
     loadProgress().then(done => {
       let all = 0;
       let allDone = 0;
+      let here = null;
       for (const course of content.querySelectorAll('[data-course]')) {
         const finished = done.get(Number(course.dataset.course)) ?? new Set();
         const links = [...course.querySelectorAll('[data-step-link]')];
@@ -238,16 +274,26 @@
           if (ok) count++;
           else next ??= link;
         }
-        setProgress(course.querySelector('[data-progress]'), count, links.length, `${count}/${links.length} 완료`);
-        const resume = course.querySelector('[data-continue]');
-        if (resume && links.length) {
+        setProgress(course.querySelector('[data-progress]'), count, links.length, `${count}/${links.length} 단계`);
+        course.style.setProperty('--p', links.length ? Math.round((count / links.length) * 100) : 0);
+        course.classList.toggle('is-clear', links.length > 0 && !next);
+        if (next) here ??= course;
+        for (const resume of course.querySelectorAll('[data-continue]')) {
           resume.href = (next ?? links[0]).getAttribute('href');
-          resume.textContent = !count ? '시작하기 →' : next ? '이어서 하기 →' : '처음부터 다시 보기 →';
+          if (resume.classList.contains('stage-go')) resume.textContent = !count ? '시작하기 →' : next ? '이어서 하기 →' : '다시 보기 →';
         }
         all += links.length;
         allDone += count;
       }
+      for (const course of content.querySelectorAll('[data-course]')) {
+        const on = course === here;
+        course.classList.toggle('is-here', on);
+        course.querySelector('[data-here]').hidden = !on;
+        if (on) course.setAttribute('aria-current', 'step');
+        else course.removeAttribute('aria-current');
+      }
       setProgress(content.querySelector('.course-head [data-progress]'), allDone, all, `${allDone} / ${all} 단계`);
+      redraw();
     }).catch(() => {});
   }
 

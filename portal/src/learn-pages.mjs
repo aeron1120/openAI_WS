@@ -35,49 +35,88 @@ const progress = (text, className = '') => h`<div class="progress${className ? `
 // 단계 줄의 표시(✔ 완료 · ▶ 지금 · ○ 아직)는 learn.js가 바꿉니다. 화면 읽기 프로그램용 상태는 data-step-state.
 const stepRow = (m, i) => h`<span class="step-mark" aria-hidden="true">○</span><span class="step-no">${pad(i + 1)}</span><span class="step-title">${m.title}</span><span class="sr-only" data-step-state></span>`;
 
-function coursePanel(w) {
+// 수업 지도의 칸 하나 = 회차 하나. 동그라미(stage-node)는 진도만큼 테두리가 차고(--p), 다 끝내면 ★,
+// 지금 할 칸에는 '지금 여기' 표시가 붙습니다(learn.js). 단계 목록은 접어 두고 바로 들어갈 때만 펼칩니다.
+// 동그라미는 같은 곳으로 가는 버튼이 카드에 있으므로 키보드 순서에서 뺍니다.
+function openStage(w) {
   const path = lessonPath(w);
-  return h`<section class="course c-${w.color}" data-course="${w.number}" aria-labelledby="course-${w.slug}">
-  <div class="course-top">
-    <div class="course-name">
-      <p class="track-kicker">Workshop ${pad(w.number)}</p>
-      <h2 id="course-${w.slug}"><a href="${path}">${w.title}</a></h2>
-    </div>
-    <a class="btn btn-fill course-continue" data-continue href="${path}#step-${w.missions[0].id}">이어서 하기 →</a>
+  const first = `${path}#step-${w.missions[0].id}`;
+  return h`<li class="stage c-${w.color}" data-course="${w.number}">
+  <div class="stage-spot">
+    <span class="stage-pin" data-here hidden>지금 여기</span>
+    <a class="stage-node" href="${first}" data-continue tabindex="-1" aria-hidden="true"><span class="stage-no">${pad(w.number)}</span><span class="stage-star">★</span></a>
   </div>
-  ${progress(`0/${w.missions.length} 완료`)}
-  <ol class="course-steps">
-    ${w.missions.map((m, i) => h`<li><a class="course-step" href="${path}#step-${m.id}" data-step-link="${m.id}">${stepRow(m, i)}</a></li>`)}
-  </ol>
-</section>`;
+  <div class="stage-card">
+    <p class="track-kicker">Workshop ${pad(w.number)}</p>
+    <h2 id="course-${w.slug}"><a href="${path}">${w.title}</a></h2>
+    ${progress(`0/${w.missions.length} 단계`)}
+    <a class="btn btn-fill stage-go" data-continue href="${first}">시작하기 →</a>
+    <details class="stage-steps">
+      <summary>단계 ${w.missions.length}개 골라 들어가기</summary>
+      <ol class="course-steps">
+        ${w.missions.map((m, i) => h`<li><a class="course-step" href="${path}#step-${m.id}" data-step-link="${m.id}">${stepRow(m, i)}</a></li>`)}
+      </ol>
+    </details>
+  </div>
+</li>`;
 }
 
 // 자료가 아직 열리지 않은 회차: 단계 이름·링크 없이 여는 시각과 단계 수만 보여줍니다.
-const lockedPanel = w => h`<section class="course is-locked c-${w.color}" aria-labelledby="course-${w.slug}">
-  <div class="course-top">
-    <div class="course-name">
-      <p class="track-kicker">Workshop ${pad(w.number)}</p>
-      <h2 id="course-${w.slug}">${w.title}</h2>
-    </div>
+const lockedStage = w => h`<li class="stage is-locked c-${w.color}">
+  <div class="stage-spot"><span class="stage-node" aria-hidden="true"><span class="stage-no">🔒</span></span></div>
+  <div class="stage-card">
+    <p class="track-kicker">Workshop ${pad(w.number)}</p>
+    <h2 id="course-${w.slug}">${w.title}</h2>
+    <p class="stage-note"><span aria-hidden="true">🔒</span> ${w.opensLabel}에 열려요 · ${w.missions.length}단계</p>
   </div>
-  <p class="course-lock"><span aria-hidden="true">🔒</span> ${w.opensLabel}에 열려요 · ${w.missions.length}단계</p>
-</section>`;
+</li>`;
 
+// 주제를 정하는 중인 회차: 이름 대신 준비 중이라고만 보여줍니다.
+const planningStage = w => h`<li class="stage is-fog">
+  <div class="stage-spot"><span class="stage-node" aria-hidden="true"><span class="stage-no">${pad(w.number)}</span></span></div>
+  <div class="stage-card">
+    <p class="track-kicker">Workshop ${pad(w.number)}</p>
+    <h2>준비 중이에요</h2>
+    <p class="stage-note">주제가 정해지면 이 칸이 열려요.</p>
+  </div>
+</li>`;
+
+// 마지막 칸: 학기 마무리 Showcase
+const goalStage = showcase => h`<li class="stage is-goal c-${showcase.color}">
+  <div class="stage-spot"><a class="stage-node" href="/showcase/" tabindex="-1" aria-hidden="true"><span class="stage-no">🏁</span></a></div>
+  <div class="stage-card">
+    <p class="track-kicker">마지막 칸 · Showcase</p>
+    <h2><a href="/showcase/">${showcase.korean}</a></h2>
+    <p class="stage-note">${showcase.description}</p>
+  </div>
+</li>`;
+
+const stageOf = open => w =>
+  open.includes(w) ? openStage(w) : w.materials === 'locked' ? lockedStage(w) : planningStage(w);
+
+// 수업 지도: 회차를 한 칸씩 길로 잇고, 마지막에 Showcase가 있습니다. 길(data-map-path)은 learn.js가 칸 위치에 맞춰 그립니다.
 export function learnPage(content) {
   const open = lessonWorkshops(content);
-  const locked = content.workshops.filter(w => w.materials === 'locked');
   const total = open.reduce((sum, w) => sum + w.missions.length, 0);
   const program = content.site.name.split(' | ')[0];
   return h`${loginCard({ title: '수업 듣기', lead: '서울대 계정으로 로그인하면 슬라이드를 보며 단계별로 따라 하고, 막힌 부분을 바로 질문할 수 있어요.' })}
-<div class="course-list" data-learn-content hidden>
+<div class="quest" data-learn-content hidden>
   <header class="course-head">
     <p class="track-kicker">${program} · ${content.site.semester}</p>
-    <h1>수업</h1>
+    <h1>수업 지도</h1>
+    <p class="lead">한 칸씩 깨면서 나아가요. 열린 칸을 누르면 그 수업으로 들어가요.</p>
     ${total ? progress(`0 / ${total} 단계`, 'progress-overall') : ''}
   </header>
-  ${open.map(coursePanel)}
-  ${locked.map(lockedPanel)}
-  ${open.length || locked.length ? '' : h`<p class="empty">지금 열린 수업이 없어요.</p>`}
+  <div class="quest-map" data-map>
+    <svg class="quest-path" aria-hidden="true" focusable="false">
+      <path class="quest-path-base" data-map-path/>
+      <g class="quest-path-done" data-map-done></g>
+    </svg>
+    <ol class="quest-stages">
+      ${content.workshops.map(stageOf(open))}
+      ${goalStage(content.showcase)}
+    </ol>
+  </div>
 </div>`;
 }
 
@@ -143,7 +182,7 @@ function finishScreen(content, w) {
   </div>` : ''}
   ${locked ? h`<p class="finish-next">다음 수업 Workshop ${pad(next.number)}는 ${next.opensLabel}에 열려요.</p>` : ''}
   <div class="finish-actions">
-    <a class="btn btn-fill" href="/learn/">수업 목록으로</a>
+    <a class="btn btn-fill" href="/learn/">지도로 돌아가기</a>
     ${next && !locked ? h`<a class="btn btn-ghost" href="${lessonPath(next)}">Workshop ${pad(next.number)}로 →</a>` : ''}
     <button type="button" class="btn btn-ghost" data-restart>단계 다시 보기</button>
   </div>
@@ -190,7 +229,7 @@ export function lessonPage(content, w) {
   return h`${loginCard({ kicker: `Workshop ${pad(w.number)}`, title: w.title, lead: '로그인하면 슬라이드를 보며 단계별로 따라 하고, 막힌 부분을 바로 질문할 수 있어요.' })}
 <div class="lesson c-${w.color}" data-learn-content data-lesson="${w.number}" hidden>
   <header class="lesson-head">
-    <a class="lesson-back" href="/learn/">← 수업 목록</a>
+    <a class="lesson-back" href="/learn/">← 수업 지도</a>
     <div class="lesson-name">
       <p class="track-kicker">Workshop ${pad(w.number)}</p>
       <h1>${w.title}</h1>
