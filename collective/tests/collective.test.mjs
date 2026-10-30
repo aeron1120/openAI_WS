@@ -30,6 +30,14 @@ test('관리 화면·API·미리보기는 로그인 없이 열리지 않는다',
   assert.equal(api.status, 401);
 });
 
+test('Google 로그인 콜백 주소는 등록한 리디렉션 URI(끝의 / 포함)와 같다', async () => {
+  const t = await setup();
+  const response = await t.get('/manage/auth/google/?next=/manage/');
+  const location = new URL(response.headers.get('location'));
+  assert.equal(location.searchParams.get('redirect_uri'), `${ORIGIN}/manage/auth/callback/`);
+  assert.equal(location.searchParams.get('login_hint'), ADMIN);
+});
+
 test('운영 모드에서는 개발용 로그인이 없다', async () => {
   const t = await setup();
   const response = await t.app(new Request(`${ORIGIN}/manage/auth/dev/`, { method: 'POST', headers: { origin: ORIGIN } }));

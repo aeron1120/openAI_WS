@@ -27,7 +27,8 @@ const ID = /^[\w-]{1,64}$/;
 export function createApp({ env, store, fetchImpl = fetch, now = () => Date.now(), legacyStatus = null }) {
   const config = loadConfig(env);
   const legacy = legacyStatus ?? createLegacyStatus({ origin: config.legacyOrigin, fetchImpl });
-  const callbackUrl = `${config.publicOrigin}/manage/auth/callback`;
+  // Google에 등록하는 리디렉션 URI와 글자 하나까지 같아야 합니다(끝의 / 포함).
+  const callbackUrl = `${config.publicOrigin}/manage/auth/callback/`;
   const iso = () => new Date(now()).toISOString();
 
   // ---------- 세션 ----------
