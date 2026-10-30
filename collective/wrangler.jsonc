@@ -1,0 +1,8 @@
+{
+  // 통합 사이트 전용 Cloudflare Pages 설정. 기존 SNU 포털(portal/wrangler.jsonc, 프로젝트 snu-student-collective)과 별개입니다.
+  // 비밀값은 저장소에 쓰지 않고 Cloudflare 대시보드(또는 wrangler pages secret put)로 넣습니다. collective/README.md 참고.
+  "name": "student-collective",
+  "compatibility_date": "2026-10-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": "./public"
+}

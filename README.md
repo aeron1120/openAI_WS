@@ -59,6 +59,7 @@ openAI_WS/
 ├─ docs/                  ← 기존 예제 설정·운영 문서
 ├─ server/                ← 기존 예제의 API·로그인 처리
 ├─ portal/                ← 운영진용 학생 참여 안내 사이트 (학생은 수정하지 않아도 됨)
+├─ collective/            ← 운영진용 여러 학교 통합 사이트와 중앙 관리 (학생은 수정하지 않아도 됨)
 ├─ scripts/               ← 실행·배포 준비 도구
 └─ tests/                 ← 운영진용 자동 검사
 ```
@@ -82,5 +83,7 @@ npm run build
 ```
 
 학기 로드맵·회차별 실습 가이드를 모은 [학생 참여 포털](https://snu-student-collective.pages.dev/)은 `portal/`에서 따로 빌드·배포합니다. [포털 안내](portal/README.md)를 보세요.
+
+여러 학교가 함께 쓰는 통합 사이트와 중앙 관리 시스템은 `collective/`에 있습니다. 실행은 `npm run dev:collective`, 검사는 `npm run test:collective`이고, 자세한 내용은 [통합 사이트 안내](collective/README.md)에 있습니다.
 
 `npm run build`는 기초 틀과 기존 Workshop 2의 공개 화면 파일만 `dist/`에 모읍니다. 기존 Workshop 1 서버 예제는 `npm run test:workshop1`, `npm run build:workshop1`과 [별도 배포 안내](docs/WORKSHOP1-DEPLOYMENTS.md)를 사용합니다.
