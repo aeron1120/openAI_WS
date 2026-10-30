@@ -173,9 +173,15 @@ export function createApp({ env, store, fetchImpl = fetch, now = () => Date.now(
     const oauth = verify(readCookie(request, OAUTH_COOKIE), config.sessionSecret, 'oauth', Math.floor(now() / 1000));
     if (!oauth) return fail('expired');
     // state를 먼저 확인해야 바깥 링크로 로그인을 끼워 넣을 수 없습니다.
-    if (!safeEqual(url.searchParams.get('state') ?? '', oauth.state)) return fail('failed');
+    if (!safeEqual(url.searchParams.get('state') ?? '', oauth.state)) {
+      console.warn('collective: Google 로그인 state 불일치');
+      return fail('failed');
+    }
     const code = url.searchParams.get('code');
-    if (!code) return fail(url.searchParams.get('error') === 'access_denied' ? 'cancelled' : 'failed');
+    if (!code) {
+      console.warn(`collective: Google이 코드 없이 돌아옴 → ${String(url.searchParams.get('error') ?? '').slice(0, 40)}`);
+      return fail(url.searchParams.get('error') === 'access_denied' ? 'cancelled' : 'failed');
+    }
     let identity;
     try {
       const token = await exchangeCode({ code, clientId: config.google.clientId, clientSecret: config.google.clientSecret, redirectUri: callbackUrl, fetchImpl });

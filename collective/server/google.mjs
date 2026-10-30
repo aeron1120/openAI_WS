@@ -29,9 +29,11 @@ export async function exchangeCode({ code, clientId, clientSecret, redirectUri, 
       body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: 'authorization_code' }).toString(),
       signal: AbortSignal.timeout(10000)
     });
-    if (!response.ok) throw new Error();
-    data = await response.json();
-  } catch {
+    data = await response.json().catch(() => ({}));
+    // Google 오류 코드(invalid_client, redirect_uri_mismatch, invalid_grant 등)만 남깁니다. 코드·비밀값은 남기지 않아요.
+    if (!response.ok) throw new Error(`token ${response.status} ${String(data?.error ?? '').slice(0, 40)}`);
+  } catch (error) {
+    console.warn(`collective: Google 코드 교환 실패 → ${error.message}`);
     throw new GoogleError('failed');
   }
   if (typeof data?.id_token !== 'string') throw new GoogleError('failed');
@@ -62,17 +64,19 @@ export async function verifyIdToken(token, { clientId, nonce, admins, fetchImpl,
   try {
     if (typeof token !== 'string' || token.length > 16000) throw new Error();
     const parts = token.split('.');
-    if (parts.length !== 3) throw new Error();
+    if (parts.length !== 3) throw new Error('format');
     const header = decode(parts[0]);
     claims = decode(parts[1]);
     const seconds = Math.floor(nowMs / 1000);
-    if (header.alg !== 'RS256' || typeof header.kid !== 'string') throw new Error();
-    if (!['accounts.google.com', 'https://accounts.google.com'].includes(claims.iss) || claims.aud !== clientId || (claims.azp !== undefined && claims.azp !== clientId)) throw new Error();
-    if (!Number.isFinite(claims.exp) || claims.exp <= seconds || !Number.isFinite(claims.iat) || claims.iat > seconds + 60) throw new Error();
-    if (claims.nonce !== nonce || typeof claims.sub !== 'string' || !claims.sub || claims.sub.length > 255) throw new Error();
+    if (header.alg !== 'RS256' || typeof header.kid !== 'string') throw new Error('header');
+    if (!['accounts.google.com', 'https://accounts.google.com'].includes(claims.iss) || claims.aud !== clientId || (claims.azp !== undefined && claims.azp !== clientId)) throw new Error('issuer/audience');
+    if (!Number.isFinite(claims.exp) || claims.exp <= seconds || !Number.isFinite(claims.iat) || claims.iat > seconds + 60) throw new Error('time');
+    if (claims.nonce !== nonce || typeof claims.sub !== 'string' || !claims.sub || claims.sub.length > 255) throw new Error('nonce/sub');
     const key = await googleKey(header.kid, fetchImpl, nowMs);
-    if (!(await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, Buffer.from(parts[2], 'base64url'), new TextEncoder().encode(`${parts[0]}.${parts[1]}`)))) throw new Error();
-  } catch {
+    if (!(await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, Buffer.from(parts[2], 'base64url'), new TextEncoder().encode(`${parts[0]}.${parts[1]}`)))) throw new Error('signature');
+  } catch (error) {
+    // 어느 확인에서 실패했는지만 남깁니다(토큰 내용은 남기지 않음).
+    console.warn(`collective: Google ID 토큰 확인 실패 → ${error.message || 'parse'}`);
     throw new GoogleError('failed');
   }
   const email = typeof claims.email === 'string' ? claims.email.toLowerCase() : '';
