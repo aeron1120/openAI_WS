@@ -277,7 +277,7 @@ export function createApp({ env, store, fetchImpl = fetch, now = () => Date.now(
   // 학교 추가: 기본 구성(화면·빈 콘텐츠 구조 + 선택한 공통 자료 연결)만 만듭니다.
   // 학생·진도·질문·첨부와 원본 학교의 신청 폼·채팅방·연락처, 날짜·장소·신청 링크는 복사하지 않습니다.
   async function createCampus(body, session) {
-    const campusData = cleanData('campus', { ...emptyData('campus'), name: body.name, slug: body.slug, shortName: body.shortName, intro: body.intro, fixture: body.fixture === true, status: 'draft', learningMode: 'none' });
+    const campusData = cleanData('campus', { ...emptyData('campus'), name: body.name, slug: body.slug, shortName: body.shortName, intro: body.intro, externalUrl: body.externalUrl, fixture: body.fixture === true, status: 'draft', learningMode: 'none' });
     const termData = cleanData('term', { name: body.termName });
     const campusId = newId();
     await checkRefs('campus', campusData, campusId);

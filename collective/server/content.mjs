@@ -21,7 +21,7 @@ export const KINDS = {
     label: '학교',
     fields: [
       f('name', 'text', '학교 이름', { required: true, max: 60 }),
-      f('slug', 'slug', '주소 이름 (영문 소문자·숫자·-)', { required: true, hint: '/campuses/<주소 이름>/ — 공개한 뒤에는 바꾸지 마세요.' }),
+      f('slug', 'slug', '영문 짧은 이름 (주소에 쓰여요)', { required: true, hint: '영문 소문자·숫자·- 만 써요(예: snu → /campuses/snu/). 링크가 아니에요. 공개한 뒤에는 바꾸지 마세요.' }),
       f('shortName', 'text', '짧은 이름 (예: SNU)', { max: 20 }),
       f('intro', 'textarea', '짧은 소개', { max: 400 }),
       f('status', 'select', '운영 상태', { options: CAMPUS_STATUS, required: true }),
@@ -201,7 +201,7 @@ export function cleanData(kind, input, { existing = null } = {}) {
       case 'textarea': case 'rich': value = cleanText(raw, field.max, true); break;
       case 'slug':
         value = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
-        if (value && (!SLUG.test(value) || RESERVED_SLUGS.has(value))) throw invalid(field.name, '주소 이름은 영문 소문자·숫자·-로 2~40자예요.');
+        if (value && (!SLUG.test(value) || RESERVED_SLUGS.has(value))) throw invalid(field.name, '영문 짧은 이름은 영문 소문자·숫자·-로 2~40자예요(예: snu). 링크는 ‘학교 사이트 주소’ 칸에 넣어요.');
         break;
       case 'select':
         value = raw === undefined || raw === null || raw === '' ? null : String(raw);

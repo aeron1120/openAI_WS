@@ -190,7 +190,7 @@
     const value = name => form.elements[name].value.trim();
     const button = form.querySelector('button[type="submit"]');
     button.disabled = true;
-    const result = await api('POST', '/api/manage/campuses', { name: value('name'), slug: value('slug'), shortName: value('shortName'), intro: value('intro'), termName: value('termName'), templateCampusId: value('templateCampusId') || null, fixture: form.elements.fixture.checked });
+    const result = await api('POST', '/api/manage/campuses', { name: value('name'), slug: value('slug'), shortName: value('shortName'), intro: value('intro'), termName: value('termName'), templateCampusId: value('templateCampusId') || null, externalUrl: value('externalUrl') || null, fixture: form.elements.fixture.checked });
     button.disabled = false;
     if (result.ok) { location.href = `/manage/campuses/${result.data.id}/`; return; }
     if (result.data.field) showFieldError(form, result.data.field, result.data.message);

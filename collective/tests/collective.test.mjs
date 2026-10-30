@@ -378,6 +378,16 @@ test('공개 응답은 캐시하지 않고 보안 헤더가 붙는다', async ()
   assert.equal(response.headers.get('x-frame-options'), 'DENY');
 });
 
+test('학교 추가에서 링크를 영문 짧은 이름 칸에 넣으면 막고, 학교 사이트 주소 칸은 받는다', async () => {
+  const t = await setup();
+  const wrong = await t.json('POST', '/api/manage/campuses', { name: '서울대학교', slug: 'https://snu-student-collective.pages.dev', termName: '학기' });
+  assert.equal(wrong.status, 422);
+  assert.equal(wrong.data.field, 'slug');
+  const right = await t.json('POST', '/api/manage/campuses', { name: '서울대학교', slug: 'snu', termName: '학기', externalUrl: 'https://snu-student-collective.pages.dev/' });
+  assert.equal(right.status, 201);
+  assert.equal((await t.store.getItem(right.data.id)).data.externalUrl, 'https://snu-student-collective.pages.dev/');
+});
+
 test('학교 사이트 주소가 있는 학교는 카드·학교 주소가 그 사이트로 바로 연결된다', async () => {
   const t = await setup();
   const created = await t.json('POST', '/api/manage/campuses', { name: '서울대학교', slug: 'snu', termName: '학기' });

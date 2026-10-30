@@ -100,7 +100,8 @@ export async function campusList(actx) {
   <p class="m-muted">기본 구성은 화면과 빈 콘텐츠 구조, 선택한 학교의 일정 틀(제목·유형·자료 연결)만 복사해요. 날짜·장소·신청 링크, 학생·진도·질문, 신청 폼·채팅방·연락처는 복사하지 않아요. 새 학교는 ‘초안’ 상태로 만들어지고, 게시하기 전에는 공개되지 않아요.</p>
   <form class="m-form" data-campus-form>
     <div class="m-field"><label for="nc-name">학교 이름</label><input id="nc-name" name="name" required maxlength="60"></div>
-    <div class="m-field"><label for="nc-slug">주소 이름 (영문 소문자·숫자·-)</label><input id="nc-slug" name="slug" required pattern="[a-z0-9][a-z0-9\\-]{0,38}[a-z0-9]" maxlength="40"><p class="m-hint">/campuses/<주소 이름>/ — 공개한 뒤에는 바꾸지 마세요.</p></div>
+    <div class="m-field"><label for="nc-slug">영문 짧은 이름 (주소에 쓰여요)</label><input id="nc-slug" name="slug" required pattern="[a-z0-9][a-z0-9\\-]{0,38}[a-z0-9]" maxlength="40" placeholder="예: snu" title="영문 소문자·숫자·- 로 2~40자 (예: snu, korea-univ). 링크가 아니에요."><p class="m-hint">영문 소문자·숫자·- 만 써요. 예: <code>snu</code> → 이 사이트의 /campuses/snu/ 주소가 돼요. 공개한 뒤에는 바꾸지 마세요.</p></div>
+    <div class="m-field"><label for="nc-external">학교 사이트 주소 (이미 있으면)</label><input id="nc-external" name="externalUrl" inputmode="url" placeholder="https://"><p class="m-hint">학교 사이트가 따로 있으면 적어요(예: 기존 SNU 사이트). 학교 카드를 누르면 이 주소로 바로 가요. 없으면 비워 두세요.</p></div>
     <div class="m-field"><label for="nc-short">짧은 이름</label><input id="nc-short" name="shortName" maxlength="20"></div>
     <div class="m-field"><label for="nc-term">첫 학기 이름</label><input id="nc-term" name="termName" required maxlength="40" value="2026년 2학기"></div>
     <div class="m-field"><label for="nc-intro">짧은 소개</label><textarea id="nc-intro" name="intro" maxlength="400" rows="2"></textarea></div>
