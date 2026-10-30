@@ -5,6 +5,9 @@
 // - 수업 듣기(/learn/)는 한국어 화면이라 링크 글에 (Korean)을 붙입니다.
 
 const workshopTitles = {
+  '학생 앱 쇼케이스 (기획 중)': 'Student App Showcase (planned)',
+  '학생 앱 쇼케이스': 'Student App Showcase',
+  '서울대 참가 팀이 만든 앱을 부스에서 직접 체험해요. 타 대학 협업 일정이 있으면 Workshop 3, 없으면 Workshop 4에 진행 예정이에요. 날짜·장소는 추후 안내해요.': 'Try apps built by SNU teams at hands-on booths. Planned for Workshop 3 if an inter-university collaboration is scheduled, or Workshop 4 otherwise. Date and venue to be announced.',
   '틈, 화면에서 서비스로': 'Teum: from screen to service',
   '고치고, 기록하고, 공개하기': 'Fix, record, publish',
   '주제 준비 중': 'Topic coming soon',
