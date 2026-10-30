@@ -5,6 +5,9 @@
 // - 수업 듣기(/learn/)는 한국어 화면이라 링크 글에 (Korean)을 붙입니다.
 
 const workshopTitles = {
+  '학생 앱 쇼케이스 (기획 중)': 'Student App Showcase (planned)',
+  '학생 앱 쇼케이스': 'Student App Showcase',
+  '워크숍에서 개발한 앱을 전시하고 실제 사용자 피드백을 받아요. 날짜, 장소는 추후 안내해요.': 'Showcase apps developed in the workshops and get feedback from real users. Date and venue to be announced.',
   '틈, 화면에서 서비스로': 'Teum: from screen to service',
   '고치고, 기록하고, 공개하기': 'Fix, record, publish',
   '주제 준비 중': 'Topic coming soon',
