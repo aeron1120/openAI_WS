@@ -19,25 +19,31 @@ const f = (name, type, label, extra = {}) => ({ name, type, label, ...extra });
 export const KINDS = {
   campus: {
     label: '학교',
+    // 관리 폼의 묶음. space 묶음은 학교 사이트 주소가 있는 학교에서는 접어 둡니다(공개 화면에 안 쓰이므로).
+    groups: {
+      basic: { title: '기본 정보', hint: '학교 찾기 목록과 카드에 보이는 내용이에요.' },
+      visibility: { title: '공개와 연결', hint: '운영 상태가 ‘운영 중’ 또는 ‘준비 중’이어야 게시 후 목록에 보여요.' },
+      space: { title: '학교 공간 설정', hint: '학교 사이트가 없어 이 사이트의 학교 공간(/campuses/…)을 쓸 때만 필요해요.', collapseWhen: 'externalUrl' }
+    },
     fields: [
-      f('name', 'text', '학교 이름', { required: true, max: 60 }),
-      f('slug', 'slug', '영문 짧은 이름 (주소에 쓰여요)', { required: true, hint: '영문 소문자·숫자·- 만 써요(예: snu → /campuses/snu/). 링크가 아니에요. 공개한 뒤에는 바꾸지 마세요.' }),
-      f('shortName', 'text', '짧은 이름 (예: SNU)', { max: 20 }),
-      f('intro', 'textarea', '짧은 소개', { max: 400 }),
-      f('status', 'select', '운영 상태', { options: CAMPUS_STATUS, required: true }),
-      f('externalUrl', 'url', '학교 사이트 주소 (있으면 학교 공간 대신 이 사이트로 바로 연결)', { hint: '이미 학교 사이트가 있으면 적어 주세요(예: 기존 SNU 포털). 이 학교의 일정·공지는 그 사이트에서 관리하고, 여기서는 학교 목록에만 보여요.' }),
-      f('currentTermId', 'ref', '현재 학기', { refKind: 'term', sameCampus: true }),
-      f('photoMediaId', 'media', '대표 사진'),
-      f('photoAlt', 'text', '사진 설명 (무엇이 보이는지)', { max: 200 }),
-      f('applyUrl', 'url', '참여 신청 링크', { hint: '없으면 비워 두세요. 빈 링크의 버튼은 나타나지 않아요.' }),
-      f('communityUrl', 'url', '커뮤니티(오픈채팅 등) 링크'),
-      f('contactUrl', 'url', '운영 문의 링크 (https:// 또는 mailto:)', { mailto: true }),
-      f('leadNote', 'textarea', '운영·담당 안내', { max: 400, hint: '예: Campus Leads가 운영해요. 개인 연락처는 적지 마세요.' }),
-      f('firstTimeNote', 'textarea', '처음 참여하는 학생 안내', { max: 1000 }),
-      f('learningMode', 'select', '학습실 연결', { options: { none: '학습실 없음 (자료 보기만)', legacy_external: '기존 학습실로 연결' }, required: true }),
-      f('learnUrl', 'url', '학습실 주소 (수업 듣기)'),
-      f('adminUrl', 'url', '질문·진도 운영 화면 주소'),
-      f('fixture', 'bool', '시험용 학교 (로컬·미리보기 전용, 실제 게시 안 됨)')
+      f('name', 'text', '학교 이름', { required: true, max: 60, group: 'basic' }),
+      f('shortName', 'text', '짧은 이름 (예: SNU)', { max: 20, group: 'basic' }),
+      f('intro', 'textarea', '짧은 소개', { max: 400, group: 'basic' }),
+      f('slug', 'slug', '영문 짧은 이름 (주소에 쓰여요)', { required: true, group: 'basic', hint: '영문 소문자·숫자·- 만 써요(예: snu → /campuses/snu/). 링크가 아니에요. 공개한 뒤에는 바꾸지 마세요.' }),
+      f('status', 'select', '운영 상태', { options: CAMPUS_STATUS, required: true, group: 'visibility' }),
+      f('externalUrl', 'url', '학교 사이트 주소', { group: 'visibility', hint: '학교 사이트가 이미 있으면 적어요(예: 기존 SNU 사이트). 학교 카드를 누르면 이 주소로 바로 가고, 일정·공지는 그 사이트에서 관리해요. 없으면 비워 두세요.' }),
+      f('fixture', 'bool', '시험용 학교 (로컬·미리보기 전용, 실제 게시 안 됨)', { group: 'visibility' }),
+      f('currentTermId', 'ref', '현재 학기', { refKind: 'term', sameCampus: true, group: 'space' }),
+      f('photoMediaId', 'media', '대표 사진', { group: 'space' }),
+      f('photoAlt', 'text', '사진 설명 (무엇이 보이는지)', { max: 200, group: 'space' }),
+      f('applyUrl', 'url', '참여 신청 링크', { group: 'space', hint: '없으면 비워 두세요. 빈 링크의 버튼은 나타나지 않아요.' }),
+      f('communityUrl', 'url', '커뮤니티(오픈채팅 등) 링크', { group: 'space' }),
+      f('contactUrl', 'url', '운영 문의 링크 (https:// 또는 mailto:)', { mailto: true, group: 'space' }),
+      f('leadNote', 'textarea', '운영·담당 안내', { max: 400, group: 'space', hint: '예: Campus Leads가 운영해요. 개인 연락처는 적지 마세요.' }),
+      f('firstTimeNote', 'textarea', '처음 참여하는 학생 안내', { max: 1000, group: 'space' }),
+      f('learningMode', 'select', '학습실 연결', { options: { none: '학습실 없음 (자료 보기만)', legacy_external: '기존 학습실로 연결' }, required: true, group: 'space' }),
+      f('learnUrl', 'url', '학습실 주소 (수업 듣기)', { group: 'space' }),
+      f('adminUrl', 'url', '질문·진도 운영 화면 주소', { group: 'space' })
     ]
   },
   term: {
@@ -50,28 +56,35 @@ export const KINDS = {
   },
   event: {
     label: '일정·워크숍',
+    groups: {
+      basic: { title: '무엇을 하나요' },
+      schedule: { title: '언제·어디서' },
+      apply: { title: '신청' },
+      materials: { title: '준비물·자료' },
+      visibility: { title: '공개' }
+    },
     fields: [
-      f('termId', 'ref', '학기', { refKind: 'term', sameCampus: true, required: true }),
-      f('type', 'select', '유형', { options: EVENT_TYPES, required: true }),
-      f('title', 'text', '제목', { required: true, max: 80 }),
-      f('order', 'number', '로드맵 순서 (작을수록 앞)', { min: 0, max: 999 }),
-      f('summary', 'textarea', '한두 문장 설명', { max: 400 }),
-      f('goal', 'text', '목표 결과물', { max: 120 }),
-      f('body', 'rich', '자세한 안내', { max: 4000 }),
-      f('audience', 'text', '참가 대상', { max: 120 }),
-      f('openToOthers', 'bool', '다른 학교 학생도 참가 가능 (통합 행사 목록에 표시)'),
-      f('status', 'select', '일정 상태', { options: { scheduled: '일정 확정', tbd: '일정 준비 중', cancelled: '취소' }, required: true }),
-      f('start', 'datetime', '시작'),
-      f('end', 'datetime', '종료'),
-      f('place', 'text', '장소', { max: 120 }),
-      f('onlineUrl', 'url', '온라인 주소'),
-      f('applyUrl', 'url', '신청 링크'),
-      f('applyOpensAt', 'datetime', '신청 시작 (비우면 바로)'),
-      f('applyClosesAt', 'datetime', '신청 마감 (비우면 행사 시작까지)'),
-      f('prepare', 'list', '준비물 (한 줄에 하나)', { max: 12 }),
-      f('materials', 'materials', '연결한 자료'),
-      f('legacyWorkshop', 'number', 'SNU 기존 학습실 회차 번호 (SNU만)', { min: 1, max: 20, hint: '자료 열림 여부를 기존 학습 서버에서 읽어 와요. 다른 학교는 비워 두세요.' }),
-      f('visible', 'bool', '공개 페이지에 표시')
+      f('title', 'text', '제목', { required: true, max: 80, group: 'basic' }),
+      f('type', 'select', '유형', { options: EVENT_TYPES, required: true, group: 'basic' }),
+      f('termId', 'ref', '학기', { refKind: 'term', sameCampus: true, required: true, group: 'basic' }),
+      f('summary', 'textarea', '한두 문장 설명', { max: 400, group: 'basic' }),
+      f('goal', 'text', '목표 결과물', { max: 120, group: 'basic' }),
+      f('audience', 'text', '참가 대상', { max: 120, group: 'basic' }),
+      f('body', 'rich', '자세한 안내', { max: 4000, group: 'basic' }),
+      f('order', 'number', '로드맵 순서 (작을수록 앞)', { min: 0, max: 999, group: 'basic' }),
+      f('status', 'select', '일정 상태', { options: { scheduled: '일정 확정', tbd: '일정 준비 중', cancelled: '취소' }, required: true, group: 'schedule' }),
+      f('start', 'datetime', '시작', { group: 'schedule' }),
+      f('end', 'datetime', '종료', { group: 'schedule' }),
+      f('place', 'text', '장소', { max: 120, group: 'schedule' }),
+      f('onlineUrl', 'url', '온라인 주소', { group: 'schedule' }),
+      f('applyUrl', 'url', '신청 링크', { group: 'apply', hint: '비우면 신청 버튼이 나타나지 않아요.' }),
+      f('applyOpensAt', 'datetime', '신청 시작 (비우면 바로)', { group: 'apply' }),
+      f('applyClosesAt', 'datetime', '신청 마감 (비우면 행사 시작까지)', { group: 'apply' }),
+      f('openToOthers', 'bool', '다른 학교 학생도 참가 가능 (통합 메인 ‘함께할 활동’에 표시)', { group: 'apply' }),
+      f('prepare', 'list', '준비물 (한 줄에 하나)', { max: 12, group: 'materials' }),
+      f('materials', 'materials', '연결한 자료', { group: 'materials' }),
+      f('legacyWorkshop', 'number', '기존 학습실 회차 번호 (학습실을 연결한 학교만)', { min: 1, max: 20, group: 'materials', hint: '자료 열림 여부를 기존 학습 서버에서 읽어 와요. 다른 학교는 비워 두세요.' }),
+      f('visible', 'bool', '공개 페이지에 표시', { group: 'visibility' })
     ]
   },
   notice: {
@@ -128,24 +141,43 @@ export const KINDS = {
   home: {
     label: '통합 메인',
     global: true,
+    groups: {
+      hero: { title: '첫 화면 (보라색 영역)', hint: '비워 둔 칸은 회색으로 보이는 기본 문구를 써요. 줄을 바꾸면 화면에서도 줄이 바뀌어요.' },
+      program: { title: '프로그램 소개 (세 가지 활동)', hint: '비워 둔 칸은 회색으로 보이는 기본 문구를 써요.' },
+      featured: { title: '추천 순서', hint: '체크한 항목을 먼저 보여줘요. 숨기거나 게시하지 않은 항목은 자동으로 빠져요.' },
+      about: { title: '소개·문의 페이지' }
+    },
     fields: [
-      f('heroEyebrow', 'text', 'Hero 작은 제목', { max: 60 }),
-      f('heroTitle', 'textarea', 'Hero 큰 문구', { required: true, max: 80 }),
-      f('heroLead', 'textarea', 'Hero 설명', { max: 200 }),
-      f('heroMediaId', 'media', 'Hero 이미지 (실제 활동 사진, 비우면 그래픽)'),
-      f('heroAlt', 'text', 'Hero 이미지 설명', { max: 200 }),
-      f('programIntro', 'textarea', '프로그램 소개', { max: 400 }),
-      f('learnText', 'textarea', '배우기 (Workshop) 설명', { max: 300 }),
-      f('makeText', 'textarea', '만들기 (Studio) 설명', { max: 300 }),
-      f('shareText', 'textarea', '공유하기 (Showcase) 설명', { max: 300 }),
-      f('featuredCampuses', 'refs', '추천 학교 (순서대로)', { refKind: 'campus' }),
-      f('featuredEvents', 'refs', '추천 행사 (순서대로)', { refKind: 'event' }),
-      f('featuredProjects', 'refs', '추천 프로젝트 (순서대로)', { refKind: 'project' }),
-      f('aboutBody', 'rich', '소개 페이지 본문', { max: 4000 }),
-      f('contactUrl', 'url', '운영 문의 링크', { mailto: true }),
-      f('openCampusUrl', 'url', '학교 개설 문의 링크', { mailto: true })
+      f('heroEyebrow', 'text', '큰 문구 위 한 줄', { max: 60, group: 'hero' }),
+      f('heroTitle', 'textarea', '큰 문구', { max: 80, group: 'hero' }),
+      f('heroLead', 'textarea', '큰 문구 아래 설명', { max: 200, group: 'hero' }),
+      f('heroMediaId', 'media', '배경 사진 (실제 활동 사진, 비우면 SC 색 그래픽)', { group: 'hero' }),
+      f('heroAlt', 'text', '배경 사진 설명', { max: 200, group: 'hero' }),
+      f('programTitle', 'textarea', '프로그램 제목', { max: 60, group: 'program' }),
+      f('programIntro', 'textarea', '프로그램 설명', { max: 400, group: 'program' }),
+      f('learnText', 'textarea', 'Workshop (배우기) 설명', { max: 300, group: 'program' }),
+      f('makeText', 'textarea', 'Studio Session (만들기) 설명', { max: 300, group: 'program' }),
+      f('shareText', 'textarea', 'Showcase (공유하기) 설명', { max: 300, group: 'program' }),
+      f('featuredCampuses', 'refs', '추천 학교', { refKind: 'campus', group: 'featured' }),
+      f('featuredEvents', 'refs', '추천 행사', { refKind: 'event', group: 'featured' }),
+      f('featuredProjects', 'refs', '추천 프로젝트', { refKind: 'project', group: 'featured' }),
+      f('aboutBody', 'rich', '소개 페이지 본문', { max: 4000, group: 'about' }),
+      f('contactUrl', 'url', '운영 문의 링크', { mailto: true, group: 'about' }),
+      f('openCampusUrl', 'url', '학교 개설 문의 링크', { mailto: true, group: 'about' })
     ]
   }
+};
+
+// 통합 메인의 기본 문구. 관리 화면에서 칸을 비워 두면 이 문구를 쓰고, 칸에는 회색 예시로 보여줍니다.
+export const HOME_DEFAULTS = {
+  heroEyebrow: 'OpenAI Student Collective',
+  heroTitle: '아이디어가 시작되는 곳,\n우리 캠퍼스.',
+  heroLead: '함께 배우고, 직접 만들고, 서로의 결과물을 나눕니다.',
+  programTitle: '아이디어가\n서비스가\n되기까지',
+  programIntro: '한 학기 동안 배우고, 함께 만들고, 사람들 앞에 내놓아요. 코딩 경험이 없어도 시작할 수 있어요.',
+  learnText: '내 서비스에 필요한 기능 하나를 직접 연결해 봐요. 처음이어도 따라올 수 있게 단계별로 안내해요.',
+  makeText: '막힌 화면을 그대로 들고 오세요. 함께 풀고, 다음 기능까지 이어서 만들어요.',
+  shareText: '학기 동안 만든 서비스를 사람들 앞에서 시연하고, 받은 피드백으로 한 번 더 다듬어요.'
 };
 
 export const CAMPUS_KINDS = ['term', 'event', 'notice', 'project'];

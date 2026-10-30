@@ -3,6 +3,9 @@
 import { attr, esc } from '../format.mjs';
 import { campusHref } from './parts.mjs';
 
+// SC 마크: 공식 Campus Lead 배지(campusleadofficialbadge.png) 가운데의 매듭 부분을 잘라 만든 그림
+export const LOGO = '<img class="logo-mark" src="/assets/logo.jpg" alt="" width="40" height="40">';
+
 const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css';
 
 export function page({ ctx, title, description = '', body, header, canonicalPath = null, noindex = false, bodyClass = '' }) {
@@ -20,7 +23,8 @@ ${canonical}
 <meta property="og:title" content="${attr(fullTitle)}">
 ${description ? `<meta property="og:description" content="${attr(description)}">` : ''}
 <meta name="theme-color" content="#3f1fae">
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icon-64.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="stylesheet" href="${FONT}">
 <link rel="stylesheet" href="/assets/site.css">
 <script src="/assets/site.js" defer></script>
@@ -48,7 +52,7 @@ function footer(ctx) {
   return `<footer class="site-footer">
   <div class="wrap footer-grid">
     <div>
-      <a class="wordmark wordmark-footer" href="${ctx.base}/">Student <span>Collective</span></a>
+      <a class="wordmark wordmark-footer" href="${ctx.base}/">${LOGO}<span class="wordmark-text">Student <span>Collective</span></span></a>
       <p class="footer-note">각 학교의 Campus Lead가 운영하는 학생 프로그램 안내 사이트예요.</p>
     </div>
     <nav aria-label="사이트 전체">
@@ -65,7 +69,7 @@ export function collectiveHeader(ctx, { onHome = false } = {}) {
   const items = [[anchor('program'), '프로그램'], [anchor('campuses'), '캠퍼스'], [anchor('events'), '함께할 활동'], [anchor('projects'), '프로젝트']];
   return `<header class="site-header${onHome ? ' on-hero' : ''}" data-header>
   <div class="wrap header-row">
-    <a class="wordmark" href="${ctx.base}/">Student <span>Collective</span></a>
+    <a class="wordmark" href="${ctx.base}/">${LOGO}<span class="wordmark-text">Student <span>Collective</span></span></a>
     <nav class="header-nav" aria-label="주요 메뉴">
       <ul>${items.map(([href, label]) => `<li><a href="${attr(href)}">${label}</a></li>`).join('')}</ul>
     </nav>
@@ -87,7 +91,7 @@ export function campusHeader(ctx, snapshot, { current = 'home' } = {}) {
   const action = primaryAction(ctx, snapshot);
   return `<header class="site-header campus-header" data-header>
   <div class="wrap header-row">
-    <a class="wordmark wordmark-small" href="${ctx.base}/" aria-label="Student Collective 통합 메인">S<span>C</span></a>
+    <a class="wordmark wordmark-small" href="${ctx.base}/" aria-label="Student Collective 통합 메인">${LOGO}</a>
     <a class="campus-name" href="${base}/">${esc(campus.shortName || campus.name)}</a>
     ${others.length ? `<details class="campus-switch">
       <summary>학교 바꾸기</summary>

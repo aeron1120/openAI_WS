@@ -28,14 +28,8 @@ await put(CAMPUS, 'campus', CAMPUS, {
   learningMode: 'none'
 });
 
+// 문구 칸은 비워 두어 기본 문구(content.mjs HOME_DEFAULTS)를 씁니다.
 await put('home', 'home', null, {
-  heroEyebrow: 'OpenAI Student Collective',
-  heroTitle: '아이디어가 시작되는 곳,\n우리 캠퍼스.',
-  heroLead: '함께 배우고, 직접 만들고, 서로의 결과물을 나눕니다.',
-  programIntro: '한 학기 동안 Workshop, Studio Session, Showcase를 오가며 내 아이디어를 실제로 작동하는 서비스로 만들어요.',
-  learnText: '함께 모여 ChatGPT·Codex로 내 아이디어의 첫 기능을 만들고, 공개하고, 고치는 방법을 배워요.',
-  makeText: '워크숍 뒤에 다시 모여 막힌 곳을 함께 풀고 다음 기능을 이어서 만들어요. 오면 좋지만 필수는 아니에요.',
-  shareText: '학기 동안 만든 서비스를 사람들 앞에서 시연하고 소개해요.',
   featuredCampuses: [CAMPUS],
   contactUrl: site.links.contact
 });

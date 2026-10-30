@@ -1,17 +1,9 @@
 // 공개 페이지. 모든 함수는 게시본(ctx.campuses, ctx.home)만 읽습니다. 미리보기는 같은 함수에 초안 스냅샷을 넣어 그려요.
 import { attr, esc, link, rich, when, whenRange } from '../format.mjs';
-import { EVENT_TYPES } from '../content.mjs';
+import { EVENT_TYPES, HOME_DEFAULTS } from '../content.mjs';
 import { campusHeader, collectiveHeader, page, primaryAction } from './layout.mjs';
 import { applyButton, badge, CAMPUS_NOTE, campusBadge, campusCard, campusHref, emptyState, eventBadge, eventCard, eventMeta, materialList, nextEvent, projectCard, recruitBadge } from './parts.mjs';
 import { eventState } from '../states.mjs';
-
-const DEFAULT_HOME = {
-  heroEyebrow: 'OpenAI Student Collective',
-  heroTitle: '아이디어가 시작되는 곳,\n우리 캠퍼스.',
-  heroLead: '함께 배우고, 직접 만들고, 서로의 결과물을 나눕니다.',
-  programIntro: '',
-  learnText: '', makeText: '', shareText: ''
-};
 
 const lines = text => esc(text).replace(/\n/g, '<br>');
 const firstSentence = text => (text ?? '').split('\n')[0];
@@ -36,7 +28,9 @@ function featured(ids, pool, key) {
 
 // ---------- 통합 메인 ----------
 export function homePage(ctx) {
-  const home = { ...DEFAULT_HOME, ...(ctx.home ?? {}) };
+  // 비어 있는 칸은 기본 문구로 채웁니다(관리 화면에서 적은 문구가 있으면 그것을 씀).
+  const home = { ...(ctx.home ?? {}) };
+  for (const [key, value] of Object.entries(HOME_DEFAULTS)) if (!home[key]) home[key] = value;
   const events = openEvents(ctx);
   const projects = allProjects(ctx);
   const featuredEvents = featured(home.featuredEvents, events, entry => entry.event.id);
@@ -46,9 +40,9 @@ export function homePage(ctx) {
   const showEvents = (featuredEvents.length ? featuredEvents : events).slice(0, 4);
   const showProjects = (featuredProjects.length ? featuredProjects : projects.filter(entry => entry.project.featured)).slice(0, 6);
   const steps = [
-    ['learn', '배우기', 'Workshop', home.learnText || '함께 모여 새로운 도구로 내 아이디어의 첫 기능을 만들어요.'],
-    ['make', '만들기', 'Studio Session', home.makeText || '막힌 곳을 들고 와서 함께 풀고, 다음 기능을 이어서 만들어요.'],
-    ['share', '공유하기', 'Showcase', home.shareText || '학기 동안 만든 결과물을 사람들 앞에서 보여주고 소개해요.']
+    ['learn', '배우기', 'Workshop', home.learnText],
+    ['make', '만들기', 'Studio Session', home.makeText],
+    ['share', '공유하기', 'Showcase', home.shareText]
   ];
 
   const hero = `<section class="hero" aria-labelledby="hero-title">
@@ -69,14 +63,12 @@ export function homePage(ctx) {
   const program = `<section id="program" class="section section-program" aria-labelledby="program-title">
   <div class="wrap program-grid">
     <div class="program-head">
-      <p class="section-kicker">프로그램</p>
-      <h2 id="program-title" class="section-title">배우고,<br>만들고,<br>나눠요.</h2>
-      ${home.programIntro ? `<p class="section-lead">${esc(home.programIntro)}</p>` : '<p class="section-lead">한 학기 동안 세 가지 활동을 오가며 내 아이디어를 실제로 작동하는 서비스로 만들어요.</p>'}
+      <h2 id="program-title" class="section-title">${lines(home.programTitle)}</h2>
+      <p class="section-lead">${esc(home.programIntro)}</p>
     </div>
     <ol class="program-steps">
-      ${steps.map(([key, ko, en, text], index) => `<li class="program-step step-${key}" data-step data-reveal>
-        <span class="step-index" aria-hidden="true">0${index + 1}</span>
-        <h3><span class="step-ko">${ko}</span> <span class="step-en">${en}</span></h3>
+      ${steps.map(([key, ko, en, text]) => `<li class="program-step step-${key}" data-step data-reveal>
+        <h3><span class="step-en">${en}</span><span class="step-ko">${ko}</span></h3>
         <p>${esc(text)}</p>
       </li>`).join('')}
     </ol>
@@ -85,7 +77,6 @@ export function homePage(ctx) {
 
   const campuses = `<section id="campuses" class="section section-campuses" aria-labelledby="campuses-title">
   <div class="wrap">
-    <p class="section-kicker">캠퍼스</p>
     <h2 id="campuses-title" class="section-title" data-reveal>우리 학교에서 시작해요.</h2>
     ${ctx.campuses.length ? `${searchForm(ctx, '')}
     <ul class="campus-list" data-campus-list>${campusOrder.slice(0, 8).map(snapshot => campusCard(ctx, snapshot)).join('')}</ul>
@@ -96,24 +87,22 @@ export function homePage(ctx) {
 
   const eventsSection = showEvents.length ? `<section id="events" class="section section-events" aria-labelledby="events-title">
   <div class="wrap">
-    <p class="section-kicker">함께할 활동</p>
     <h2 id="events-title" class="section-title" data-reveal>다른 학교 학생도<br>함께할 수 있어요.</h2>
     <div class="event-grid">${showEvents.map(({ snapshot, event }) => eventCard(ctx, snapshot, event, { showCampus: true })).join('')}</div>
     <p><a class="text-link" href="${ctx.base}/events/">모든 활동 보기</a></p>
   </div>
 </section>` : `<section id="events" class="section section-events section-compact" aria-labelledby="events-title">
-  <div class="wrap"><p class="section-kicker">함께할 활동</p><h2 id="events-title" class="section-title section-title-sm">학교 간 공개 행사는 정해지면 이곳에 올라와요.</h2></div>
+  <div class="wrap"><h2 id="events-title" class="section-title">함께할 활동</h2><p class="section-lead">다른 학교 학생도 참가할 수 있는 행사가 정해지면 이곳에 올라와요.</p></div>
 </section>`;
 
   const projectsSection = showProjects.length ? `<section id="projects" class="section section-projects" aria-labelledby="projects-title">
   <div class="wrap">
-    <p class="section-kicker">프로젝트</p>
     <h2 id="projects-title" class="section-title" data-reveal>직접 만든 것들.</h2>
     <div class="project-grid">${showProjects.map(({ snapshot, project }) => projectCard(ctx, snapshot, project)).join('')}</div>
     <p><a class="text-link" href="${ctx.base}/projects/">전체 프로젝트 보기</a></p>
   </div>
 </section>` : `<section id="projects" class="section section-projects section-compact" aria-labelledby="projects-title">
-  <div class="wrap"><p class="section-kicker">프로젝트</p><h2 id="projects-title" class="section-title section-title-sm">공개 동의를 받은 결과물이 생기면 이곳에 소개해요.</h2></div>
+  <div class="wrap"><h2 id="projects-title" class="section-title">직접 만든 것들</h2><p class="section-lead">학생이 공개에 동의한 결과물이 생기면 이곳에 소개해요.</p></div>
 </section>`;
 
   const join = `<section class="section section-join" aria-labelledby="join-title">

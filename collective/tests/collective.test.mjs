@@ -359,7 +359,7 @@ test('공개된 학교가 없거나 없는 학교 주소면 정직하게 안내�
   const t = await setup();
   const home = await t.text('/');
   assert.match(home, /공개된 학교 공간을 준비하고 있어요/);
-  assert.match(home, /공개 동의를 받은 결과물이 생기면/);
+  assert.match(home, /공개에 동의한 결과물이 생기면/);
   const missing = await t.get('/campuses/nowhere/');
   assert.equal(missing.status, 404);
   assert.match(await missing.text(), /찾는 학교 공간이 없어요/);

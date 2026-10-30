@@ -18,8 +18,41 @@ code { background: #eef0f6; padding: 1px 6px; border-radius: 4px; font-size: .9e
 .skip:focus { top: 8px; }
 .m-top { background: var(--paper); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
 .m-top-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 20px; }
-.m-brand { font-weight: 800; color: var(--ink); text-decoration: none; }
-.m-brand span { color: var(--violet); font-weight: 700; }
+.m-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.05rem; color: var(--ink); text-decoration: none; }
+.m-brand em { font-style: normal; color: var(--violet); font-weight: 800; }
+.m-brand .logo-mark { width: 36px; height: 36px; border-radius: 10px; }
+/* 고치기 → 저장 → 게시 흐름 */
+.m-flow { list-style: none; padding: 0; margin: 0 0 20px; display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); counter-reset: none; }
+.m-flow li { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; display: grid; gap: 2px; position: relative; }
+.m-flow li strong { font-size: 1.02rem; }
+.m-flow li span { color: var(--muted); font-size: .9rem; }
+.m-flow li:last-child { border-color: var(--violet); background: var(--violet-soft); }
+/* 자주 하는 일 */
+.m-actions-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 28px; }
+.m-action { display: grid; gap: 6px; padding: 20px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line); color: var(--ink); text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+.m-action:hover { border-color: var(--violet); box-shadow: 0 6px 20px rgba(63, 31, 174, .12); color: var(--ink); }
+.m-action strong { font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+.m-action span { color: var(--muted); font-size: .92rem; }
+.m-action-primary { background: var(--violet); border-color: var(--violet); color: #fff; }
+.m-action-primary:hover { background: #2a1580; color: #fff; }
+.m-action-primary span { color: #e4dbff; }
+.m-action-primary .m-count { color: var(--violet); }
+.m-count { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; background: #fff; font-size: .85rem; }
+.m-section-title { font-size: 1.15rem; margin: 8px 0 12px; }
+.m-campus-mini { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; }
+/* 학교 요약 */
+.m-facts { display: grid; gap: 0; margin: 12px 0 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 4px 16px; }
+.m-facts div { display: grid; grid-template-columns: 9em 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.m-facts div:last-child { border-bottom: 0; }
+.m-facts dt { color: var(--muted); font-weight: 700; }
+.m-facts dd { margin: 0; }
+/* 폼 묶음 */
+.m-group { border: 1px solid var(--line) !important; border-radius: 12px; padding: 16px !important; margin: 0; display: grid; gap: 16px; background: #fcfcfe; }
+.m-group > legend, .m-group-title { font-size: 1.05rem; font-weight: 800; color: var(--ink); padding: 0 6px; }
+details.m-group { display: block; }
+details.m-group > summary { cursor: pointer; padding: 4px 0; }
+details.m-group[open] > summary { margin-bottom: 12px; }
+details.m-group > .m-field, details.m-group > .m-hint { margin-bottom: 14px; }
 .m-spacer { flex: 1; }
 .m-user { color: var(--muted); font-size: .9rem; }
 .m-inline { display: inline; margin: 0; }

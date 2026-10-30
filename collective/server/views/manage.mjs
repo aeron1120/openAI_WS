@@ -1,15 +1,17 @@
 // 중앙 관리 화면. 밝은 표·폼 중심이며 전시용 움직임은 쓰지 않습니다.
 // 폼은 content.mjs의 필드 정의로 그리고, 저장은 /assets/manage.js가 API로 보냅니다(서버 응답 뒤에만 '저장됨' 표시).
 import { attr, esc, localInput, when } from '../format.mjs';
-import { CAMPUS_KINDS, CAMPUS_STATUS, EVENT_TYPES, KINDS, emptyData } from '../content.mjs';
+import { CAMPUS_KINDS, CAMPUS_STATUS, EVENT_TYPES, HOME_DEFAULTS, KINDS, LISTED_STATUS, emptyData } from '../content.mjs';
+import { LOGO } from './layout.mjs';
 import { campusScope, GLOBAL_SCOPE } from '../publish.mjs';
 import { eventState } from '../states.mjs';
 
 const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css';
 
-function shell(actx, { title, body, campus = null, crumbs = [], preview = null }) {
+function shell(actx, { title, body, campus = null, crumbs = [], preview = null, section = null }) {
   const nav = [['/manage/', '전체 현황'], ['/manage/campuses/', '학교 관리'], ['/manage/materials/', '자료 관리'], ['/manage/home/', '통합 메인'], ['/manage/publish/', '게시'], ['/manage/history/', '변경 기록'], ['/manage/learning/', '학습 운영 연결']];
-  const current = nav.filter(([href]) => actx.path.startsWith(href)).sort((a, b) => b[0].length - a[0].length)[0]?.[0];
+  // 항목 편집(/manage/items/…)처럼 주소로 메뉴를 알 수 없으면 section으로 정합니다.
+  const current = section ?? nav.filter(([href]) => actx.path.startsWith(href)).sort((a, b) => b[0].length - a[0].length)[0]?.[0];
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -18,7 +20,7 @@ function shell(actx, { title, body, campus = null, crumbs = [], preview = null }
 <meta name="robots" content="noindex, nofollow">
 <meta name="cms-csrf" content="${attr(actx.session.csrf)}">
 <title>${esc(title)} · 중앙 관리</title>
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icon-64.png" type="image/png">
 <link rel="stylesheet" href="${FONT}">
 <link rel="stylesheet" href="/assets/manage.css">
 <script src="/assets/manage.js" defer></script>
@@ -27,11 +29,12 @@ function shell(actx, { title, body, campus = null, crumbs = [], preview = null }
 <a class="skip" href="#main">본문으로 건너뛰기</a>
 <header class="m-top">
   <div class="m-top-row">
-    <a class="m-brand" href="/manage/">Student Collective <span>중앙 관리</span></a>
+    <a class="m-brand" href="/manage/">${LOGO}<span>Student Collective <em>중앙 관리</em></span></a>
     ${actx.mode === 'local' ? '<span class="m-pill m-pill-warn" title="파일에 저장하는 로컬 개발 모드">로컬 모드</span>' : ''}
     <span class="m-dirty" data-dirty-indicator hidden>저장하지 않은 변경 있음</span>
     <span class="m-spacer"></span>
-    ${preview ? `<a class="m-btn m-btn-ghost" href="${attr(preview)}" target="_blank" rel="noopener">미리보기<span class="sr-only"> (새 창)</span></a>` : ''}
+    ${preview ? `<a class="m-btn m-btn-ghost" href="${attr(preview)}" target="_blank" rel="noopener" title="저장한 초안을 공개 화면 모양으로 봐요(게시 전)">초안 미리보기<span class="sr-only"> (새 창)</span></a>` : ''}
+    <a class="m-btn m-btn-ghost" href="/" target="_blank" rel="noopener">공개 사이트<span class="sr-only"> (새 창)</span></a>
     <span class="m-user">${esc(actx.session.email)}</span>
     <form method="post" action="/manage/logout/" class="m-inline"><button class="m-btn m-btn-ghost" type="submit">로그아웃</button></form>
   </div>
@@ -75,9 +78,26 @@ export async function dashboard(actx) {
   const upcoming = live.flatMap(release => release.snapshot.events.filter(event => ['upcoming', 'ongoing'].includes(eventState(event, now))).map(event => ({ event, campus: release.snapshot.campus })))
     .sort((a, b) => Date.parse(a.event.start) - Date.parse(b.event.start)).slice(0, 6);
   const versions = (await store.listItems({ kind: 'material_version' })).filter(item => Date.parse(item.data.publicAt) > now).sort((a, b) => a.data.publicAt.localeCompare(b.data.publicAt));
+  const pendingCount = scopes.size;
   const body = `<h1>전체 현황</h1>
+<ol class="m-flow" aria-label="고친 내용이 공개되는 순서">
+  <li><strong>1. 고치기</strong><span>학교·통합 메인 화면에서 내용을 고쳐요</span></li>
+  <li><strong>2. 초안 저장</strong><span>저장해도 공개 사이트는 그대로예요</span></li>
+  <li><strong>3. 게시</strong><span>게시해야 공개 사이트에 반영돼요</span></li>
+</ol>
+<div class="m-actions-grid">
+  <a class="m-action" href="/manage/campuses/#add-campus"><strong>학교 추가</strong><span>새 학교를 목록에 올려요</span></a>
+  <a class="m-action" href="/manage/campuses/"><strong>학교 정보 고치기</strong><span>소개·운영 상태·학교 사이트 주소</span></a>
+  <a class="m-action" href="/manage/home/"><strong>통합 메인 문구 고치기</strong><span>첫 화면·프로그램 소개·추천 순서</span></a>
+  <a class="m-action m-action-primary" href="/manage/publish/"><strong>게시하기${pendingCount ? ` <span class="m-count">${pendingCount}</span>` : ''}</strong><span>${pendingCount ? `게시하지 않은 변경이 ${pendingCount}곳에 있어요` : '모든 변경이 공개돼 있어요'}</span></a>
+</div>
+<h2 class="m-section-title">지금 상태</h2>
 <div class="m-cards">
-  <section class="m-card"><h2>공개 중인 학교</h2><p class="m-big">${live.filter(release => ['active', 'preparing', 'paused'].includes(release.snapshot.campus.status)).length}</p><p class="m-muted">게시본 기준 · 전체 학교 ${campuses.length}곳</p><a href="/manage/campuses/">학교 관리</a></section>
+  <section class="m-card"><h2>공개 중인 학교</h2><p class="m-big">${live.filter(release => LISTED_STATUS.has(release.snapshot.campus.status)).length}</p><p class="m-muted">게시본 기준 · 전체 학교 ${campuses.length}곳</p>${campuses.length ? `<ul class="m-campus-mini">${campuses.map(item => {
+    const release = live.find(entry => entry.scope === campusScope(item.id));
+    const shown = release && LISTED_STATUS.has(release.snapshot.campus.status);
+    return `<li><a href="/manage/campuses/${attr(item.id)}/">${esc(item.data.name)}</a> ${shown ? pill('공개 중', 'ok') : pill('목록에 안 보임', 'warn')}</li>`;
+  }).join('')}</ul>` : ''}</section>
   <section class="m-card"><h2>게시하지 않은 변경</h2>${scopes.size ? `<ul>${[...scopes].map(([scope, count]) => `<li>${esc(scope === GLOBAL_SCOPE ? '통합 메인' : names.get(scope) ?? scope)} · ${count}개 항목 <a href="/manage/publish/?scope=${attr(scope)}">게시 준비</a></li>`).join('')}</ul>` : '<p class="m-muted">모든 초안이 공개본과 같아요.</p>'}</section>
   <section class="m-card"><h2>가까운 행사</h2>${upcoming.length ? `<ul>${upcoming.map(({ event, campus }) => `<li>${esc(when(event.start))} · ${esc(campus.name)} · ${esc(event.title)}</li>`).join('')}</ul>` : '<p class="m-muted">게시된 예정 행사가 없어요.</p>'}</section>
   <section class="m-card"><h2>자료 공개 예정</h2>${versions.length ? `<ul>${versions.slice(0, 6).map(item => `<li>${esc(when(item.data.publicAt))} · <a href="/manage/items/${attr(item.id)}/">${esc(item.data.version)}</a></li>`).join('')}</ul>` : '<p class="m-muted">예약된 자료가 없어요.</p>'}</section>
@@ -126,12 +146,35 @@ export async function campusDetail(actx, campus) {
   ${rows.length ? `<table class="m-table"><thead><tr>${columns.map(col => `<th scope="col">${col}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>` : '<p class="m-muted">아직 없어요.</p>'}
 </section>`;
   const events = of('event').sort((a, b) => (a.data.order ?? 999) - (b.data.order ?? 999));
-  const body = `<div class="m-panel-head"><h1>${esc(campus.data.name)}</h1>
-  <p class="m-actions"><a class="m-btn m-btn-ghost" href="/manage/items/${attr(campus.id)}/">학교 정보 수정</a><a class="m-btn" href="/manage/publish/?scope=${attr(campusScope(campus.id))}">${esc(campus.data.shortName || campus.data.name)}에 게시</a></p></div>
-<p>${pill(CAMPUS_STATUS[campus.data.status])} ${campus.data.fixture ? pill('시험용', 'warn') : ''} ${release ? pill(`공개본 ${release.number}번 · ${when(release.createdAt)}`) : pill('아직 게시 안 함', 'warn')} ${changed ? pill('게시하지 않은 변경 있음', 'warn') : pill('초안 = 공개본', 'ok')}</p>
-${campus.data.externalUrl
-    ? `<p class="m-status-box">이 학교는 학교 사이트(<a href="${attr(campus.data.externalUrl)}" target="_blank" rel="noopener noreferrer">${esc(campus.data.externalUrl)}</a>)로 바로 연결돼요. 학교 목록·카드만 여기서 관리하고, 일정·공지는 그 사이트에서 고쳐요. 아래 일정·공지는 공개 화면에 나오지 않아요.</p>`
-    : `<p class="m-muted">현재 학기: ${esc(termName(campus.data.currentTermId))} · 공개 주소 <code>/campuses/${esc(campus.data.slug)}/</code></p>`}
+  const external = Boolean(campus.data.externalUrl);
+  const listedLive = release && LISTED_STATUS.has(release.snapshot.campus.status);
+  // 지금 무엇을 하면 되는지 한 줄로: 상태에 따라 다음 할 일을 알려줍니다.
+  const next = !LISTED_STATUS.has(campus.data.status)
+    ? `운영 상태가 ‘${CAMPUS_STATUS[campus.data.status]}’라 게시해도 목록에 안 보여요. <a href="/manage/items/${attr(campus.id)}/">학교 정보 수정</a>에서 ‘운영 중’으로 바꿔 저장한 뒤 게시하세요.`
+    : changed ? '저장한 변경이 아직 공개되지 않았어요. 오른쪽 위 게시 버튼을 눌러 반영하세요.'
+    : '공개 사이트와 같아요. 고칠 내용이 있으면 학교 정보 수정에서 고친 뒤 게시하세요.';
+  const summary = `<div class="m-panel-head"><h1>${esc(campus.data.name)}</h1>
+  <p class="m-actions"><a class="m-btn m-btn-ghost" href="/manage/items/${attr(campus.id)}/">학교 정보 수정</a><a class="m-btn" href="/manage/publish/?scope=${attr(campusScope(campus.id))}">${esc(campus.data.shortName || campus.data.name)} 게시</a></p></div>
+<dl class="m-facts">
+  <div><dt>공개 사이트</dt><dd>${listedLive ? pill('목록에 보임', 'ok') : pill('목록에 안 보임', 'warn')}${release ? ` <span class="m-muted">${release.number}번 게시본 · ${esc(when(release.createdAt))}</span>` : ' <span class="m-muted">아직 게시 안 함</span>'}</dd></div>
+  <div><dt>운영 상태 (초안)</dt><dd>${esc(CAMPUS_STATUS[campus.data.status])}${campus.data.fixture ? ` ${pill('시험용', 'warn')}` : ''}</dd></div>
+  <div><dt>카드를 누르면</dt><dd>${external ? `학교 사이트로 바로 이동 · <a href="${attr(campus.data.externalUrl)}" target="_blank" rel="noopener noreferrer">${esc(campus.data.externalUrl)}</a>` : `이 사이트의 학교 공간 <code>/campuses/${esc(campus.data.slug)}/</code>`}</dd></div>
+</dl>
+<p class="m-status-box ${changed || !LISTED_STATUS.has(campus.data.status) ? 'm-status-warn' : 'm-status-ok'}">${next}</p>`;
+  if (external) {
+    // 학교 사이트로 바로 가는 학교: 학기·일정·공지는 공개 화면에 안 쓰이므로 접어 둡니다.
+    const body = `${summary}
+${table('project', ['프로젝트', '구분', '동의', '공개'], of('project').map(item => `<tr><td><a href="/manage/items/${attr(item.id)}/">${esc(item.data.title)}</a></td><td>${item.data.kind === 'student' ? '학생' : '운영진 예제'}</td><td>${item.data.kind === 'student' ? (item.data.consentConfirmed ? pill('확인', 'ok') : pill('미확인', 'warn')) : '-'}</td><td>${item.data.visible ? pill('표시', 'ok') : pill('숨김')}${item.data.featured ? ` ${pill('메인 추천 후보')}` : ''}</td></tr>`))}
+<p class="m-hint">프로젝트는 통합 사이트의 ‘프로젝트’ 목록과 메인 추천에 보여요. 일정·공지는 학교 사이트에서 관리해요.</p>
+<details class="m-group"><summary><span class="m-group-title">학교 공간용 학기·일정·공지</span> <span class="m-muted">— 학교 사이트로 바로 연결되는 학교라 공개 화면에 쓰이지 않아요</span></summary>
+${table('term', ['학기', '기간'], terms.map(item => `<tr><td><a href="/manage/items/${attr(item.id)}/">${esc(item.data.name)}</a></td><td>${esc(item.data.startsOn ?? '')} ~ ${esc(item.data.endsOn ?? '')}</td></tr>`))}
+${table('event', ['일정', '상태'], events.map(item => `<tr><td><a href="/manage/items/${attr(item.id)}/">${esc(item.data.title)}</a></td><td>${item.data.start ? esc(when(item.data.start)) : pill('준비 중')}</td></tr>`))}
+${table('notice', ['공지', '공개'], of('notice').map(item => `<tr><td><a href="/manage/items/${attr(item.id)}/">${esc(item.data.title)}</a></td><td>${item.data.visible ? pill('표시', 'ok') : pill('숨김')}</td></tr>`))}
+</details>`;
+    return shell(actx, { title: campus.data.name, body, campus, crumbs: [['/manage/campuses/', '학교 관리'], [null, campus.data.name]] });
+  }
+  const body = `${summary}
+<p class="m-muted">현재 학기: ${esc(termName(campus.data.currentTermId))}</p>
 ${table('term', ['학기', '기간'], terms.map(item => `<tr><td><a href="/manage/items/${attr(item.id)}/">${esc(item.data.name)}</a>${item.id === campus.data.currentTermId ? ` ${pill('현재', 'ok')}` : ''}</td><td>${esc(item.data.startsOn ?? '')} ~ ${esc(item.data.endsOn ?? '')}</td></tr>`))}
 ${table('event', ['순서', '일정', '학기', '상태', '공개'], events.map(item => `<tr><td>${esc(item.data.order ?? '')}</td><td><a href="/manage/items/${attr(item.id)}/">${esc(item.data.title)}</a> <span class="m-muted">${esc(EVENT_TYPES[item.data.type])}</span></td><td>${esc(termName(item.data.termId))}</td><td>${item.data.status === 'cancelled' ? pill('취소', 'danger') : item.data.start ? esc(when(item.data.start)) : pill('준비 중')} ${item.data.openToOthers ? pill('학교 간 공개') : ''}</td><td>${item.data.visible ? pill('표시', 'ok') : pill('숨김')}</td></tr>`))}
 ${table('notice', ['공지', '고정', '공개'], of('notice').map(item => `<tr><td><a href="/manage/items/${attr(item.id)}/">${esc(item.data.title)}</a></td><td>${item.data.pinned ? '고정' : ''}</td><td>${item.data.visible ? pill('표시', 'ok') : pill('숨김')}</td></tr>`))}
@@ -154,8 +197,9 @@ async function versionOptions(store, now) {
   return (await store.listItems({ kind: 'material_version' })).map(item => ({ id: item.id, label: `${materials.get(item.data.materialId) ?? '자료'} · ${item.data.version}`, publicAt: item.data.publicAt, isPublic: Date.parse(item.data.publicAt) <= now }));
 }
 
-async function fieldHtml(actx, field, value, { campusId, existing }) {
+async function fieldHtml(actx, field, value, { campusId, existing, placeholder = null }) {
   const id = `f-${field.name}`;
+  const holder = placeholder ? ` placeholder="${attr(placeholder)}"` : '';
   const locked = existing && field.locked;
   const lockedPublicAt = existing && field.name === 'publicAt' && Date.parse(value) <= actx.now;
   const disabled = locked || lockedPublicAt ? ' disabled' : '';
@@ -167,11 +211,11 @@ async function fieldHtml(actx, field, value, { campusId, existing }) {
   const lockNote = locked ? '<p class="m-hint">버전 내용은 만든 뒤 바꿀 수 없어요. 고치려면 새 버전을 만드세요.</p>' : lockedPublicAt ? '<p class="m-hint">이미 전체 공개된 자료라 공개 시각을 바꿀 수 없어요.</p>' : '';
   switch (field.type) {
     case 'text': case 'slug':
-      return `<div class="m-field">${label}<input ${common} value="${attr(value ?? '')}"${field.max ? ` maxlength="${field.max}"` : ''}>${hint}${lockNote}</div>`;
+      return `<div class="m-field">${label}<input ${common}${holder} value="${attr(value ?? '')}"${field.max ? ` maxlength="${field.max}"` : ''}>${hint}${lockNote}</div>`;
     case 'url':
       return `<div class="m-field">${label}<input ${common} inputmode="url" placeholder="https://" value="${attr(value ?? '')}">${hint}${lockNote}</div>`;
     case 'textarea': case 'rich':
-      return `<div class="m-field">${label}<textarea ${common} rows="${field.type === 'rich' ? 8 : 3}" maxlength="${field.max}">${esc(value ?? '')}</textarea>${field.type === 'rich' ? '<p class="m-hint">빈 줄 = 문단, ‘- ’ = 목록, **굵게**, [글자](https://주소). HTML은 글자로 보여요.</p>' : ''}${hint}${lockNote}</div>`;
+      return `<div class="m-field">${label}<textarea ${common}${holder} rows="${field.type === 'rich' ? 8 : 3}" maxlength="${field.max}">${esc(value ?? '')}</textarea>${field.type === 'rich' ? '<p class="m-hint">빈 줄 = 문단, ‘- ’ = 목록, **굵게**, [글자](https://주소). HTML은 글자로 보여요.</p>' : ''}${hint}${lockNote}</div>`;
     case 'number':
       return `<div class="m-field">${label}<input ${common} type="number" min="${field.min}" max="${field.max}" step="1" value="${attr(value ?? '')}">${hint}</div>`;
     case 'bool':
@@ -189,7 +233,7 @@ async function fieldHtml(actx, field, value, { campusId, existing }) {
     case 'refs': {
       const options = await refOptions(actx.store, field, campusId);
       const order = new Map((value ?? []).map((key, index) => [key, index + 1]));
-      return `<fieldset class="m-field m-refs" ${`data-name="${attr(field.name)}" data-type="refs"`}><legend>${esc(field.label)}</legend>${options.length ? options.map(([key, text]) => `<div class="m-ref-row"><input type="checkbox" id="${id}-${attr(key)}" value="${attr(key)}"${order.has(key) ? ' checked' : ''}><label for="${id}-${attr(key)}">${esc(text)}</label><label class="m-order">순서 <input type="number" min="1" max="99" value="${order.get(key) ?? ''}" aria-label="${attr(text)} 순서"></label></div>`).join('') : '<p class="m-hint">고를 항목이 아직 없어요.</p>'}<p class="m-hint">체크한 항목만 순서대로 보여줘요. 숨김·보관되거나 게시되지 않은 항목은 공개 화면에서 자동으로 빠져요.</p></fieldset>`;
+      return `<fieldset class="m-field m-refs" ${`data-name="${attr(field.name)}" data-type="refs"`}><legend>${esc(field.label)}</legend>${options.length ? options.map(([key, text]) => `<div class="m-ref-row"><input type="checkbox" id="${id}-${attr(key)}" value="${attr(key)}"${order.has(key) ? ' checked' : ''}><label for="${id}-${attr(key)}">${esc(text)}</label><label class="m-order">순서 <input type="number" min="1" max="99" value="${order.get(key) ?? ''}" aria-label="${attr(text)} 순서"></label></div>`).join('') : '<p class="m-hint">고를 항목이 아직 없어요.</p>'}</fieldset>`;
     }
     case 'list':
       return `<div class="m-field">${label}<textarea ${common} rows="4">${esc((value ?? []).join('\n'))}</textarea><p class="m-hint">한 줄에 하나씩</p>${hint}</div>`;
@@ -223,7 +267,26 @@ async function fieldHtml(actx, field, value, { campusId, existing }) {
 
 async function form(actx, kind, data, { item = null, campusId = null }) {
   const fields = [];
-  for (const field of KINDS[kind].fields) fields.push(await fieldHtml(actx, field, data[field.name], { campusId, existing: Boolean(item) }));
+  // 같은 group의 필드를 묶어 제목과 함께 그립니다. collapseWhen 값이 있으면 그 묶음은 접어 둬요.
+  const groups = KINDS[kind].groups ?? {};
+  let buffer = [];
+  let current = null;
+  const flush = () => {
+    if (!buffer.length) return;
+    const group = groups[current];
+    const inner = buffer.join('\n');
+    buffer = [];
+    if (!group) { fields.push(inner); return; }
+    const hint = group.hint ? `<p class="m-hint">${esc(group.hint)}</p>` : '';
+    fields.push(group.collapseWhen && data[group.collapseWhen]
+      ? `<details class="m-group"><summary><span class="m-group-title">${esc(group.title)}</span> <span class="m-muted">— 학교 사이트로 바로 연결되는 학교라 지금은 쓰지 않아요</span></summary>${hint}${inner}</details>`
+      : `<fieldset class="m-group"><legend class="m-group-title">${esc(group.title)}</legend>${hint}${inner}</fieldset>`);
+  };
+  for (const field of KINDS[kind].fields) {
+    if (field.group !== current) { flush(); current = field.group; }
+    buffer.push(await fieldHtml(actx, field, data[field.name], { campusId, existing: Boolean(item), placeholder: kind === 'home' ? HOME_DEFAULTS[field.name] : null }));
+  }
+  flush();
   const scope = campusId ? campusScope(campusId) : GLOBAL_SCOPE;
   const publishLabel = kind === 'material' || kind === 'material_version' ? '' : `<a class="m-btn m-btn-ghost" href="/manage/publish/?scope=${attr(scope)}">게시 준비</a>`;
   return `<form class="m-form" data-item-form data-kind="${attr(kind)}"${item ? ` data-id="${attr(item.id)}" data-revision="${item.revision}"` : ''}${campusId ? ` data-campus="${attr(campusId)}"` : ''} novalidate>
@@ -248,22 +311,25 @@ function previewPath(item, campus) {
 
 export async function itemEditor(actx, item) {
   const campus = item.campusId ? await actx.store.getItem(item.campusId) : null;
-  const crumbs = campus ? [['/manage/campuses/', '학교 관리'], [`/manage/campuses/${campus.id}/`, campus.data.name], [null, titleOf(item)]]
+  const isCampus = item.kind === 'campus';
+  const heading = isCampus ? `${titleOf(item)} · 학교 정보 수정` : item.kind === 'home' ? '통합 메인 문구 고치기' : `${KINDS[item.kind].label} · ${titleOf(item)}`;
+  const crumbs = isCampus ? [['/manage/campuses/', '학교 관리'], [`/manage/campuses/${campus.id}/`, campus.data.name], [null, '학교 정보 수정']]
+    : campus ? [['/manage/campuses/', '학교 관리'], [`/manage/campuses/${campus.id}/`, campus.data.name], [null, titleOf(item)]]
     : item.kind === 'home' ? [[null, '통합 메인']] : [['/manage/materials/', '자료 관리'], [null, titleOf(item)]];
-  const body = `<h1>${esc(KINDS[item.kind].label)} · ${esc(titleOf(item))}</h1>
-${item.kind === 'campus' ? '<p class="m-hint">운영 상태가 ‘초안’·‘보관’이면 게시해도 공개 목록과 학교 주소에 나타나지 않아요.</p>' : ''}
-${await form(actx, item.kind, item.data, { item, campusId: item.kind === 'campus' ? item.id : item.campusId })}`;
-  return shell(actx, { title: titleOf(item), body, campus: campus ?? null, crumbs, preview: previewPath(item, campus) });
+  const section = campus ? '/manage/campuses/' : item.kind === 'home' ? '/manage/home/' : '/manage/materials/';
+  const body = `<h1>${esc(heading)}</h1>
+${await form(actx, item.kind, item.data, { item, campusId: isCampus ? item.id : item.campusId })}`;
+  return shell(actx, { title: heading, body, campus: campus ?? null, crumbs, preview: previewPath(item, campus), section });
 }
 
 export async function itemCreator(actx, kind, campusId, preset = {}) {
   const campus = campusId ? await actx.store.getItem(campusId) : null;
   const data = { ...emptyData(kind), ...preset };
   if (campus && KINDS[kind].fields.some(field => field.name === 'termId')) data.termId = campus.data.currentTermId;
-  if (kind === 'home') Object.assign(data, { heroEyebrow: 'OpenAI Student Collective', heroTitle: '아이디어가 시작되는 곳,\n우리 캠퍼스.', heroLead: '함께 배우고, 직접 만들고, 서로의 결과물을 나눕니다.' });
   const crumbs = campus ? [['/manage/campuses/', '학교 관리'], [`/manage/campuses/${campus.id}/`, campus.data.name], [null, `새 ${KINDS[kind].label}`]] : [[null, `새 ${KINDS[kind].label}`]];
   const body = `<h1>새 ${esc(KINDS[kind].label)}</h1>${await form(actx, kind, data, { campusId })}`;
-  return shell(actx, { title: `새 ${KINDS[kind].label}`, body, campus, crumbs });
+  const section = campus ? '/manage/campuses/' : kind === 'home' ? '/manage/home/' : '/manage/materials/';
+  return shell(actx, { title: `새 ${KINDS[kind].label}`, body, campus, crumbs, section });
 }
 
 export async function materials(actx) {
