@@ -393,47 +393,29 @@ ${references.length ? h`<section class="block reveal" id="references">
 ${pager}</div>`;
 }
 
-function sessionRow(s, timeZone) {
-  const done = s.status === 'done';
-  return h`<li class="session${done ? ' is-done' : ''}">
-  <p class="session-time">${formatSchedule(s, timeZone)}${done ? h` <span class="badge badge-done">진행 완료</span>` : s.status === 'live' ? h` <span class="badge badge-open">진행 중</span>` : ''}</p>
-  <p class="hint">${[s.note, s.topic, done ? null : s.place ?? '장소 추후 안내'].filter(Boolean).join(' · ')}</p>
-  ${s.slides ? h`<p class="hint">${link(s.slides, '세션 슬라이드')}</p>` : ''}
-</li>`;
-}
-
+// Studio Session: 회차 페이지처럼 제목(다음 세션 주제)·한 줄 설명·버튼·일정/장소/대상만 두고, 아래에 가져올 것과 질문 틀.
+// 다음 세션이 없으면 가장 최근 세션의 슬라이드를 계속 보여줍니다.
 export function studioPage(content) {
   const { site, studio } = content;
   const { next, sessions } = studio;
+  const slides = next?.slides ?? [...sessions].reverse().find(s => s.slides)?.slides;
   return h`<header class="detail-head c-navy">
-  <p class="track-kicker">${studio.korean} ${eventBadge(studio)}</p>
-  <h1>${studio.title}</h1>
-  <p class="lead">${studio.description}</p>
-  <p><strong>${studio.optionalNote}</strong></p>
-  <p class="hint">${studio.timingNote}</p>
-  ${isUsableUrl(site.links.openChat) ? h`<div class="actions">${link(site.links.openChat, '오픈채팅에서 일정 받기', 'btn btn-primary')}</div>` : ''}
+  <p class="track-kicker">${studio.title} ${eventBadge(studio)}</p>
+  <h1>${next?.topic ?? studio.korean}</h1>
+  <p class="lead">${next?.detail ?? studio.message}</p>
+  ${slides || isUsableUrl(site.links.openChat) ? h`<div class="actions">
+    ${slides ? link(slides, '세션 슬라이드', 'btn btn-fill') : ''}
+    ${isUsableUrl(site.links.openChat) ? link(site.links.openChat, '오픈채팅', `btn ${slides ? 'btn-ghost' : 'btn-fill'}`) : ''}
+  </div>` : ''}
+  <dl class="info">
+    <div><dt>일정</dt><dd>${next ? formatSchedule(next, site.timeZone) : studio.cadence}</dd></div>
+    <div><dt>장소</dt><dd>${next?.place ?? '추후 안내'}</dd></div>
+    <div><dt>대상</dt><dd>${studio.audience}</dd></div>
+  </dl>
 </header>
-${next?.topic ? h`<section class="block reveal next-session">
-  <p class="next-label">${keyed('다음 세션', next.badge)}${next.tag ? h` <span class="badge badge-open">${next.tag}</span>` : ''}</p>
-  <h2>${next.topic}</h2>
-  <p>${next.detail}</p>
-  ${next.call ? h`<p class="next-call">${next.call}</p>` : ''}
-  <p class="hint">${keyed(formatSchedule(next, site.timeZone), [next.note, next.place ?? '장소 추후 안내'].filter(Boolean).join(' · '))}</p>
-  ${next.slides ? h`<div class="actions">${link(next.slides, '📑 세션 슬라이드 보기', 'btn btn-primary')}</div>` : ''}
-</section>` : ''}
 <section class="block reveal two">
-  <div class="box">
-    <h2>일정 <small class="hint">${studio.cadence}</small></h2>
-    ${sessions.length
-      ? h`<ul class="sessions">${sessions.map(s => sessionRow(s, site.timeZone))}</ul>`
-      : h`<p class="hint">준비 중이에요. 정해지면 이곳에 안내할게요.</p>`}
-  </div>
   <div class="box"><h2>가져올 것</h2>${checks(studio.bring)}</div>
-</section>
-<section class="block reveal">
-  <h2>질문 정리 틀</h2>
-  ${copyBlock(studio.question, '이 틀에 맞춰 적어 오세요')}
-  <p class="hint">${studio.caution}</p>
+  <div class="box"><h2>질문 정리 틀</h2>${copyBlock(studio.question, studio.caution)}</div>
 </section>`;
 }
 
@@ -450,26 +432,28 @@ export function projectCard(p) {
 </article>`;
 }
 
+// Showcase: 회차 페이지처럼 제목·한 줄 설명·일정/장소만 두고, 공개된 프로젝트가 있을 때만 프로젝트 칸을 보여줍니다.
 export function showcasePage(content) {
-  const { showcase, projects } = content;
+  const { site, showcase, projects } = content;
   const student = projects.filter(p => p.kind === 'student' && p.published);
   const operator = projects.filter(p => p.kind === 'operator' && p.published);
   return h`<header class="detail-head c-${showcase.color}">
-  <p class="track-kicker">${showcase.korean} ${eventBadge(showcase)}</p>
-  <h1>${showcase.title}</h1>
+  <p class="track-kicker">${showcase.mapTitle ?? showcase.title} ${eventBadge(showcase)}</p>
+  <h1>${showcase.korean}</h1>
   <p class="lead">${showcase.description}</p>
-  <p class="hint">${showcase.timingNote}</p>
+  <dl class="info">
+    <div><dt>일정</dt><dd>${scheduleText(showcase, site.timeZone)}</dd></div>
+    <div><dt>장소</dt><dd>${placeText(showcase)}</dd></div>
+  </dl>
 </header>
-<section class="block reveal">
+${student.length ? h`<section class="block reveal">
   <h2>학생 프로젝트</h2>
-  ${student.length
-    ? h`<div class="projects">${student.map(projectCard)}</div>`
-    : h`<div class="empty"><strong>학생 프로젝트는 준비되는 대로 소개합니다.</strong><p class="hint">공개하고 싶다면 Studio Session에서 알려주세요. 동의한 프로젝트만 올려요.</p></div>`}
-</section>
-<section class="block reveal">
+  <div class="projects">${student.map(projectCard)}</div>
+</section>` : ''}
+${operator.length ? h`<section class="block reveal">
   <h2>운영진 예제</h2>
   <div class="projects">${operator.map(projectCard)}</div>
-</section>`;
+</section>` : ''}`;
 }
 
 export function aboutPage(content) {

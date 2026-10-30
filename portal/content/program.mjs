@@ -5,10 +5,9 @@ export const studio = {
   title: 'Studio Session',
   korean: '함께 만드는 시간',
   cadence: '매주 월요일',
+  audience: '누구나 · 필수 아님',
   message: '매주 월요일, 워크숍 내용을 다시 짚고 막힌 곳을 함께 풀어요.',
   description: '매주 월요일에 열리는 작업 시간이에요. 워크숍 내용을 다시 정리하고, 막힌 부분이나 다음 기능 질문을 가져오면 함께 풀어요.',
-  optionalNote: '오면 좋지만 필수는 아니에요. 매번 내용을 다시 정리하기 때문에, 못 와도 다음 워크숍을 따라가는 데 문제없어요.',
-  timingNote: '시간은 주마다 달라질 수 있어요. 회차별 시간은 일정에서 확인해 주세요.',
   // 상태와 배지는 sessions에서 다음 회차를 찾아 자동으로 정합니다.
   event: { status: 'tbd', start: null, end: null, place: null },
   // 회차: { start, end, place, note, topic?, detail?, tag?, call?, slides? } — tag는 배지, call은 강조 문장으로 표시
@@ -32,18 +31,18 @@ export const studio = {
   question: `만들고 싶은 것: [내 서비스와 이번에 넣고 싶은 기능]
 시도한 방법: [Codex에 요청한 내용, 바꾼 설정]
 막힌 부분: [기대한 결과와 실제 화면, 오류 문구]`,
-  caution: '질문에 화면을 공유할 때 비밀번호·API 키는 꼭 가려 주세요.'
+  caution: '비밀번호·API 키는 가려 주세요'
 };
 
 export const showcase = {
   title: 'Showcase',
   korean: '만든 것을 소개하는 날',
+  mapTitle: 'Final Showcase', // 수업 지도(/learn/) 마지막 섬 이름표
   message: '내가 만든 것을 사람들에게 보여준다',
   outcome: '프로젝트 시연과 소개 경험',
   color: 'orange',
   description: '학기 동안 만든 서비스를 사람들 앞에서 시연하고 소개해요.',
   event: { status: 'tbd', start: null, end: null, place: null },
-  timingNote: '학기 말 개최를 검토하고 있어요. 일정은 확정되면 안내합니다.'
 };
 
 // 프로젝트 카드. kind: 'student'(학생 결과물) | 'operator'(운영진 예제)

@@ -49,7 +49,7 @@
     if (path === '/api/progress') {
       const progress = [];
       const add = (workshop, ids) => ids.slice(0, Math.ceil(ids.length / 2)).forEach(step => progress.push({ workshop, step }));
-      for (const course of document.querySelectorAll('[data-course]')) add(Number(course.dataset.course), [...course.querySelectorAll('[data-step-link]')].map(node => node.dataset.stepLink));
+      for (const course of document.querySelectorAll('[data-course]')) add(Number(course.dataset.course), JSON.parse(course.dataset.steps));
       const lesson = document.querySelector('[data-lesson]');
       if (lesson) add(Number(lesson.dataset.lesson), [...lesson.querySelectorAll('[data-step]')].map(node => node.dataset.step));
       return ok({ progress });
@@ -252,37 +252,25 @@
     map.querySelector('[data-map-done]').replaceChildren(...segments);
   }
 
-  // 수업 지도: 칸마다 진도 막대와 "시작하기/이어서 하기"(처음으로 안 끝낸 단계), 다 끝낸 칸은 완료 표시,
-  // 아직 다 끝내지 않은 첫 칸에 '지금 여기'를 붙입니다. 진도를 못 불러와도 지도는 그대로 씁니다.
+  // 수업 지도: 섬마다 진도 점과 들어갈 주소(처음으로 안 끝낸 단계), 다 끝낸 섬은 완료 표시,
+  // 아직 다 끝내지 않은 첫 섬에 '지금 여기'를 붙입니다. 진도를 못 불러와도 지도는 그대로 씁니다.
   function initList(content) {
     const map = content.querySelector('[data-map]');
     const redraw = () => map && drawMap(map);
     redraw();
     if (map && 'ResizeObserver' in window) new ResizeObserver(redraw).observe(map);
     loadProgress().then(done => {
-      let all = 0;
-      let allDone = 0;
       let here = null;
       for (const course of content.querySelectorAll('[data-course]')) {
         const finished = done.get(Number(course.dataset.course)) ?? new Set();
-        const links = [...course.querySelectorAll('[data-step-link]')];
-        let next = null;
-        let count = 0;
-        for (const link of links) {
-          const ok = finished.has(link.dataset.stepLink);
-          markStep(link, ok);
-          if (ok) count++;
-          else next ??= link;
-        }
-        setProgress(course.querySelector('[data-progress]'), count, links.length, `${count}/${links.length} 단계`);
-        course.classList.toggle('is-clear', links.length > 0 && !next);
+        const steps = JSON.parse(course.dataset.steps);
+        const next = steps.find(id => !finished.has(id));
+        const count = steps.filter(id => finished.has(id)).length;
+        course.querySelectorAll('.stage-pips i').forEach((pip, i) => pip.classList.toggle('is-done', finished.has(steps[i])));
+        course.classList.toggle('is-clear', steps.length > 0 && !next);
         if (next) here ??= course;
-        for (const resume of course.querySelectorAll('[data-continue]')) {
-          resume.href = (next ?? links[0]).getAttribute('href');
-          if (resume.classList.contains('stage-go')) resume.textContent = !count ? '시작하기 →' : next ? '이어서 하기 →' : '다시 보기 →';
-        }
-        all += links.length;
-        allDone += count;
+        course.querySelector('[data-continue]').href = `${course.dataset.path}#step-${next ?? steps[0]}`;
+        course.querySelector('[data-stage-state]').textContent = ` · ${count}/${steps.length}단계 완료 · ${!count ? '시작하기' : next ? '이어서 하기' : '다시 보기'}`;
       }
       for (const course of content.querySelectorAll('[data-course]')) {
         const on = course === here;
@@ -291,7 +279,6 @@
         if (on) course.setAttribute('aria-current', 'step');
         else course.removeAttribute('aria-current');
       }
-      setProgress(content.querySelector('.course-head [data-progress]'), allDone, all, `${allDone} / ${all} 단계`);
       redraw();
       celebrate(content);
     }).catch(() => {});

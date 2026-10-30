@@ -198,16 +198,16 @@ const workshopPage = {
 
 const studio = {
   '함께 만드는 시간': 'Build together',
+  '누구나 · 필수 아님': 'Anyone · optional',
+  '비밀번호·API 키는 가려 주세요': 'Hide passwords and API keys',
+  '추후 안내': 'To be announced',
   '매주 월요일에 열리는 작업 시간이에요. 워크숍 내용을 다시 정리하고, 막힌 부분이나 다음 기능 질문을 가져오면 함께 풀어요.': 'A work session every Monday. We go over the workshop again, and you can bring anything you are stuck on or your next feature.',
-  '오면 좋지만 필수는 아니에요. 매번 내용을 다시 정리하기 때문에, 못 와도 다음 워크숍을 따라가는 데 문제없어요.': 'Joining helps but is optional. Each session recaps the workshop, so you can follow the next one even if you miss it.',
-  '시간은 주마다 달라질 수 있어요. 회차별 시간은 일정에서 확인해 주세요.': 'Times may change week to week. Check each session in the schedule.',
   '다음 세션': 'Next session',
   '처음이라면 추천': 'Recommended for beginners',
   'VS Code 세팅': 'VS Code setup',
   'GitHub·Cloudflare 실습 Q&A': 'GitHub & Cloudflare practice Q&A',
   'VS Code를 함께 세팅하고, Workshop 2의 GitHub·Cloudflare 실습 예제를 따라가며 생긴 문제를 질문하고 해결해요.': 'Set up VS Code together, and bring questions from the Workshop 2 GitHub and Cloudflare practice.',
   '코딩이 처음이라면 와서 함께 세팅해 보세요. 실습하다 막힌 화면을 그대로 가져오면 돼요.': 'New to coding? Come and set up together. Just bring the screen where you got stuck.',
-  '📑 세션 슬라이드 보기': '📑 Session slides (Korean)',
   '세션 슬라이드': 'Session slides (Korean)',
   '매주 월요일': 'Every Monday',
   '매주 월요일, 워크숍 내용을 다시 짚고 막힌 곳을 함께 풀어요.': 'Every Monday we go over the workshop and get unstuck together.',
@@ -215,16 +215,11 @@ const studio = {
   '작업 중인 내 프로젝트 (완성하지 않아도 괜찮아요)': 'The project you are working on (it does not need to be finished)',
   '만들고 싶은 것, 시도한 방법, 막힌 부분이나 오류 화면': 'What you want to make, what you tried, and where it broke or the error screen',
   '질문 정리 틀': 'Question template',
-  '이 틀에 맞춰 적어 오세요': 'Fill this in before you come',
-  '질문에 화면을 공유할 때 비밀번호·API 키는 꼭 가려 주세요.': 'When you share your screen, always hide passwords and API keys.',
   '첫 회차를 준비하고 있어요.': 'The first session is being prepared.'
 };
 
 const showcase = {
-  '학기 말 개최를 검토하고 있어요. 일정은 확정되면 안내합니다.': 'Planned for the end of the semester. The date will be announced.',
   '학생 프로젝트': 'Student projects',
-  '학생 프로젝트는 준비되는 대로 소개합니다.': 'Student projects will appear here as they are ready.',
-  '공개하고 싶다면 Studio Session에서 알려주세요. 동의한 프로젝트만 올려요.': 'Want yours listed? Tell us at a Studio Session. We only post projects with consent.',
   '운영진 예제': 'Organizers’ examples',
   '틈 — 캠퍼스 모임 플래너': 'Teum — campus meetup planner',
   '비어 있는 시간에 근처에서 함께할 모임을 찾기 어려운 문제': 'Hard to find a nearby meetup for your free time',

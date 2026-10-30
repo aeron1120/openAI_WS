@@ -596,7 +596,7 @@ body.study { background: #f3f5f8; }
 .study-main { max-width: 1320px; margin-inline: auto; padding: 28px 20px 56px; }
 .study-main:has(> .quest), .study-main:has(> [data-questions]) { max-width: 1000px; }
 .study-head { margin-bottom: 16px; }
-.study-head h1, .course-head h1 { font-size: clamp(1.6rem, 4.6vw, 2rem); }
+.study-head h1 { font-size: clamp(1.6rem, 4.6vw, 2rem); }
 
 /* 로그인 카드: 로그인 전에는 이것만 가운데에 보입니다. */
 .study-login { max-width: 520px; margin: 6vh auto 0; padding: 32px 28px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: 0 12px 36px rgba(17, 26, 46, .06); }
@@ -616,29 +616,26 @@ body.study { background: #f3f5f8; }
 .meter span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--c); transition: width .3s; }
 .progress-text { margin: 0; color: var(--muted); font-size: .88rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-/* 수업 지도: 하늘 지도 위에 회차 섬을 S자 길로 잇습니다. 넓은 화면에서는 섬이 가운데 길에서 좌우로 번갈아 놓이고
-   카드가 그 반대쪽에, 좁은 화면(719px 이하)에서는 섬 아래에 카드가 놓입니다.
+/* 수업 지도: 하늘 지도 위에 회차 섬을 길로 잇습니다. 섬은 좌우로 번갈아 놓이고, 섬 아래에 양피지 이름표만 붙습니다.
    그림: public/images/learn-map/ (섬 5개·하늘 2장·파티클 4×4·표시 3×2 묶음 그림). 길(svg)은 learn.js가 섬 위치를 재서 그립니다.
-   층 순서: 하늘 → 길 → 섬 → 상태 표시 → 파티클 → 글자·버튼. 장식 그림은 누를 수 없고 화면 읽기에도 나오지 않습니다. */
-.quest { display: grid; gap: 20px; }
-.course-head { padding: 4px 0 0; }
-.course-head .track-kicker { margin-bottom: 4px; }
-.course-head .lead { margin: 0; font-size: 1.08rem; }
-.quest .course-head { padding: 28px clamp(18px, 4vw, 40px); border: 1px solid #dccaa0; border-radius: 24px; background: linear-gradient(90deg, rgba(251, 246, 233, .96) 0%, rgba(251, 246, 233, .82) 55%, rgba(251, 246, 233, .25) 100%), url("/images/learn-map/sky-desktop.webp") center 30% / cover; }
-.quest .course-head .lead { color: #4d4636; }
-.progress-overall { max-width: 520px; margin-top: 14px; }
-.progress-overall .progress-text { color: var(--ink); font-size: 1rem; }
-.quest-map { position: relative; padding: 64px clamp(16px, 4vw, 44px) 48px; border: 1px solid #dccaa0; border-radius: 28px; background: #f3ead6 url("/images/learn-map/sky-mobile.webp") center / cover no-repeat; box-shadow: inset 0 0 80px rgba(120, 92, 40, .12); }
+   층 순서: 하늘 → 길 → 섬 → 상태 표시 → 파티클 → 글자. 장식 그림은 누를 수 없고 화면 읽기에도 나오지 않습니다.
+   색·글꼴은 그림(타로 잉크 선·금박·양피지)에 맞춰 금색·먹색·명조로 씁니다. */
+body:has(.quest:not([hidden])) { background: #e9dfc8; }
+.quest { --gold: #b08d4f; --gold-deep: #7a5a22; --ink-warm: #2f2615; --parchment: #fbf5e6; --serif: "Nanum Myeongjo", "AppleMyungjo", "Batang", Georgia, serif; }
+.quest-map { position: relative; padding: 36px clamp(12px, 4vw, 48px) 56px; border: 1px solid #cdb886; border-radius: 28px; background: #f3ead6 url("/images/learn-map/sky-mobile.webp") center / cover no-repeat; box-shadow: inset 0 0 90px rgba(120, 92, 40, .16), 0 20px 50px rgba(70, 52, 20, .12); overflow: hidden; }
+.quest-title { position: relative; width: fit-content; margin: 0 auto 8px; padding: 6px 28px; color: var(--ink-warm); font-family: var(--serif); font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 700; letter-spacing: .04em; text-align: center; }
+.quest-title::before, .quest-title::after { content: ""; position: absolute; top: 50%; width: 40px; border-top: 1px solid var(--gold); }
+.quest-title::before { right: 100%; } .quest-title::after { left: 100%; }
 .quest-path { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .quest-path path { fill: none; stroke-linecap: round; }
-.quest-path-base { stroke: #b39a68; stroke-width: 6; stroke-dasharray: .1 15; }
-.quest-path-done path { stroke-width: 8; }
-.quest-stages { position: relative; display: grid; gap: 28px; margin: 0; padding: 0; list-style: none; }
-.stage { display: grid; grid-template-columns: minmax(0, 1fr) 340px minmax(0, 1fr); align-items: center; gap: 0 20px; }
-.stage-spot { grid-column: 2; grid-row: 1; position: relative; display: grid; place-items: center; justify-self: start; }
-.stage:nth-child(even) .stage-spot { justify-self: end; }
-.stage-card { grid-column: 3; grid-row: 1; }
-.stage:nth-child(even) .stage-card { grid-column: 1; }
+.quest-path-base { stroke: var(--gold); stroke-width: 5; stroke-dasharray: .1 14; opacity: .85; }
+.quest-path-done path { stroke: var(--gold-deep) !important; stroke-width: 6; }
+.quest-stages { position: relative; display: grid; margin: 0; padding: 0; list-style: none; }
+.stage { width: min(360px, 48%); justify-self: start; margin-left: 4%; }
+.stage:nth-child(even) { justify-self: end; margin: 0 4% 0 0; }
+.stage + .stage { margin-top: -96px; }
+.stage-link { position: relative; display: grid; justify-items: center; color: inherit; text-decoration: none; }
+.stage-spot { position: relative; display: grid; place-items: center; width: 100%; }
 
 /* 묶음 그림에서 한 칸씩 보여주기: 파티클 4×4, 표시 3×2 */
 .spark, .emblem { display: block; background-repeat: no-repeat; pointer-events: none; }
@@ -652,27 +649,28 @@ body.study { background: #f3f5f8; }
 .emblem-location { background-position: 0 100%; } .emblem-question { background-position: 50% 100%; } .emblem-focus { background-position: 100% 100%; }
 
 /* 섬: 천천히 떠 있고, 올리면 8px 떠오릅니다. */
-.stage-node { position: relative; z-index: 1; display: block; text-decoration: none; }
-.stage-node.is-island { width: 300px; }
+.stage-node { position: relative; z-index: 1; display: block; }
+.stage-node.is-island { width: 100%; }
 .stage-art { width: 100%; height: auto; filter: drop-shadow(0 18px 14px rgba(70, 52, 20, .22)); transition: translate .24s ease, filter .24s ease; animation: island-float 7s ease-in-out infinite; }
 .stage:nth-child(even) .stage-art { animation-delay: -3.5s; }
 @keyframes island-float { 50% { transform: translateY(-6px); } }
-a.stage-node:hover .stage-art { translate: 0 -8px; filter: drop-shadow(0 26px 18px rgba(70, 52, 20, .28)); }
-/* 고르는 중 표시: 섬에 올리거나 카드 버튼에 키보드로 가면 뒤에 별 고리가 나타납니다. */
-.stage-ring { position: absolute; width: 112%; height: auto; aspect-ratio: 1; left: -6%; top: -6%; background-size: 300% 200%; opacity: 0; transition: opacity .24s; }
-.stage-spot:has(a.stage-node:hover) .stage-ring, .stage:has(.stage-card a:focus-visible) .stage-ring { opacity: .9; }
-.stage-star { position: absolute; right: 6%; top: 4%; z-index: 2; width: 64px; height: 64px; display: none; }
+a.stage-link:hover .stage-art, a.stage-link:focus-visible .stage-art { translate: 0 -8px; filter: drop-shadow(0 26px 18px rgba(70, 52, 20, .28)); }
+a.stage-link:focus-visible { outline: none; }
+/* 고르는 중 표시: 올리거나 키보드로 가면 섬 뒤에 별 고리가 나타납니다. */
+.stage-ring { position: absolute; width: 96%; height: auto; aspect-ratio: 1; opacity: 0; transition: opacity .24s; }
+a.stage-link:hover .stage-ring, a.stage-link:focus-visible .stage-ring { opacity: .9; }
+.stage-star { position: absolute; right: 8%; top: 6%; z-index: 2; width: 64px; height: 64px; display: none; }
 .stage.is-clear .stage-star { display: block; }
-.stage-lock { position: absolute; left: 50%; top: 42%; z-index: 2; width: 72px; height: 72px; translate: -50% -50%; }
+.stage-lock { position: absolute; left: 50%; top: 44%; z-index: 2; width: 72px; height: 72px; translate: -50% -50%; }
 /* 둘레를 떠다니는 작은 그림 */
 .stage-sparks { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 .stage-sparks .spark { position: absolute; animation: spark-drift 6s ease-in-out infinite; }
-.stage-sparks .spark:nth-child(1) { left: -4%; top: 18%; }
-.stage-sparks .spark:nth-child(2) { right: -2%; top: 8%; width: 34px; height: 34px; animation-delay: -2s; }
-.stage-sparks .spark:nth-child(3) { right: 6%; bottom: 14%; width: 30px; height: 30px; animation-delay: -4s; }
+.stage-sparks .spark:nth-child(1) { left: 0; top: 20%; }
+.stage-sparks .spark:nth-child(2) { right: 2%; top: 10%; width: 34px; height: 34px; animation-delay: -2s; }
+.stage-sparks .spark:nth-child(3) { right: 8%; bottom: 16%; width: 30px; height: 30px; animation-delay: -4s; }
 @keyframes spark-drift { 50% { transform: translate(4px, -10px) rotate(8deg); } }
 /* 지금 할 섬: 위치 표시가 붙은 '지금 여기' 말풍선이 통통 뜁니다. */
-.stage-pin { position: absolute; top: -6px; left: 50%; z-index: 3; display: inline-flex; align-items: center; gap: 4px; padding: 4px 14px 4px 6px; border: 1px solid #c9a75a; border-radius: 999px; background: #fffaf0; color: #3a2d14; font-size: .95rem; font-weight: 800; white-space: nowrap; translate: -50% 0; box-shadow: 0 6px 16px rgba(70, 52, 20, .18); animation: pin-bob 1.6s ease-in-out infinite; }
+.stage-pin { position: absolute; top: 2%; left: 50%; z-index: 3; display: inline-flex; align-items: center; gap: 4px; padding: 4px 14px 4px 6px; border: 1px solid var(--gold); border-radius: 999px; background: var(--parchment); color: var(--ink-warm); font-family: var(--serif); font-size: .95rem; font-weight: 700; white-space: nowrap; translate: -50% 0; box-shadow: 0 6px 16px rgba(70, 52, 20, .18); animation: pin-bob 1.6s ease-in-out infinite; }
 .stage-pin .emblem { width: 30px; height: 30px; }
 @keyframes pin-bob { 50% { transform: translateY(-6px); } }
 /* 완료 순간: 별빛이 짧게 퍼집니다(learn.js가 새로 끝낸 섬에만 한 번). */
@@ -680,33 +678,25 @@ a.stage-node:hover .stage-art { translate: 0 -8px; filter: drop-shadow(0 26px 18
 .stage-burst .spark { position: absolute; width: 34px; height: 34px; margin: -17px; animation: burst .9s ease-out forwards; }
 @keyframes burst { from { transform: translate(0, 0) scale(.4); opacity: 1; } to { transform: translate(var(--x), var(--y)) scale(1); opacity: 0; } }
 
-.stage-card { position: relative; z-index: 2; min-width: 0; padding: 18px 20px 16px; border: 1px solid #dccaa0; border-radius: 20px; background: rgba(255, 252, 244, .95); box-shadow: 0 12px 30px rgba(70, 52, 20, .12); }
-.stage-card .track-kicker { margin: 0 0 2px; color: var(--c-btn); font-size: .9rem; }
-.stage-card h2 { margin: 0 0 12px; font-size: 1.3rem; line-height: 1.35; }
-.stage-card h2 a { color: var(--ink); text-decoration: none; }
-.stage-card h2 a:hover { color: var(--c-btn); text-decoration: underline; }
-.stage-card .progress { margin: 0 0 14px; }
-.stage-card .progress-text { font-size: .95rem; }
-.stage-go { width: 100%; }
-.stage-steps { margin-top: 10px; }
-.stage-steps summary { display: flex; align-items: center; min-height: 40px; color: var(--muted); font-size: .95rem; font-weight: 700; cursor: pointer; }
-.stage-steps summary:hover { color: var(--ink); }
-.stage-steps .course-steps { margin-top: 4px; }
-.stage-note { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--c-soft); color: var(--c-btn); font-weight: 700; }
+/* 이름표: 금테 두 줄 양피지 + 명조 */
+.stage-label { position: relative; z-index: 2; display: grid; justify-items: center; gap: 2px; margin-top: -14px; padding: 9px 22px 10px; border: 1px solid var(--gold); border-radius: 6px; background: var(--parchment); box-shadow: 0 0 0 3px var(--parchment), 0 0 0 4px rgba(176, 141, 79, .55), 0 10px 22px rgba(70, 52, 20, .16); text-align: center; transition: box-shadow .24s; }
+.stage-kicker { color: var(--gold-deep); font-family: var(--serif); font-size: .9rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.stage-title { color: var(--ink-warm); font-family: var(--serif); font-size: 1.2rem; font-weight: 700; line-height: 1.35; }
+a.stage-link:hover .stage-label, a.stage-link:focus-visible .stage-label { box-shadow: 0 0 0 3px var(--parchment), 0 0 0 5px var(--gold-deep), 0 14px 26px rgba(70, 52, 20, .22); }
+/* 진도 점: 단계 수만큼, 끝낸 단계는 금색으로 */
+.stage-pips { display: flex; gap: 6px; margin-top: 5px; }
+.stage-pips i { width: 9px; height: 9px; border: 1px solid var(--gold); border-radius: 50%; background: transparent; }
+.stage-pips i.is-done { background: var(--gold); }
 
 .stage.is-locked .stage-art { filter: grayscale(.85) sepia(.2) brightness(1.02) drop-shadow(0 14px 12px rgba(70, 52, 20, .16)); opacity: .85; }
-.stage.is-locked h2 { color: #3b4558; }
+.stage.is-locked .stage-label, .stage.is-fog .stage-label { background: rgba(251, 245, 230, .82); box-shadow: 0 0 0 3px rgba(251, 245, 230, .6), 0 0 0 4px rgba(176, 141, 79, .35); }
+.stage.is-locked .stage-title, .stage.is-fog .stage-title { color: #5d5240; }
 .stage.is-fog .stage-art { filter: saturate(.45) blur(.6px) drop-shadow(0 14px 12px rgba(70, 52, 20, .12)); opacity: .72; }
-.stage.is-fog .stage-card { border-style: dashed; background: rgba(255, 252, 244, .78); box-shadow: none; }
-.stage.is-fog .track-kicker, .stage.is-fog h2 { color: var(--muted); }
-.stage.is-fog .stage-note { background: #efe8d8; color: #5d5646; }
-.stage.is-goal .stage-node.is-island { width: 330px; }
+.stage.is-goal { width: min(390px, 52%); }
 
 /* 그림이 없는 회차(5회차부터)의 번호 동그라미 */
-.stage-node:not(.is-island) { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%; background: var(--c); color: #fff; font-size: 1.7rem; font-weight: 850; box-shadow: 0 7px 0 var(--c-btn), 0 16px 28px rgba(17, 26, 46, .18); }
+.stage-node:not(.is-island) { display: grid; place-items: center; width: 96px; height: 96px; margin: 40px 0; border: 2px solid var(--gold); border-radius: 50%; background: var(--parchment); color: var(--ink-warm); font-family: var(--serif); font-size: 1.7rem; font-weight: 700; }
 .stage-node:not(.is-island) .stage-star { right: -14px; top: -14px; width: 40px; height: 40px; }
-.stage.is-locked .stage-node:not(.is-island) { background: #c4cad7; box-shadow: 0 7px 0 #9aa3b4; }
-.stage.is-fog .stage-node:not(.is-island) { background: rgba(255, 255, 255, .85); color: #9aa3b4; border: 3px dashed #c4cad7; box-shadow: none; }
 .course-steps { list-style: none; margin: 0; padding: 0; }
 .course-steps li + li { border-top: 1px solid var(--line); }
 .course-step { display: grid; grid-template-columns: 24px 2.2em minmax(0, 1fr); align-items: center; gap: 8px; min-height: 50px; padding: 8px 8px; border-radius: 10px; color: var(--ink); text-decoration: none; }
@@ -813,21 +803,16 @@ a.stage-node:hover .stage-art { translate: 0 -8px; filter: drop-shadow(0 26px 18
   .study-nav a { min-height: 44px; padding: 0 10px; }
   .study-main { padding: 18px 16px 40px; }
   .study-login { margin-top: 3vh; padding: 24px 20px; }
-  .quest .course-head { padding: 20px 16px; border-radius: 20px; background: linear-gradient(180deg, rgba(251, 246, 233, .9), rgba(251, 246, 233, .78)), url("/images/learn-map/sky-mobile.webp") center top / cover; }
-  .quest-map { padding: 40px 12px 28px; border-radius: 22px; }
-  .quest-stages { gap: 36px; }
-  .stage { grid-template-columns: minmax(0, 1fr); gap: 4px; }
-  .stage-spot, .stage:nth-child(even) .stage-spot { grid-column: 1; grid-row: 1; justify-self: start; }
-  .stage:nth-child(even) .stage-spot { justify-self: end; }
-  .stage-card, .stage:nth-child(even) .stage-card { grid-column: 1; grid-row: 2; }
-  .stage-node.is-island, .stage.is-goal .stage-node.is-island { width: min(230px, 66vw); }
-  .stage-node:not(.is-island) { width: 68px; height: 68px; font-size: 1.3rem; }
+  .quest-map { padding: 24px 8px 40px; border-radius: 22px; }
+  .stage, .stage.is-goal { width: min(250px, 72%); margin-left: 0; }
+  .stage:nth-child(even) { margin-right: 0; }
+  .stage + .stage { margin-top: 0; }
   .stage-star { width: 48px; height: 48px; }
   .stage-lock { width: 56px; height: 56px; }
   .stage-sparks .spark { width: 30px; height: 30px; }
   .stage-pin { font-size: .85rem; }
-  .stage-card { padding: 14px 14px 12px; border-radius: 16px; }
-  .stage-card h2 { font-size: 1.12rem; }
+  .stage-label { padding: 7px 16px 8px; }
+  .stage-title { font-size: 1.05rem; }
 }
 @media (max-width: 480px) {
   .learn-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -277,10 +277,11 @@ test('open chat and contact buttons appear only when their links are set', async
   assert.match(about, /open\.kakao\.com\/o\/example/);
 });
 
-test('operator examples are labelled and student projects show a pending state', async t => {
+test('showcase reads like a workshop page and lists operator examples, hiding an empty student section', async t => {
   const { read } = await build(t, defaultContent, WS2_OPENS);
   const html = await read('/showcase/');
-  assert.match(html, /학생 프로젝트는 준비되는 대로 소개합니다/);
+  assert.doesNotMatch(html, /학생 프로젝트|학기 말 개최/, 'no empty student section or extra notes');
+  assert.match(html, /<p class="track-kicker">Final Showcase /);
   assert.equal((html.match(/class="tag-operator">운영진 예제/g) ?? []).length, defaultContent.projects.filter(p => p.kind === 'operator').length);
 });
 
@@ -435,27 +436,26 @@ test('content validation rejects unusable inline links and malformed hints', () 
   assert.doesNotThrow(() => validateContent(ok));
 });
 
-test('studio shows weekly sessions and promotes the next one until it ends', async t => {
+test('studio reads like a workshop page: next topic, schedule, place, audience, then what to bring', async t => {
   const before = await build(t);
   const page = await before.read('/studio/');
-  assert.match(page, /매주 월요일/);
-  assert.match(page, /<span class="kv-key">다음 세션<\/span><span class="kv-sep" aria-hidden="true">:<\/span> 11\/2 \(월\) 19:00/);
-  assert.match(page, /VS Code 세팅 · GitHub·Cloudflare 실습 Q&amp;A/);
-  assert.match(page, /처음이라면 추천/);
-  assert.match(page, /못 와도 다음 워크숍을 따라가는 데 문제없어요/);
-  assert.doesNotMatch(page, /필수 참여|꼭 참여/);
-  assert.match(page, /2026년 10월 26일 \(월\) 19:00–20:00[\s\S]*?진행 완료/);
+  const head = page.match(/<header class="detail-head c-navy">[\s\S]*?<\/header>/)[0];
+  assert.match(head, /<h1>VS Code 세팅 · GitHub·Cloudflare 실습 Q&amp;A<\/h1>/);
+  assert.match(head, /<dt>일정<\/dt><dd>2026년 11월 2일 \(월\) 19:00–20:00<\/dd>/);
+  assert.match(head, /<dt>장소<\/dt><dd>추후 안내<\/dd>/);
+  assert.match(head, /<dt>대상<\/dt><dd>누구나 · 필수 아님<\/dd>/);
+  assert.doesNotMatch(page, /필수 참여|꼭 참여|처음이라면 추천|못 와도|주마다 달라질|class="sessions"/);
+  assert.match(page, /<h2>가져올 것<\/h2>[\s\S]*?<h2>질문 정리 틀<\/h2>/);
   const homeStrip = (await before.read('/')).match(/<a class="strip[\s\S]*?<\/a>/)[0];
   // 시간 : 내용1 · 내용2
   assert.match(homeStrip, /<\/strong> <span class="kv-key">11\/2 \(월\) 19:00<\/span><span class="kv-sep" aria-hidden="true">:<\/span> VS Code 세팅 · GitHub·Cloudflare/);
-  assert.doesNotMatch(homeStrip, /처음이라면 추천/, 'the home strip stays to one line');
-  // 세션 슬라이드: 다음 세션 상자와 일정 목록 양쪽에서 열 수 있고, 세션이 끝나도 목록에 남습니다.
+  // 세션 슬라이드: 세션이 끝나도 가장 최근 슬라이드를 계속 열 수 있어요.
   const deck = 'https://docs.google.com/presentation/d/1TwJDjzG1Oo24YirHCgSs3BGoOPhncrmkVkVTDjmOpCQ/edit?usp=sharing';
-  assert.ok(page.includes(`href="${deck}"`) && page.includes('세션 슬라이드 보기'));
+  assert.ok(head.includes(`href="${deck}"`) && head.includes('세션 슬라이드'));
   const after = await build(t, defaultContent, Date.parse('2026-11-02T20:00:00+09:00'));
   const done = await after.read('/studio/');
-  assert.doesNotMatch(done, /다음 세션/);
   assert.match(done, /badge-scheduled">매주 월요일/);
+  assert.match(done, /<h1>함께 만드는 시간<\/h1>/);
   assert.ok(done.includes(`href="${deck}"`));
   const bad = clone(defaultContent);
   bad.studio.sessions[1].slides = 'https://example.com/slides';
@@ -566,7 +566,7 @@ test('each open workshop gets a lesson page with the student slides and every st
   assert.equal((html.match(/class="lesson-step"/g) ?? []).length, ws2.missions.length);
   assert.match(html, /data-learn-content data-lesson="2" hidden/);
   assert.match(html, /<script src="\/learn\.js\?v=/);
-  assert.match(await read('/learn/'), /href="\/learn\/02\/"/);
+  assert.match(await read('/learn/'), /href="\/learn\/02\/#step-/);
   const ws1 = await read('/learn/01/');
   assert.match(ws1, /<details class="option" data-task-slides="ws1_task_20261029_login_1 ws1_task_20261029_login_2 ws1_task_20261029_login_3">/);
 });
@@ -644,28 +644,36 @@ test('learn pages use the study layout without the portal menu, other pages keep
   }
 });
 
-test('the course map puts every workshop island on one trail, links open steps, and ends at Showcase', async t => {
+test('the course map shows each workshop as an island with only a short nameplate, and ends at Showcase', async t => {
   const { read, outDir } = await build(t);
   const html = await read('/learn/');
   const ws1 = defaultContent.workshops[0];
-  assert.match(html, /<h1>수업 지도<\/h1>/);
+  assert.match(html, /<h1 class="quest-title">수업 지도<\/h1>/);
   assert.match(html, /<svg class="quest-path" aria-hidden="true"[\s\S]*?data-map-path[\s\S]*?data-map-done/);
   const stages = [...html.matchAll(/<li class="stage[^"]*"/g)].map(m => m[0]);
   assert.equal(stages.length, defaultContent.workshops.length + 1, 'one stage per workshop plus the goal');
-  const panel = html.match(/<li class="stage c-green" data-course="1">[\s\S]*?<\/li>\s*<\/ol>[\s\S]*?<\/li>/)[0];
-  for (const m of ws1.missions) assert.match(panel, new RegExp(`<a class="course-step" href="/learn/01/#step-${m.id}" data-step-link="${m.id}">`));
-  assert.match(panel, new RegExp(`class="btn btn-fill stage-go" data-continue href="/learn/01/#step-${ws1.missions[0].id}">시작하기 →`));
-  // 섬 그림도 같은 곳으로 가지만 키보드 순서·화면 읽기에서는 빠집니다.
-  assert.match(panel, /<a class="stage-node is-island" href="\/learn\/01\/#step-[^"]+" data-continue tabindex="-1" aria-hidden="true"><img class="stage-art" src="\/images\/learn-map\/island-01\.webp" alt=""/);
+  // 열린 회차: 섬과 이름표가 링크 하나, 첫 단계로 들어가고(learn.js가 안 끝낸 단계로 바꿈) 단계 수만큼 진도 점
+  const panel = html.match(/<li class="stage c-green" data-course="1"[\s\S]*?<\/li>/)[0];
+  assert.match(panel, new RegExp(`data-path="/learn/01/" data-steps="\\[${ws1.missions.map(m => `&quot;${m.id}&quot;`).join(',')}\\]"`));
+  assert.match(panel, new RegExp(`<a class="stage-link" href="/learn/01/#step-${ws1.missions[0].id}" data-continue>`));
+  assert.equal((panel.match(/<a /g) ?? []).length, 1);
+  assert.match(panel, /<img class="stage-art" src="\/images\/learn-map\/island-01\.webp" alt=""/);
+  assert.match(panel, /<span class="stage-kicker">Workshop 01<\/span>\s*<span class="stage-title">화면에서 서비스로<\/span>/);
+  assert.equal((panel.match(/<span class="stage-pips" aria-hidden="true">([\s\S]*?)<\/span>/)[1].match(/<i><\/i>/g) ?? []).length, ws1.missions.length);
   assert.match(panel, /<span class="stage-pin" data-here hidden><i class="emblem emblem-location" aria-hidden="true"><\/i>지금 여기<\/span>/);
-  assert.match(panel, /<span class="stage-sparks" aria-hidden="true">/);
-  assert.match(panel, new RegExp(`0/${ws1.missions.length} 단계`));
-  assert.match(html, /data-progress-text>0 \/ 4 단계</);
+  // 글은 이름표뿐: 설명·버튼·단계 목록 없음
+  assert.doesNotMatch(html, /stage-card|stage-go|stage-steps|course-step|progress-overall|한 칸씩/);
+  // 잠긴 회차: 링크 없이 자물쇠, 여는 시각은 화면 읽기용으로만
   const locked = html.match(/<li class="stage is-locked c-violet">[\s\S]*?<\/li>/)[0];
-  assert.match(locked, /🔒<\/span> 11\/2 \(월\) 18:00에 열려요 · 5단계/);
-  assert.doesNotMatch(locked, /href=|data-step-link/);
-  assert.equal((html.match(/<li class="stage is-fog">/g) ?? []).length, 2, 'workshops still in planning are fogged');
-  assert.match(html, /<li class="stage is-goal c-orange">[\s\S]*?island-05\.webp[\s\S]*?<a href="\/showcase\/">만든 것을 소개하는 날<\/a>[\s\S]*?<\/ol>/);
+  assert.doesNotMatch(locked, /href=/);
+  assert.match(locked, /emblem-locked/);
+  assert.match(locked, /<span class="sr-only" data-stage-state> · 잠김, 11\/2 \(월\) 18:00에 열려요<\/span>/);
+  // 기획 중인 회차: mapTitle이 있으면 그 이름만
+  const fog = [...html.matchAll(/<li class="stage is-fog">[\s\S]*?<\/li>/g)].map(m => m[0]);
+  assert.equal(fog.length, 2);
+  assert.match(fog[0], /<span class="stage-kicker">Workshop 03<\/span>\s*<span class="stage-title">Midterm Showcase<\/span>/);
+  assert.doesNotMatch(fog[1], /stage-title/);
+  assert.match(html, /<li class="stage is-goal c-orange">\s*<a class="stage-link" href="\/showcase\/">[\s\S]*?island-05\.webp[\s\S]*?<span class="stage-title">Final Showcase<\/span>/);
   // 지도에 쓰는 그림이 모두 빌드 결과에 있어요.
   const art = [...new Set([...html.matchAll(/\/images\/learn-map\/[\w-]+\.webp/g)].map(m => m[0]))];
   assert.equal(art.length, 5);
