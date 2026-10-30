@@ -75,9 +75,11 @@ export async function buildCampusRelease(store, campusId, { mode }) {
 export async function buildGlobalRelease(store) {
   const home = await store.getItem('home');
   if (!home) return { problems: ['통합 메인 내용을 먼저 저장해 주세요.'] };
-  const snapshot = { home: pick(home, 'home'), media: home.data.heroMediaId ? [home.data.heroMediaId] : [] };
+  // 첫 화면 사진과 세 활동의 배경 사진
+  const media = [...new Set(['heroMediaId', 'learnMediaId', 'makeMediaId', 'shareMediaId'].map(key => home.data[key]).filter(Boolean))];
+  const snapshot = { home: pick(home, 'home'), media };
   const problems = [];
-  if (home.data.heroMediaId && !(await store.getMediaInfo(home.data.heroMediaId))) problems.push('통합 메인: Hero 이미지를 찾을 수 없어요.');
+  for (const id of media) if (!(await store.getMediaInfo(id))) problems.push(`통합 메인: 올린 사진 ${id}을 찾을 수 없어요. 다시 올려 주세요.`);
   return { problems, snapshot, itemRevisions: { home: home.revision } };
 }
 

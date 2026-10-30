@@ -173,7 +173,34 @@ main:focus { outline: none; }
 .block-title { font-size: clamp(1.3rem, 2.4vw, 1.7rem); font-weight: 800; margin-top: 1.4em; }
 .section-tight .block-title:first-child { margin-top: 0; }
 
-.section-program { background: var(--paper); }
+/* 프로그램: 어두운 무대 위에 활동별 배경(사진, 없으면 활동 색 빛)이 깔리고, 화면 가운데 온 활동 칸의 배경으로 천천히 바뀝니다.
+   배경 무대(program-bg-stage)는 영역 안에서 화면에 붙어 있어(sticky) 스크롤하는 동안 계속 보입니다.
+   JS가 없으면 Workshop 배경 하나만 보여요. */
+.section-program { position: relative; isolation: isolate; overflow: clip; background: #120a2e; color: #fff; }
+.program-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.program-bg-stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+.program-layer { position: absolute; inset: 0; opacity: 0; transition: opacity .9s ease; }
+.program-layer img { width: 100%; height: 100%; max-width: none; object-fit: cover; transform: scale(1.12); transition: transform 6s cubic-bezier(.2, .6, .2, 1); }
+/* 글씨가 읽히도록 왼쪽(제목 쪽)을 더 어둡게 덮습니다. */
+.program-layer:has(img)::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(14, 8, 40, .9) 0%, rgba(14, 8, 40, .66) 42%, rgba(14, 8, 40, .4) 100%); }
+.layer-learn { background: radial-gradient(60% 70% at 18% 30%, rgba(16, 169, 87, .65), transparent 70%), radial-gradient(50% 60% at 90% 90%, rgba(110, 38, 244, .35), transparent 70%), #0d1a2a; }
+.layer-make { background: radial-gradient(60% 70% at 80% 25%, rgba(123, 59, 255, .7), transparent 70%), radial-gradient(50% 60% at 10% 90%, rgba(16, 169, 87, .25), transparent 70%), #160b3a; }
+.layer-share { background: radial-gradient(60% 70% at 25% 75%, rgba(253, 101, 10, .6), transparent 70%), radial-gradient(50% 60% at 85% 15%, rgba(123, 59, 255, .4), transparent 70%), #24102a; }
+.section-program[data-active="learn"] .layer-learn,
+.section-program[data-active="make"] .layer-make,
+.section-program[data-active="share"] .layer-share { opacity: 1; }
+.section-program[data-active="learn"] .layer-learn img,
+.section-program[data-active="make"] .layer-make img,
+.section-program[data-active="share"] .layer-share img { transform: scale(1); }
+.section-program .section-lead { color: rgba(255, 255, 255, .88); }
+/* 지금 보는 활동 표시: 누르면 그 활동 칸으로 갑니다. */
+.program-index { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 0; padding: 0; list-style: none; }
+.program-index a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid rgba(255, 255, 255, .28); border-radius: 999px; color: rgba(255, 255, 255, .8); font-weight: 700; text-decoration: none; transition: background-color .3s, color .3s, border-color .3s; }
+.program-index a::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .6; }
+.program-index a:hover { color: #fff; border-color: #fff; }
+.section-program[data-active="learn"] .idx-learn a { background: #0b7a3e; border-color: #0b7a3e; color: #fff; }
+.section-program[data-active="make"] .idx-make a { background: #5a22e0; border-color: #5a22e0; color: #fff; }
+.section-program[data-active="share"] .idx-share a { background: #b44708; border-color: #b44708; color: #fff; }
 .program-grid { display: grid; gap: 40px; }
 .program-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; }
 /* 세 활동 카드는 SC 로고 색(초록·보라·주황)으로 채우고 흰 글씨. 본문 글씨가 읽히도록(대비 4.5 이상) 진한 쪽 색을 씁니다. */
@@ -186,12 +213,18 @@ main:focus { outline: none; }
 .step-en { font-size: clamp(1.7rem, 3.4vw, 2.6rem); font-weight: 850; letter-spacing: -0.035em; }
 .step-ko { font-size: clamp(1.15rem, 2vw, 1.4rem); font-weight: 700; letter-spacing: -0.01em; opacity: .9; }
 .program-step p { color: rgba(255, 255, 255, .95); font-size: clamp(1.08rem, 1.7vw, 1.25rem); line-height: 1.6; margin: 0; max-width: 30em; }
-.program-step.is-current { transform: translateY(-4px); box-shadow: 0 24px 48px rgba(42, 21, 128, .22); }
+.program-step { scroll-margin-top: calc(var(--header-h) + 24px); transition: transform .4s ease, box-shadow .4s ease, opacity .4s ease; }
+.program-step.is-current { transform: translateY(-4px); box-shadow: 0 28px 60px rgba(0, 0, 0, .35); }
+/* 가운데 온 칸이 있을 때 나머지 칸은 살짝 물러납니다. */
+.section-program.is-live:has(.is-current) .program-step:not(.is-current) { opacity: .6; transform: scale(.97); }
 @media (min-width: 960px) {
   .program-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 64px; align-items: start; }
   /* 데스크톱에서만 짧은 sticky 제목. 세 설명은 모두 문서에 있고, 빈 스크롤 구간은 만들지 않습니다. */
   .program-head { position: sticky; top: calc(var(--header-h) + 40px); }
   .program-step { min-height: 300px; display: flex; flex-direction: column; justify-content: center; }
+}
+@media (max-width: 959px) {
+  .program-layer:has(img)::after { background: linear-gradient(180deg, rgba(14, 8, 40, .82) 0%, rgba(14, 8, 40, .55) 100%); }
 }
 
 .section-campuses { background: var(--paper-2); }

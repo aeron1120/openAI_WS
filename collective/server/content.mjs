@@ -143,7 +143,7 @@ export const KINDS = {
     global: true,
     groups: {
       hero: { title: '첫 화면 (보라색 영역)', hint: '비워 둔 칸은 회색으로 보이는 기본 문구를 써요. 줄을 바꾸면 화면에서도 줄이 바뀌어요.' },
-      program: { title: '프로그램 소개 (세 가지 활동)', hint: '비워 둔 칸은 회색으로 보이는 기본 문구를 써요.' },
+      program: { title: '프로그램 소개 (세 가지 활동)', hint: '비워 둔 칸은 회색으로 보이는 기본 문구를 써요. 사진을 넣으면 스크롤해서 그 활동 칸이 가운데 올 때 영역 전체 배경이 그 사진으로 바뀌어요. 사진이 없으면 활동 색 배경이에요.' },
       featured: { title: '추천 순서', hint: '체크한 항목을 먼저 보여줘요. 숨기거나 게시하지 않은 항목은 자동으로 빠져요.' },
       about: { title: '소개·문의 페이지' }
     },
@@ -156,8 +156,11 @@ export const KINDS = {
       f('programTitle', 'textarea', '프로그램 제목', { max: 60, group: 'program' }),
       f('programIntro', 'textarea', '프로그램 설명', { max: 400, group: 'program' }),
       f('learnText', 'textarea', 'Workshop (배우기) 설명', { max: 300, group: 'program' }),
+      f('learnMediaId', 'media', 'Workshop 배경 사진 (가로 사진, 실제 활동 사진)', { group: 'program' }),
       f('makeText', 'textarea', 'Studio Session (만들기) 설명', { max: 300, group: 'program' }),
+      f('makeMediaId', 'media', 'Studio Session 배경 사진', { group: 'program' }),
       f('shareText', 'textarea', 'Showcase (공유하기) 설명', { max: 300, group: 'program' }),
+      f('shareMediaId', 'media', 'Showcase 배경 사진', { group: 'program' }),
       f('featuredCampuses', 'refs', '추천 학교', { refKind: 'campus', group: 'featured' }),
       f('featuredEvents', 'refs', '추천 행사', { refKind: 'event', group: 'featured' }),
       f('featuredProjects', 'refs', '추천 프로젝트', { refKind: 'project', group: 'featured' }),

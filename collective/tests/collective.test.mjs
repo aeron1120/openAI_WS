@@ -354,6 +354,22 @@ test('파일은 실제 형식을 확인하고, 게시 전 파일은 관리자만
   assert.equal(bad.status, 415);
 });
 
+test('통합 메인 활동 배경 사진은 게시하면 공개되고, 사진이 없는 활동은 색 배경만 쓴다', async () => {
+  const t = await setup();
+  const upload = await t.json('POST', '/api/manage/media', undefined, { raw: PNG, headers: { 'content-type': 'image/png', 'x-filename': 'make.png' } });
+  const mediaId = upload.data.media.id;
+  await t.json('POST', '/api/manage/items', { kind: 'home', data: { ...emptyData('home'), makeMediaId: mediaId } });
+  assert.equal((await t.get(`/media/${mediaId}`)).status, 404, '게시 전에는 관리자만');
+  await t.publish(['global']);
+  assert.equal((await t.get(`/media/${mediaId}`)).status, 200);
+  const home = await t.text('/');
+  assert.match(home, /<section id="program"[^>]*data-program data-active="learn">/);
+  assert.match(home, /<div class="program-layer layer-learn" data-layer="learn"><\/div>/);
+  assert.match(home, new RegExp(`<div class="program-layer layer-make" data-layer="make"><img src="/media/${mediaId}" alt=""`));
+  assert.match(home, /<a href="#step-share">공유하기<\/a>/);
+  assert.match(home, /id="step-share" data-step="share"/);
+});
+
 // ---------- 공개 화면 상태 ----------
 test('공개된 학교가 없거나 없는 학교 주소면 정직하게 안내한다', async () => {
   const t = await setup();

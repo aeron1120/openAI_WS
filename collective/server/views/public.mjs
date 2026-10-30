@@ -40,9 +40,9 @@ export function homePage(ctx) {
   const showEvents = (featuredEvents.length ? featuredEvents : events).slice(0, 4);
   const showProjects = (featuredProjects.length ? featuredProjects : projects.filter(entry => entry.project.featured)).slice(0, 6);
   const steps = [
-    ['learn', '배우기', 'Workshop', home.learnText],
-    ['make', '만들기', 'Studio Session', home.makeText],
-    ['share', '공유하기', 'Showcase', home.shareText]
+    ['learn', '배우기', 'Workshop', home.learnText, home.learnMediaId],
+    ['make', '만들기', 'Studio Session', home.makeText, home.makeMediaId],
+    ['share', '공유하기', 'Showcase', home.shareText, home.shareMediaId]
   ];
 
   const hero = `<section class="hero" aria-labelledby="hero-title">
@@ -60,14 +60,21 @@ export function homePage(ctx) {
   </div>
 </section>`;
 
-  const program = `<section id="program" class="section section-program" aria-labelledby="program-title">
+  // 배경: 활동마다 한 장(사진, 없으면 활동 색). 화면 가운데 온 활동 칸의 배경이 드러납니다(site.js가 data-active를 바꿈).
+  const program = `<section id="program" class="section section-program" aria-labelledby="program-title" data-program data-active="learn">
+  <div class="program-bg" aria-hidden="true"><div class="program-bg-stage">
+    ${steps.map(([key, , , , mediaId]) => `<div class="program-layer layer-${key}" data-layer="${key}">${mediaId ? `<img src="/media/${attr(mediaId)}" alt="" loading="lazy" decoding="async" width="1600" height="900">` : ''}</div>`).join('')}
+  </div></div>
   <div class="wrap program-grid">
     <div class="program-head">
       <h2 id="program-title" class="section-title">${lines(home.programTitle)}</h2>
       <p class="section-lead">${esc(home.programIntro)}</p>
+      <ol class="program-index" aria-label="세 가지 활동">
+        ${steps.map(([key, ko]) => `<li class="idx-${key}"><a href="#step-${key}">${ko}</a></li>`).join('')}
+      </ol>
     </div>
     <ol class="program-steps">
-      ${steps.map(([key, ko, en, text]) => `<li class="program-step step-${key}" data-step data-reveal>
+      ${steps.map(([key, ko, en, text]) => `<li class="program-step step-${key}" id="step-${key}" data-step="${key}" data-reveal>
         <h3><span class="step-en">${en}</span><span class="step-ko">${ko}</span></h3>
         <p>${esc(text)}</p>
       </li>`).join('')}

@@ -33,11 +33,16 @@
     items.forEach(item => { if (!item.classList.contains('is-in')) observer.observe(item); });
   }
 
-  // #program: 화면 가운데에 온 단계를 강조
+  // #program: 화면 가운데에 온 단계를 강조하고, 영역 배경을 그 단계의 사진(색)으로 바꿉니다.
+  const program = document.querySelector('[data-program]');
   const steps = document.querySelectorAll('[data-step]');
   if (steps.length && 'IntersectionObserver' in window) {
+    program?.classList.add('is-live');
     const stepObserver = new IntersectionObserver(entries => {
-      for (const entry of entries) entry.target.classList.toggle('is-current', entry.isIntersecting);
+      for (const entry of entries) {
+        entry.target.classList.toggle('is-current', entry.isIntersecting);
+        if (entry.isIntersecting && program) program.dataset.active = entry.target.dataset.step;
+      }
     }, { rootMargin: '-45% 0px -45% 0px' });
     steps.forEach(step => stepObserver.observe(step));
   }
