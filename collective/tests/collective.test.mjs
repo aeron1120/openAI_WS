@@ -355,7 +355,10 @@ test('공개된 학교가 없거나 없는 학교 주소면 정직하게 안내�
   const missing = await t.get('/campuses/nowhere/');
   assert.equal(missing.status, 404);
   assert.match(await missing.text(), /찾는 학교 공간이 없어요/);
-  assert.match(await t.text('/campuses/?q=없는학교'), /맞는 학교가 없어요/);
+  // 공개된 학교가 하나도 없어도, 검색했으면 검색 결과가 없다고 알려줍니다.
+  const searched = await t.text('/campuses/?q=없는학교');
+  assert.match(searched, /‘없는학교’에 맞는 학교가 없어요/);
+  assert.doesNotMatch(searched, /data-search-empty hidden/);
 });
 
 test('준비 중 학교는 상태를 화면에 표시한다', async () => {

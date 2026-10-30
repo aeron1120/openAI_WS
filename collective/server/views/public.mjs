@@ -150,8 +150,8 @@ export function campusesPage(ctx, query = '') {
   <p class="section-lead">공개된 학교 공간이에요. 내 학교를 골라 일정과 참여 방법을 확인하세요.</p>
   ${searchForm(ctx, query)}
   ${ctx.campuses.length ? `<ul class="campus-list" data-campus-list>${list.map(snapshot => campusCard(ctx, snapshot)).join('')}</ul>` : ''}
-  <p class="search-empty" data-search-empty${list.length || !ctx.campuses.length ? ' hidden' : ''}>‘${esc(query)}’에 맞는 학교가 없어요. 아직 열리지 않은 학교일 수 있어요. <a href="${ctx.base}/about/#open">학교 개설 안내</a></p>
-  ${ctx.campuses.length ? '' : emptyState('공개된 학교 공간을 준비하고 있어요.')}
+  <p class="search-empty" data-search-empty${list.length || !q ? ' hidden' : ''}>‘${esc(query)}’에 맞는 학교가 없어요. 아직 열리지 않은 학교일 수 있어요. <a href="${ctx.base}/about/#open">학교 개설 안내</a></p>
+  ${ctx.campuses.length || q ? '' : emptyState('공개된 학교 공간을 준비하고 있어요.')}
 </div></section>`;
   return page({ ctx, title: '학교 찾기', description: 'Student Collective가 열린 학교 목록', header: collectiveHeader(ctx), canonicalPath: '/campuses/', body });
 }
