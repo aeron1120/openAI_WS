@@ -246,7 +246,11 @@ const recap = {
   '사진': 'Photos',
   'Recap 목록': 'All Recaps',
   '초안 · 공개 안 됨': 'Draft · not public',
-  '날짜 미정': 'Date to be added'
+  '날짜 미정': 'Date to be added',
+  // ws1-1026
+  '기초 틀을 열고 Codex로 첫 기능을 연결했어요.': 'We opened the starter and connected a first feature with Codex.',
+  '56동 105호에서 첫 워크숍을 열었어요. 각자 기초 틀을 내 컴퓨터에서 실행하고, Codex와 함께 로그인·지도·날씨 중 하나를 연결했어요.': 'Our first workshop, in Building 56, Room 105. Everyone ran the starter on their own computer and, with Codex, connected sign-in, a map or weather.',
+  '강의실에서 노트북을 펴고 앞쪽 발표를 듣는 참가자들. 얼굴은 흐리게 처리했어요.': 'Participants with laptops open, listening to the talk at the front of the room. Faces are blurred.'
 };
 
 const about = {

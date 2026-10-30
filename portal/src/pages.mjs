@@ -555,7 +555,7 @@ export function recapDetailPage(content, r) {
 </header>
 <section class="block reveal" aria-label="사진">
   ${photos.length
-    ? h`<ul class="recap-gallery">${photos.map(p => h`<li><figure>${recapFrame(p, p.alt)}${p.caption ? h`<figcaption>${p.caption}</figcaption>` : ''}</figure></li>`)}</ul>`
+    ? h`<ul class="recap-gallery${photos.length === 1 ? ' is-single' : ''}">${photos.map(p => h`<li><figure>${recapFrame(p, p.alt)}${p.caption ? h`<figcaption>${p.caption}</figcaption>` : ''}</figure></li>`)}</ul>`
     : h`<p class="empty">사진을 준비하고 있어요.</p>`}
 </section>
 <div class="actions recap-back"><a class="btn btn-ghost" href="/recap/">${arrow('←')} Recap 목록</a></div>`;

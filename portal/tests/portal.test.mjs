@@ -56,7 +56,9 @@ const PHOTO = '/images/walk/codex/01-chatgpt-home.webp';
 const recapFixture = (slug, eventDate, extra = {}) => ({ slug, status: 'published', title: `Event ${slug}`, eventDate, summary: `summary ${slug}`, intro: `intro ${slug}`, photos: [{ src: PHOTO, alt: `photo ${slug}` }], ...extra });
 
 test('Recap sits alone under 활동 기록 in the menu and shows an empty state until a record is published', async t => {
-  const { read } = await build(t);
+  const empty = clone(defaultContent);
+  empty.recaps = [];
+  const { read } = await build(t, empty);
   const home = await read('/');
   const nav = home.match(/<aside class="sidebar">[\s\S]*?<\/aside>/)[0];
   const titles = [...nav.matchAll(/<p class="nav-title">([^<]+)<\/p>/g)].map(m => m[1]);
@@ -108,7 +110,8 @@ test('a published Recap needs a real date, text and photos that exist with alt t
 
 test('every route, 404, sitemap and one page set per schedule window are built', async t => {
   const { pages, outDir, read, variants } = await build(t);
-  const portalPages = ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/recap/', '/about/'];
+  const recapPages = defaultContent.recaps.filter(r => r.status === 'published').sort((a, b) => b.eventDate.localeCompare(a.eventDate) || a.slug.localeCompare(b.slug)).map(r => `/recap/${r.slug}/`);
+  const portalPages = ['/', '/roadmap/', '/workshops/', '/workshops/01/', '/workshops/02/', '/workshops/03/', '/workshops/04/', '/studio/', '/showcase/', '/recap/', ...recapPages, '/about/'];
   assert.deepEqual(pages, [...portalPages.flatMap(p => [p, `/en${p}`]), '/learn/', '/learn/questions/', '/admin/', '/learn/01/']);
   assert.ok(await exists(path.join(outDir, '404.html')));
   const sitemap = await read('sitemap.xml');

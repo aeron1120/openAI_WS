@@ -412,7 +412,11 @@ ol.step-list > li::before { content: "Step " counter(step); color: var(--em); fo
 .recap-head .track-kicker { color: var(--navy); font-size: .9rem; }
 .recap-head h1 { overflow-wrap: anywhere; }
 .recap-gallery figure { margin: 0; }
-.recap-gallery .recap-frame { border-radius: 16px; }
+/* 상세 화면은 사진을 자르지 않고 원래 비율로 크게. 한 장이면 넓게 펼칩니다. */
+.recap-gallery { grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); }
+.recap-gallery.is-single { grid-template-columns: minmax(0, 960px); }
+.recap-gallery .recap-frame { aspect-ratio: auto; min-height: 180px; border-radius: 16px; }
+.recap-gallery .recap-frame img { height: auto; }
 .recap-gallery figcaption { margin-top: 8px; color: var(--muted); font-size: .88rem; line-height: 1.5; overflow-wrap: anywhere; }
 .recap-back { margin-top: 28px; }
 /* 막혔을 때: 머리말 오른쪽 위 ? 버튼과 그 아래 열리는 도움말 */
