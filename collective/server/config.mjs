@@ -3,7 +3,9 @@
 const PRODUCTION_REQUIRED = ['PUBLIC_ORIGIN', 'SESSION_SECRET', 'ADMIN_EMAILS', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY'];
 const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-export function loadConfig(env) {
+export function loadConfig(rawEnv) {
+  // 대시보드에 붙여 넣을 때 딸려 온 앞뒤 공백·줄바꿈은 지웁니다(한 글자만 달라도 Google·Supabase가 거절).
+  const env = Object.fromEntries(Object.entries(rawEnv).map(([key, value]) => [key, typeof value === 'string' ? value.trim() : value]));
   const mode = env.CMS_MODE === 'local' ? 'local' : 'production';
   const problems = [];
   if (mode === 'local') {

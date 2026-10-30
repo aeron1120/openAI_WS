@@ -10,9 +10,9 @@ export async function onRequest({ request, env }) {
   if (!app) {
     const runtimeEnv = { ...env, CMS_MODE: 'production' };
     // 빠진 값·형식 문제는 이름만 로그에 남깁니다(값은 남기지 않음). 확인: wrangler pages deployment tail
-    const { problems } = loadConfig(runtimeEnv);
+    const { problems, supabase } = loadConfig(runtimeEnv);
     if (problems.length) console.warn(`collective: 설정 필요 → ${problems.join(', ')}`);
-    const store = env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY ? createSupabaseStore({ url: env.SUPABASE_URL, key: env.SUPABASE_SERVICE_KEY }) : null;
+    const store = supabase.url && supabase.key ? createSupabaseStore(supabase) : null;
     app = createApp({ env: runtimeEnv, store });
   }
   return app(request);
