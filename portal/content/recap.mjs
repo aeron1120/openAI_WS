@@ -17,18 +17,4 @@
 //
 // 사진: portal/public/images/recap/<slug>/에 둡니다. 공개 동의를 받은 사진만, 이름표·학번·화면 속 개인정보가 보이지 않게,
 // 위치 정보(EXIF)를 지운 뒤 올리세요. alt(무엇이 보이는지)는 꼭 적습니다. 영어 페이지용 번역은 content/en.mjs에 더합니다.
-export const recaps = [
-  {
-    slug: 'ws1-1026',
-    status: 'published',
-    title: 'Workshop 1',
-    eventDate: '2026-10-26',
-    summary: '기초 틀을 열고 Codex로 첫 기능을 연결했어요.',
-    intro: '56동 105호에서 첫 워크숍을 열었어요. 각자 기초 틀을 내 컴퓨터에서 실행하고, Codex와 함께 로그인·지도·날씨 중 하나를 연결했어요.',
-    cover: 0,
-    // 얼굴은 흐리게 처리하고 노트북 화면은 원본부터 가려진 사진입니다.
-    photos: [
-      { src: '/images/recap/ws1-1026/01.jpg', alt: '강의실에서 노트북을 펴고 앞쪽 발표를 듣는 참가자들. 얼굴은 흐리게 처리했어요.' }
-    ]
-  }
-];
+export const recaps = [];
