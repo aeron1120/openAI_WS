@@ -83,6 +83,7 @@ code { background: #eef0f6; padding: 1px 6px; border-radius: 4px; font-size: .9e
 .m-mat-row { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; background: #fafbfd; }
 .m-mat-row label { display: grid; gap: 4px; font-size: .9rem; font-weight: 600; }
 @media (min-width: 900px) { .m-mat-row { grid-template-columns: 2fr 1.4fr 1fr auto; align-items: end; } .m-mat-row .m-hint { grid-column: 1 / -1; } }
+.m-field > .m-btn { justify-self: start; }
 .m-media-current { display: flex; align-items: center; gap: 10px; min-height: 40px; }
 .m-media-current img { width: 160px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
 .m-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; position: sticky; bottom: 0; background: var(--paper); padding: 12px 0 4px; border-top: 1px solid var(--line); }
