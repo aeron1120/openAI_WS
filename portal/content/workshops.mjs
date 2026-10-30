@@ -349,7 +349,7 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
     highlights: [],
     message: null,
     outcome: null,
-    summary: '서울대 참가 팀이 만든 앱을 부스에서 직접 체험해요. 타 대학 협업 일정이 있으면 Workshop 3, 없으면 Workshop 4에 진행 예정이에요. 날짜·장소는 추후 안내해요.',
+    summary: '워크숍에서 개발한 앱을 전시하고 실제 사용자 피드백을 받아요. 날짜, 장소는 추후 안내해요.',
     doing: null,
     event: { status: 'planning', start: null, end: null, place: null },
     recruitment: { open: false, url: null },
