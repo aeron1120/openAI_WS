@@ -216,6 +216,7 @@
       const names = plan.map(entry => entry.label).join(', ');
       planBox.innerHTML = `<h2>변경 요약</h2>${plan.map(entry => `<div class="m-plan-entry"><h3>${esc(entry.label)} <span class="m-muted">${entry.currentNumber ? `지금 공개본 ${entry.currentNumber}번 → ${entry.currentNumber + 1}번` : '첫 게시'}</span></h3>
         ${entry.problems.length ? `<ul class="m-problems">${entry.problems.map(problem => `<li>${esc(problem)}</li>`).join('')}</ul>` : ''}
+        ${entry.notes?.length ? `<ul class="m-notes">${entry.notes.map(note => `<li>${esc(note)}</li>`).join('')}</ul>` : ''}
         ${entry.diff ? `<ul>${entry.diff.lines.map(line => `<li>${esc(line)}</li>`).join('')}</ul>` : ''}</div>`).join('')}
         ${blocked ? '<p class="m-status-box m-status-error">고칠 내용이 있어 게시할 수 없어요. 위 항목을 고친 뒤 다시 확인해 주세요.</p>' : `<p><button class="m-btn" type="button" data-publish-go>${esc(names)}에 게시</button></p><p class="m-hint">게시하면 공개 사이트의 다음 요청부터 바로 반영돼요.</p>`}`;
       planBox.querySelector('[data-publish-go]')?.addEventListener('click', doPublish);

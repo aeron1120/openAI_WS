@@ -1,7 +1,7 @@
 // 초안 → 게시본 스냅샷. 게시 전 검증, 이전 게시본과의 차이 요약, 미리보기가 모두 이 함수를 씁니다.
 // 스냅샷에는 공개 화면에 필요한 값만 담습니다(동의 기록 같은 비공개 필드는 빼요).
 // 자료 본문·파일은 스냅샷에 넣지 않습니다. 공개 화면은 자료 버전의 전체 공개 시각을 요청 때마다 확인한 뒤에만 보여줍니다.
-import { KINDS } from './content.mjs';
+import { CAMPUS_STATUS, KINDS, LISTED_STATUS } from './content.mjs';
 
 export const campusScope = campusId => `campus:${campusId}`;
 export const GLOBAL_SCOPE = 'global';
@@ -66,7 +66,10 @@ export async function buildCampusRelease(store, campusId, { mode }) {
     media: [...media]
   };
   const itemRevisions = Object.fromEntries([campusItem, ...items].map(item => [item.id, item.revision]));
-  return { problems, snapshot, itemRevisions };
+  // 게시는 되지만 공개 화면에 안 보이는 경우를 미리 알려줍니다(막지는 않음: 보관 처리도 게시로 하므로).
+  const notes = [];
+  if (!LISTED_STATUS.has(campus.status)) notes.push(`${label}: 운영 상태가 ‘${CAMPUS_STATUS[campus.status]}’라 게시해도 공개 목록과 학교 주소에 나오지 않아요. 보이게 하려면 학교 정보에서 ‘운영 중’이나 ‘준비 중’으로 바꿔 저장한 뒤 게시하세요.`);
+  return { problems, notes, snapshot, itemRevisions };
 }
 
 export async function buildGlobalRelease(store) {

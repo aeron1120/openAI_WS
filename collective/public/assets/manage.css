@@ -90,6 +90,7 @@ code { background: #eef0f6; padding: 1px 6px; border-radius: 4px; font-size: .9e
 .m-save-state { color: var(--muted); font-size: .9rem; }
 .m-plan-entry { border-top: 1px solid var(--line); padding: 12px 0; }
 .m-problems { color: var(--danger); font-weight: 600; }
+.m-notes { color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 10px 10px 10px 28px; font-weight: 600; }
 .m-list { padding-left: 1.1em; }
 .m-list li { margin-bottom: 10px; }
 .m-bare { display: grid; place-items: center; min-height: 100vh; }

@@ -240,6 +240,14 @@ test('숨김·보관·추천 해제가 실제 노출에 반영된다', async () 
   assert.ok(await t.store.getItem(eventId), '보관해도 콘텐츠는 남는다');
 });
 
+test('초안 상태 학교를 게시하려 하면 목록에 안 보인다고 미리 알려준다', async () => {
+  const t = await setup();
+  const created = await t.json('POST', '/api/manage/campuses', { name: '서울대학교', slug: 'snu', termName: '학기' });
+  const plan = await t.json('POST', '/api/manage/publish/plan', { scopes: [`campus:${created.data.id}`] });
+  assert.match(plan.data.plan[0].notes.join(), /공개 목록과 학교 주소에 나오지 않아요/);
+  assert.equal(plan.data.plan[0].problems.length, 0, '막지는 않는다');
+});
+
 test('시험용 학교는 운영 모드에서 게시할 수 없다', async () => {
   const t = await setup();
   const created = await t.json('POST', '/api/manage/campuses', { name: '시험', slug: 'test', termName: '학기', fixture: true });

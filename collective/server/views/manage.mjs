@@ -91,7 +91,7 @@ export async function campusList(actx) {
   const active = new Map((await store.activeReleases()).map(release => [release.scope, release]));
   const rows = campuses.map(item => {
     const release = active.get(campusScope(item.id));
-    return `<tr><td><a href="/manage/campuses/${attr(item.id)}/">${esc(item.data.name)}</a>${item.data.fixture ? ` ${pill('시험용', 'warn')}` : ''}</td><td><code>/campuses/${esc(item.data.slug)}/</code></td><td>${esc(CAMPUS_STATUS[item.data.status])}</td><td>${release ? `${release.number}번 게시본 · ${esc(CAMPUS_STATUS[release.snapshot.campus.status])}` : pill('게시 전')}</td></tr>`;
+    return `<tr><td><a href="/manage/campuses/${attr(item.id)}/">${esc(item.data.name)}</a>${item.data.fixture ? ` ${pill('시험용', 'warn')}` : ''}</td><td>${item.data.externalUrl ? `학교 사이트로 바로 연결<br><code>${esc(item.data.externalUrl)}</code>` : `<code>/campuses/${esc(item.data.slug)}/</code>`}</td><td>${esc(CAMPUS_STATUS[item.data.status])}</td><td>${release ? `${release.number}번 게시본 · ${esc(CAMPUS_STATUS[release.snapshot.campus.status])}` : pill('게시 전')}</td></tr>`;
   }).join('');
   const body = `<h1>학교 관리</h1>
 <table class="m-table"><caption class="sr-only">학교 목록</caption><thead><tr><th scope="col">학교</th><th scope="col">주소</th><th scope="col">초안 상태</th><th scope="col">공개본</th></tr></thead><tbody>${rows || '<tr><td colspan="4">아직 학교가 없어요.</td></tr>'}</tbody></table>

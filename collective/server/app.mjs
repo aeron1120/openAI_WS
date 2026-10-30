@@ -320,6 +320,7 @@ export function createApp({ env, store, fetchImpl = fetch, now = () => Date.now(
         scope,
         label: scope === GLOBAL_SCOPE ? '통합 메인' : built.snapshot?.campus.name ?? scope,
         problems: built.problems,
+        notes: built.notes ?? [],
         diff: built.snapshot ? diffSnapshots(current?.snapshot ?? null, built.snapshot) : null,
         currentNumber: current?.number ?? null,
         itemRevisions: built.itemRevisions ?? {}
