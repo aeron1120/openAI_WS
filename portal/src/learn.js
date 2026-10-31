@@ -252,8 +252,8 @@
     map.querySelector('[data-map-done]').replaceChildren(...segments);
   }
 
-  // 수업 지도: 섬마다 진도 점과 들어갈 주소(처음으로 안 끝낸 단계), 다 끝낸 섬은 완료 표시,
-  // 아직 다 끝내지 않은 첫 섬에 '지금 여기'를 붙입니다. 진도를 못 불러와도 지도는 그대로 씁니다.
+  // 수업 지도: 섬마다 들어갈 주소(처음으로 안 끝낸 단계)와 상태 칩, 다 끝낸 섬은 완료 표시,
+  // 아직 다 끝내지 않은 첫 섬에 '지금 여기'와 다음 미션 카드를 붙입니다. 진도를 못 불러와도 지도는 그대로 씁니다.
   function initList(content) {
     const map = content.querySelector('[data-map]');
     const redraw = () => map && drawMap(map);
@@ -261,24 +261,38 @@
     if (map && 'ResizeObserver' in window) new ResizeObserver(redraw).observe(map);
     loadProgress().then(done => {
       let here = null;
+      let cleared = 0;
       for (const course of content.querySelectorAll('[data-course]')) {
         const finished = done.get(Number(course.dataset.course)) ?? new Set();
         const steps = JSON.parse(course.dataset.steps);
-        const next = steps.find(id => !finished.has(id));
+        const titles = JSON.parse(course.dataset.titles);
+        const next = steps.findIndex(id => !finished.has(id));
         const count = steps.filter(id => finished.has(id)).length;
-        course.querySelectorAll('.stage-pips i').forEach((pip, i) => pip.classList.toggle('is-done', finished.has(steps[i])));
-        course.classList.toggle('is-clear', steps.length > 0 && !next);
-        if (next) here ??= course;
-        course.querySelector('[data-continue]').href = `${course.dataset.path}#step-${next ?? steps[0]}`;
-        course.querySelector('[data-stage-state]').textContent = ` · ${count}/${steps.length}단계 완료 · ${!count ? '시작하기' : next ? '이어서 하기' : '다시 보기'}`;
+        const clear = steps.length > 0 && next < 0;
+        if (clear) cleared++;
+        else here ??= course;
+        course.classList.toggle('is-clear', clear);
+        const href = `${course.dataset.path}#step-${steps[next < 0 ? 0 : next]}`;
+        for (const link of course.querySelectorAll('[data-continue]')) link.href = href;
+        const chip = course.querySelector('[data-stage-chip]');
+        chip.textContent = clear ? '수업 완료' : count ? '진행 중' : '도전 가능';
+        chip.className = `stage-chip chip-${clear ? 'clear' : 'open'}`;
+        course.querySelector('[data-mission-title]').textContent = titles[next < 0 ? 0 : next];
+        setProgress(course.querySelector('[data-mission] [data-progress]'), count, steps.length, `${count} / ${steps.length} 미션 완료`);
       }
       for (const course of content.querySelectorAll('[data-course]')) {
         const on = course === here;
         course.classList.toggle('is-here', on);
         course.querySelector('[data-here]').hidden = !on;
+        course.querySelector('[data-mission]').hidden = !on;
+        course.querySelector('[data-stage-chip]').hidden = on;
+        const avatar = course.querySelector('[data-avatar]');
+        if (avatar) avatar.hidden = !on;
         if (on) course.setAttribute('aria-current', 'step');
         else course.removeAttribute('aria-current');
       }
+      const total = content.querySelector('[data-clear-count]');
+      if (total) total.textContent = `${cleared} / ${total.textContent.split('/')[1].trim()}`;
       redraw();
       celebrate(content);
     }).catch(() => {});
@@ -296,10 +310,10 @@
       const burst = el('span', 'stage-burst');
       burst.setAttribute('aria-hidden', 'true');
       for (let i = 0; i < 10; i++) {
-        const spark = el('i', `spark spark-${['star', 'sparkle', 'gold-dust', 'celebration'][i % 4]}`);
+        const spark = el('i', i % 2 ? 'burst-star' : 'burst-dot');
         const angle = (i / 10) * Math.PI * 2;
         spark.style.setProperty('--x', `${Math.round(Math.cos(angle) * 120)}px`);
-        spark.style.setProperty('--y', `${Math.round(Math.sin(angle) * 90)}px`);
+        spark.style.setProperty('--y', `${Math.round(Math.sin(angle) * 80)}px`);
         burst.append(spark);
       }
       stage.querySelector('.stage-spot').append(burst);

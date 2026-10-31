@@ -35,90 +35,97 @@ const progress = (text, className = '') => h`<div class="progress${className ? `
 // 단계 줄의 표시(✔ 완료 · ▶ 지금 · ○ 아직)는 learn.js가 바꿉니다. 화면 읽기 프로그램용 상태는 data-step-state.
 const stepRow = (m, i) => h`<span class="step-mark" aria-hidden="true">○</span><span class="step-no">${pad(i + 1)}</span><span class="step-title">${m.title}</span><span class="sr-only" data-step-state></span>`;
 
-// 수업 지도의 칸 하나 = 회차 하나. 떠 있는 섬 그림(public/images/learn-map/)과 그 아래 이름표("Workshop 01 / 화면에서 서비스로")만 보여줍니다.
-// 열린 회차는 섬·이름표 전체가 링크 하나이고, 누르면 처음으로 안 끝낸 단계로 들어갑니다(learn.js가 주소를 바꿈).
-// 다 끝낸 섬에는 완료 표시, 지금 할 섬에는 '지금 여기' 표시가 붙고, 단계 수만큼 작은 점이 진도를 보여줍니다.
-// 잠김·준비 중·진도 같은 상태는 그림으로만 보이고, 화면 읽기 프로그램에는 sr-only 글로 알려 줍니다.
-// 이름표는 content의 mapTitle(없으면 shortTitle). 그림이 없는 회차(5회차부터)는 번호 동그라미입니다.
+// 수업 지도의 칸 하나 = 회차 하나. 번호·이름·상태 칩 아래에 떠 있는 섬이 있고, 섬을 길로 잇습니다.
+// 열린 회차는 번호·이름·섬 전체가 링크 하나이고, 누르면 처음으로 안 끝낸 단계로 들어갑니다(learn.js가 주소를 바꿈).
+// 지금 할 섬에는 '지금 여기'와 옆에 '다음 미션' 카드(다음 단계 이름·진도·이어하기 버튼)가 붙습니다.
+// 섬 그림은 public/images/learn-map/의 ISLANDS 파일을 쓰고, 없으면 파스텔색 둥근 섬을 CSS로 그립니다.
+// 이름은 content의 mapTitle(없으면 shortTitle). 진도·상태는 실제 진도로만 표시합니다.
 const MAP = '/images/learn-map';
-const ISLANDS = { 1: 'island-01', 2: 'island-02', 3: 'island-03', 4: 'island-04', goal: 'island-05' };
-const SPARKS = {
-  1: ['laurel-leaf', 'rose-petal', 'sparkle'],
-  2: ['star', 'lapis', 'comet'],
-  3: ['lavender-mist', 'lily-petal', 'crescent'],
-  4: ['motes', 'cloud', 'feather'],
-  goal: ['gold-dust', 'celebration', 'coral-blossom']
-};
-const sparks = key => SPARKS[key] ? h`<span class="stage-sparks" aria-hidden="true">${SPARKS[key].map(name => h`<i class="spark spark-${name}"></i>`)}</span>` : '';
-// 섬 그림(또는 번호 동그라미)과 상태 표시
-function island(key, label, extra = '') {
+// 섬 그림: 바다·로봇까지 그려진 3:2 장면(snu-game-islands-v3, 2026-10-31)을 웹용 WebP로 줄인 것. 둥근 창 모양으로 보여줍니다.
+const ISLANDS = { 1: 'island-01.webp', 2: 'island-02.webp', 3: 'island-03.webp', 4: 'island-04.webp', goal: 'island-final.webp' };
+const AVATAR = null; // 따로 받은 캐릭터 그림이 있으면 'avatar.webp'처럼 — 지금 여기 섬 위에 섭니다(지금 섬 그림에는 로봇이 이미 있음)
+const TONES = ['mint', 'lavender', 'pink', 'sky'];
+const tone = n => TONES[(n - 1) % TONES.length];
+
+function island(key, toneName, badge = '') {
   const art = ISLANDS[key]
-    ? h`<img class="stage-art" src="${MAP}/${ISLANDS[key]}.webp" alt="" width="720" height="720" loading="lazy" decoding="async">`
-    : h`<span class="stage-no">${label}</span>`;
+    ? h`<img class="stage-art" src="${MAP}/${ISLANDS[key]}" alt="" width="1200" height="800" loading="lazy" decoding="async">`
+    : h`<span class="isle isle-${toneName}"><span class="isle-top"></span></span>`;
   return h`<span class="stage-spot" aria-hidden="true">
-    <span class="emblem emblem-focus stage-ring"></span>
-    ${sparks(key)}
-    <span class="stage-node${ISLANDS[key] ? ' is-island' : ''}">${art}<i class="emblem emblem-complete stage-star"></i>${extra}</span>
+    <span class="stage-node">${art}${badge}${AVATAR ? h`<img class="stage-avatar" src="${MAP}/${AVATAR}" alt="" width="200" height="240" data-avatar hidden>` : ''}</span>
   </span>`;
 }
-const nameplate = (kicker, title, state, pips = '') => h`<span class="stage-label">
-    ${kicker ? h`<span class="stage-kicker">${kicker}</span>` : ''}
-    ${title ? h`<span class="stage-title">${title}</span>` : ''}
-    ${pips}
-    <span class="sr-only" data-stage-state>${state}</span>
+const head = (no, title, chip, chipTone = '') => h`<span class="stage-head">
+    <span class="stage-no">${no}</span>
+    <span class="stage-title">${title}</span>
+    ${chip == null ? '' : h`<span class="stage-chip${chipTone ? ` chip-${chipTone}` : ''}" data-stage-chip>${chip}</span>`}
   </span>`;
 const mapTitle = item => item.mapTitle ?? item.shortTitle;
 
 function openStage(w) {
   const path = lessonPath(w);
-  return h`<li class="stage c-${w.color}" data-course="${w.number}" data-path="${path}" data-steps="${JSON.stringify(w.missions.map(m => m.id))}">
+  const total = w.missions.length;
+  return h`<li class="stage c-${w.color}" data-course="${w.number}" data-path="${path}" data-steps="${JSON.stringify(w.missions.map(m => m.id))}" data-titles="${JSON.stringify(w.missions.map(m => m.title))}">
   <a class="stage-link" href="${path}#step-${w.missions[0].id}" data-continue>
-    <span class="stage-pin" data-here hidden><i class="emblem emblem-location" aria-hidden="true"></i>지금 여기</span>
-    ${island(w.number, pad(w.number))}
-    ${nameplate(`Workshop ${pad(w.number)}`, mapTitle(w), ` · ${w.missions.length}단계`,
-      h`<span class="stage-pips" aria-hidden="true">${w.missions.map(() => h`<i></i>`)}</span>`)}
+    <span class="stage-here" data-here hidden>지금 여기</span>
+    ${head(pad(w.number), mapTitle(w), '도전 가능', 'open')}
+    ${island(w.number, tone(w.number), h`<i class="stage-badge badge-clear"></i>`)}
   </a>
+  <div class="stage-mission" data-mission hidden>
+    <p class="mission-kicker">다음 미션</p>
+    <p class="mission-title" data-mission-title>${w.missions[0].title}</p>
+    ${progress(`0 / ${total} 미션 완료`)}
+    <a class="btn btn-fill mission-go" data-continue href="${path}#step-${w.missions[0].id}">미션 이어하기 →</a>
+  </div>
 </li>`;
 }
 
-// 자료가 아직 열리지 않은 회차: 섬은 빛이 빠지고 자물쇠가 걸립니다. 링크 없음.
-const lockedStage = w => h`<li class="stage is-locked c-${w.color}">
+// 자료가 아직 열리지 않은 회차: 섬은 흐리고 자물쇠. 링크 없음.
+const lockedStage = w => h`<li class="stage is-locked">
   <div class="stage-link">
-    ${island(w.number, pad(w.number), h`<i class="emblem emblem-locked stage-lock"></i>`)}
-    ${nameplate(`Workshop ${pad(w.number)}`, mapTitle(w), ` · 잠김, ${w.opensLabel}에 열려요`)}
+    ${head(pad(w.number), mapTitle(w), '곧 열려요')}
+    <span class="sr-only">잠김 · ${w.opensLabel}에 열려요</span>
+    ${island(w.number, tone(w.number), h`<i class="stage-badge badge-lock"></i>`)}
   </div>
 </li>`;
 
-// 주제를 정하는 중인 회차: 섬은 안개에 가린 것처럼 흐리고, 이름표는 mapTitle이 있을 때만 붙습니다. 링크 없음.
+// 주제를 정하는 중인 회차: 이름이 정해졌으면(mapTitle) '다음 도전', 아니면 '다음 워크숍 · 준비 중'. 링크 없음.
 const planningStage = w => h`<li class="stage is-fog">
   <div class="stage-link">
-    ${island(w.number, pad(w.number))}
-    ${nameplate(`Workshop ${pad(w.number)}`, w.mapTitle, ' · 준비 중')}
+    ${head(pad(w.number), w.mapTitle ?? '다음 워크숍', w.mapTitle ? '다음 도전' : '준비 중')}
+    ${island(w.number, tone(w.number), h`<i class="stage-badge badge-lock"></i>`)}
   </div>
 </li>`;
 
-// 마지막 칸: 학기 마무리 Showcase 안내로 갑니다.
-const goalStage = showcase => h`<li class="stage is-goal c-${showcase.color}">
+// 마지막 섬: 학기 마무리 Showcase 안내로 갑니다.
+const goalStage = showcase => h`<li class="stage is-goal">
   <a class="stage-link" href="/showcase/">
-    ${island('goal', '🏁')}
-    ${nameplate('', showcase.mapTitle ?? showcase.title, ' · 학기 마무리 행사 안내')}
+    ${head('FINAL', showcase.mapTitle ?? showcase.title, null)}
+    ${island('goal', 'peach')}
   </a>
 </li>`;
 
 const stageOf = open => w =>
   open.includes(w) ? openStage(w) : w.materials === 'locked' ? lockedStage(w) : planningStage(w);
 
-// 수업 지도: 하늘 지도 위에 회차 섬을 길로 잇고, 마지막에 Showcase가 있습니다. 길(data-map-path)은 learn.js가 섬 위치에 맞춰 그립니다.
+// 수업 지도: 위에 제목과 수업 완료 수, 아래에 회차 섬을 한 방향 길로 잇고 마지막에 Showcase가 있습니다.
+// 길(data-map-path)은 learn.js가 섬 위치에 맞춰 그립니다.
 export function learnPage(content) {
   const open = lessonWorkshops(content);
   return h`${loginCard({ title: '수업 듣기', lead: '서울대 계정으로 로그인하면 슬라이드를 보며 단계별로 따라 하고, 막힌 부분을 바로 질문할 수 있어요.' })}
 <div class="quest" data-learn-content hidden>
+  <header class="quest-head">
+    <div>
+      <h1 class="quest-title">수업 지도</h1>
+      <p class="quest-lead">섬을 하나씩 클리어하며 나아가요.</p>
+    </div>
+    <p class="quest-count"><span class="count-check" aria-hidden="true"></span>수업 완료 <strong data-clear-count>0 / ${content.workshops.length}</strong></p>
+  </header>
   <div class="quest-map" data-map>
     <svg class="quest-path" aria-hidden="true" focusable="false">
       <path class="quest-path-base" data-map-path/>
       <g class="quest-path-done" data-map-done></g>
     </svg>
-    <h1 class="quest-title">수업 지도</h1>
     <ol class="quest-stages">
       ${content.workshops.map(stageOf(open))}
       ${goalStage(content.showcase)}

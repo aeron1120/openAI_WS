@@ -646,43 +646,40 @@ test('learn pages use the study layout without the portal menu, other pages keep
   }
 });
 
-test('the course map shows each workshop as an island with only a short nameplate, and ends at Showcase', async t => {
+test('the course map is a one-way island route with number pills, a next-mission card and a Final goal', async t => {
   const { read, outDir } = await build(t);
   const html = await read('/learn/');
   const ws1 = defaultContent.workshops[0];
   assert.match(html, /<h1 class="quest-title">수업 지도<\/h1>/);
+  assert.match(html, new RegExp(`수업 완료 <strong data-clear-count>0 / ${defaultContent.workshops.length}</strong>`));
   assert.match(html, /<svg class="quest-path" aria-hidden="true"[\s\S]*?data-map-path[\s\S]*?data-map-done/);
   const stages = [...html.matchAll(/<li class="stage[^"]*"/g)].map(m => m[0]);
   assert.equal(stages.length, defaultContent.workshops.length + 1, 'one stage per workshop plus the goal');
-  // 열린 회차: 섬과 이름표가 링크 하나, 첫 단계로 들어가고(learn.js가 안 끝낸 단계로 바꿈) 단계 수만큼 진도 점
+  // 열린 회차: 번호·이름·섬이 링크 하나, 첫 단계로 들어가고(learn.js가 안 끝낸 단계로 바꿈), 다음 미션 카드는 지금 여기일 때만
   const panel = html.match(/<li class="stage c-green" data-course="1"[\s\S]*?<\/li>/)[0];
-  assert.match(panel, new RegExp(`data-path="/learn/01/" data-steps="\\[${ws1.missions.map(m => `&quot;${m.id}&quot;`).join(',')}\\]"`));
-  assert.match(panel, new RegExp(`<a class="stage-link" href="/learn/01/#step-${ws1.missions[0].id}" data-continue>`));
-  assert.equal((panel.match(/<a /g) ?? []).length, 1);
-  assert.match(panel, /<img class="stage-art" src="\/images\/learn-map\/island-01\.webp" alt=""/);
-  assert.match(panel, /<span class="stage-kicker">Workshop 01<\/span>\s*<span class="stage-title">화면에서 서비스로<\/span>/);
-  assert.equal((panel.match(/<span class="stage-pips" aria-hidden="true">([\s\S]*?)<\/span>/)[1].match(/<i><\/i>/g) ?? []).length, ws1.missions.length);
-  assert.match(panel, /<span class="stage-pin" data-here hidden><i class="emblem emblem-location" aria-hidden="true"><\/i>지금 여기<\/span>/);
-  // 글은 이름표뿐: 설명·버튼·단계 목록 없음
-  assert.doesNotMatch(html, /stage-card|stage-go|stage-steps|course-step|progress-overall|한 칸씩/);
-  // 잠긴 회차: 링크 없이 자물쇠, 여는 시각은 화면 읽기용으로만
-  const locked = html.match(/<li class="stage is-locked c-violet">[\s\S]*?<\/li>/)[0];
+  assert.ok(panel.includes(`data-path="/learn/01/" data-steps="[${ws1.missions.map(m => `&quot;${m.id}&quot;`).join(',')}]"`));
+  assert.ok(panel.includes(`<a class="stage-link" href="/learn/01/#step-${ws1.missions[0].id}" data-continue>`));
+  assert.match(panel, /<span class="stage-no">01<\/span>\s*<span class="stage-title">화면에서 서비스로<\/span>/);
+  assert.match(panel, /<span class="stage-here" data-here hidden>지금 여기<\/span>/);
+  const mission = panel.match(/<div class="stage-mission" data-mission hidden>[\s\S]*?<\/div>\s*<\/li>/)[0];
+  for (const text of ['다음 미션', ws1.missions[0].title, `0 / ${ws1.missions.length} 미션 완료`, '미션 이어하기']) assert.ok(mission.includes(text), text);
+  // 잠긴 회차: 링크 없이 자물쇠와 '곧 열려요'
+  const locked = html.match(/<li class="stage is-locked">[\s\S]*?<\/li>/)[0];
   assert.doesNotMatch(locked, /href=/);
-  assert.match(locked, /emblem-locked/);
-  assert.match(locked, /<span class="sr-only" data-stage-state> · 잠김, 11\/2 \(월\) 18:00에 열려요<\/span>/);
-  // 기획 중인 회차: mapTitle이 있으면 그 이름만
+  assert.match(locked, /badge-lock/);
+  assert.match(locked, /곧 열려요/);
+  // 기획 중인 회차: 이름이 있으면 '다음 도전', 없으면 '다음 워크숍 · 준비 중'
   const fog = [...html.matchAll(/<li class="stage is-fog">[\s\S]*?<\/li>/g)].map(m => m[0]);
   assert.equal(fog.length, 2);
-  assert.match(fog[0], /<span class="stage-kicker">Workshop 03<\/span>\s*<span class="stage-title">Midterm Showcase<\/span>/);
-  assert.doesNotMatch(fog[1], /stage-title/);
-  assert.match(html, /<li class="stage is-goal c-orange">\s*<a class="stage-link" href="\/showcase\/">[\s\S]*?island-05\.webp[\s\S]*?<span class="stage-title">Final Showcase<\/span>/);
-  // 지도에 쓰는 그림이 모두 빌드 결과에 있어요.
+  assert.match(fog[0], /<span class="stage-no">03<\/span>\s*<span class="stage-title">Midterm Showcase<\/span>\s*<span class="stage-chip"[^>]*>다음 도전/);
+  assert.match(fog[1], /<span class="stage-title">다음 워크숍<\/span>\s*<span class="stage-chip"[^>]*>준비 중/);
+  assert.match(html, /<li class="stage is-goal">\s*<a class="stage-link" href="\/showcase\/">[\s\S]*?<span class="stage-no">FINAL<\/span>\s*<span class="stage-title">Final Showcase<\/span>/);
+  // 시안에만 있던 복습·별은 아직 없어요(가짜 숫자를 보여주지 않음).
+  assert.doesNotMatch(html, /복습|별을 모아/);
+  // 섬 그림 다섯 장이 빌드 결과에 있어요.
   const art = [...new Set([...html.matchAll(/\/images\/learn-map\/[\w-]+\.webp/g)].map(m => m[0]))];
   assert.equal(art.length, 5);
-  const css = await readFile(new URL('../src/styles.css', import.meta.url), 'utf8');
-  for (const file of [...art, ...new Set([...css.matchAll(/\/images\/learn-map\/[\w-]+\.webp/g)].map(m => m[0]))]) {
-    assert.ok(await exists(path.join(outDir, file)), file);
-  }
+  for (const file of art) assert.ok(await exists(path.join(outDir, file)), file);
 });
 
 test('the lesson page has a step tab bar, then the slides beside the current step, and a progress header', async t => {
