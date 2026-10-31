@@ -36,12 +36,12 @@ export const studio = {
 
 export const showcase = {
   title: 'Showcase',
-  korean: '만든 것을 소개하는 날',
+  korean: '결과물 전시 및 소개하기',
   mapTitle: 'Final Showcase', // 수업 지도(/learn/) 마지막 섬 이름표
   message: '내가 만든 것을 사람들에게 보여준다',
   outcome: '프로젝트 시연과 소개 경험',
   color: 'orange',
-  description: '학기 동안 만든 서비스를 사람들 앞에서 시연하고 소개해요.',
+  description: '워크숍과 스튜디오 세션을 거치며 만든 결과물을 시연하고 소개해요.',
   event: { status: 'tbd', start: null, end: null, place: null },
 };
 
@@ -81,5 +81,5 @@ export const collaboration = [
   { who: 'SNUquill', what: '공동 홍보(인스타그램), 팀 워크숍 참여' },
   { who: '총연극회', what: '공동 홍보, 팀 워크숍 참여' },
   { who: '야생조류연구회', what: '팀 워크숍 참여' },
-  { who: 'DWNc', what: '공동 홍보(인스타그램)' }
+  { who: 'DWNC', what: '공동 홍보(인스타그램)' }
 ];

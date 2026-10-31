@@ -5,8 +5,8 @@
 // - 수업 듣기(/learn/)는 한국어 화면이라 링크 글에 (Korean)을 붙입니다.
 
 const workshopTitles = {
-  '학생 앱 쇼케이스 (기획 중)': 'Student App Showcase (planned)',
-  '학생 앱 쇼케이스': 'Student App Showcase',
+  '학생 웹앱 전시(기획 중)': 'Student Web App Exhibition (planned)',
+  '학생 웹앱 전시': 'Student Web App Exhibition',
   '워크숍에서 개발한 앱을 전시하고 실제 사용자 피드백을 받아요. 날짜, 장소는 추후 안내해요.': 'Showcase apps developed in the workshops and get feedback from real users. Date and venue to be announced.',
   '틈, 화면에서 서비스로': 'Teum: from screen to service',
   '고치고, 기록하고, 공개하기': 'Fix, record, publish',
@@ -69,12 +69,11 @@ const home = {
 };
 
 const roadmap = {
-  '워크숍 4번과 매주 월요일 Studio Session, 마지막에 Showcase. 중간에 합류해도 괜찮아요.': 'Four workshops, a Studio Session every Monday, and a Showcase at the end. You can join at any point.',
-  '남는 것': 'You leave with',
+  '워크숍 4회와 매주 월요일에 열리는 스튜디오 세션을 통해 웹앱을 완성하고 배포해요. 중간에 합류해도 괜찮아요.': 'Complete and deploy your web app through four workshops and Studio Sessions every Monday. You can join at any point.',
   '첫 기능이 작동하는 웹앱': 'a web app with its first working feature',
   '다음 단계': 'Next step',
   '공개 주소와 변경 기록이 있는 내 사이트': 'your site at a public address, with a change history',
-  '만든 것을 소개하는 날': 'A day to present what you made',
+  '결과물 전시 및 소개하기': 'Exhibit and present your work',
   '프로젝트 시연과 소개 경험': 'experience demoing and presenting your project',
   '워크숍 4회와 Studio Session, Showcase로 이어지는 한 학기 과정과 단계별 결과물.': 'The semester path through four workshops, Studio Sessions and a Showcase, and what you make at each step.'
 };
@@ -96,7 +95,7 @@ const workshopsList = {
   '새 기획에 맞춰 주제를 정하고 있어요. 확정되면 이곳에서 안내해요.': 'The topic is being planned. It will be announced here.',
   '회차 소개': 'About this workshop',
   'Showcase · 학기 마무리': 'Showcase · end of semester',
-  '학기 동안 만든 서비스를 사람들 앞에서 시연하고 소개해요.': 'Demo and present the service you built this semester.',
+  '워크숍과 스튜디오 세션을 거치며 만든 결과물을 시연하고 소개해요.': 'Demo and present the projects you created through the workshops and Studio Sessions.',
   'Showcase 안내': 'About the Showcase',
   '회차별 주제, 진행 상태, 실습 자료를 한곳에서 확인하세요.': 'Topics, status and materials for every workshop in one place.'
 };
@@ -249,7 +248,7 @@ const recap = {
 
 const about = {
   '운영 소개와 협력 안내': 'Team and partners',
-  'OpenAI Student Collective | SNU는 서울대학교 학생이 직접 만들고 공유하는 경험을 돕는 학생 프로그램이에요.': 'OpenAI Student Collective | SNU is a student program that helps SNU students build things themselves and share them.',
+  'OpenAI Student Collective | SNU는 서울대학교 학생들의 다양한 AI활용을 돕는 학생 프로그램이에요.': 'OpenAI Student Collective | SNU is a student program that helps Seoul National University students use AI in diverse ways.',
   '운영': 'Organizers',
   'SNU Campus Leads 김태현·박서린': 'SNU Campus Leads Taehyun Kim and Seolynn Park',
   '진행 기록': 'Activity log',
