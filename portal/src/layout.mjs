@@ -33,7 +33,7 @@ function navList(content, path) {
 </div>`);
 }
 
-const brand = h`<a class="brand" href="/"><img class="brand-mark" src="/images/brand/logo-192.png" alt="" width="36" height="36"><span class="brand-text"><strong>Student Collective</strong><small>OpenAI · SNU</small></span></a>`;
+const brand = h`<a class="brand" href="/"><img class="brand-mark" src="/images/brand/logo.jpg" alt="" width="36" height="36"><span class="brand-text"><strong>Student Collective</strong><small>OpenAI · SNU</small></span></a>`;
 
 // 언어 전환: 영어 페이지가 있는 주소에서만 보입니다(휴대폰은 메뉴 버튼 옆, 넓은 화면은 본문 오른쪽 위). 같은 페이지의 다른 언어로 갑니다.
 // (영어 페이지는 i18n.mjs가 링크를 /en/…으로 바꾸므로, 여기 주소는 그 뒤에 바뀌지 않도록 data-lang-switch로 따로 둡니다.)
@@ -137,7 +137,7 @@ ${head({ site, path, title, description, assets, script })}
   <div class="study-bar-inner">
     <div class="study-brand">
       <a class="study-back" href="/">← 포털</a>
-      <a class="study-name" href="/learn/"><img src="/images/brand/logo-192.png" alt="" width="28" height="28"><span>SNU 학습실</span></a>
+      <a class="study-name" href="/learn/"><img src="/images/brand/logo.jpg" alt="" width="28" height="28"><span>SNU 학습실</span></a>
     </div>
     ${studyNav(path)}
     <div class="study-user" data-learn-user></div>
