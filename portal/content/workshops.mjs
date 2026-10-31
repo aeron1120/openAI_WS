@@ -343,8 +343,8 @@ starter의 [박스 이름]에 [필요한 기능]을 구현해줘.
   {
     number: 3,
     slug: '03',
-    title: '학생 앱 쇼케이스 (기획 중)',
-    shortTitle: '학생 앱 쇼케이스',
+    title: '학생 웹앱 전시(기획 중)',
+    shortTitle: '학생 웹앱 전시',
     mapTitle: 'Midterm Showcase', // 수업 지도(/learn/) 섬 이름표. 없으면 shortTitle
     color: 'magenta',
     highlights: [],

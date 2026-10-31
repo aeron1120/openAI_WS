@@ -208,7 +208,7 @@ export function roadmapPage(content) {
   ];
   return h`<header class="page-head">
   <h1>학기 로드맵</h1>
-  <p class="lead">워크숍 4번과 매주 월요일 Studio Session, 마지막에 Showcase. 중간에 합류해도 괜찮아요.</p>
+  <p class="lead">워크숍 4회와 매주 월요일에 열리는 스튜디오 세션을 통해 웹앱을 완성하고 배포해요. 중간에 합류해도 괜찮아요.</p>
 </header>
 <ol class="timeline">
   ${steps.map((s, i) => h`${i > 0 && i < steps.length ? h`<li class="tl-studio"><a href="/studio/">${studio.title}</a></li>` : ''}<li class="tl reveal c-${s.color}${s.item === next ? ' is-next' : ''}">
@@ -216,7 +216,7 @@ export function roadmapPage(content) {
     <div class="tl-body">
       <p class="track-kicker">${s.kicker} ${s.status}${s.item === next ? h` <span class="badge badge-next">다음 단계</span>` : ''}</p>
       <h2><a href="${s.url}">${s.title}</a></h2>
-      ${s.outcome ? h`<p class="tl-outcome">${keyed('남는 것', s.outcome)}</p>` : ''}
+      ${s.outcome ? h`<p class="tl-outcome">${s.outcome}</p>` : ''}
       ${s.item.event?.start ? h`<p class="tl-date">${formatSchedule(s.item.event, site.timeZone)}</p>` : ''}
     </div>
   </li>`)}
@@ -461,7 +461,7 @@ export function aboutPage(content) {
   const done = workshops.filter(w => w.event.status === 'done');
   return h`<header class="page-head">
   <h1>운영·협력 안내</h1>
-  <p class="lead">${site.name}는 서울대학교 학생이 직접 만들고 공유하는 경험을 돕는 학생 프로그램이에요.</p>
+  <p class="lead">${site.name}는 서울대학교 학생들의 다양한 AI활용을 돕는 학생 프로그램이에요.</p>
 </header>
 <section class="block reveal two">
   <div class="box">
