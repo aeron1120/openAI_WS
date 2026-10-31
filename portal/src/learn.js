@@ -222,47 +222,99 @@
     node.querySelector('[data-step-state]').textContent = finished ? ' (완료)' : '';
   }
 
-  // 수업 지도의 길: 칸 동그라미의 가운데를 차례로 잇는 곡선을 그립니다. 지나온 길(data-map-done)은 '지금 여기' 칸까지
-  // 한 칸 사이씩 떠나온 칸의 색으로 칠합니다.
-  function drawMap(map) {
-    const svg = map.querySelector('svg');
-    const box = map.getBoundingClientRect();
-    const points = [...map.querySelectorAll('.stage-node')].map(node => {
-      const r = node.getBoundingClientRect();
-      return [r.left - box.left + r.width / 2, r.top - box.top + r.height / 2];
-    });
-    const line = list => list.map(([x, y], i) => {
-      if (!i) return `M${x} ${y}`;
-      const [px, py] = list[i - 1];
-      const bend = (y - py) / 2;
-      return `C${px} ${py + bend} ${x} ${y - bend} ${x} ${y}`;
-    }).join(' ');
+  // 수업 지도의 갈림길 점선: 가운데 섬 가장자리에서 아래 양옆 작은 섬(복습·다음)까지. 좁은 화면에서는 CSS가 숨깁니다.
+  function drawRoutes(scene) {
+    const svg = scene?.querySelector('.scene-routes');
+    if (!svg || getComputedStyle(svg).display === 'none') return;
+    const box = scene.getBoundingClientRect();
+    const art = scene.querySelector('.scene-art').getBoundingClientRect();
     svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
-    map.querySelector('[data-map-path]').setAttribute('d', line(points));
-    const stages = [...map.querySelectorAll('.stage')];
-    const here = stages.findIndex(stage => stage.classList.contains('is-here'));
-    const reached = here >= 0 ? here : stages.findLastIndex(stage => stage.classList.contains('is-clear'));
-    const segments = [];
-    for (let i = 0; i < reached; i++) {
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', line(points.slice(i, i + 2)));
-      path.style.stroke = getComputedStyle(stages[i]).getPropertyValue('--c');
-      segments.push(path);
+    for (const path of svg.querySelectorAll('[data-route]')) {
+      const next = path.dataset.route === 'next';
+      const target = scene.querySelector(`.branch-${path.dataset.route} img`)?.getBoundingClientRect();
+      if (!target?.width) { path.removeAttribute('d'); continue; }
+      const sx = art.left - box.left + art.width * (next ? 0.84 : 0.16);
+      const sy = art.top - box.top + art.height * (next ? 0.62 : 0.7);
+      const tx = target.left - box.left + target.width / 2;
+      const ty = target.top - box.top + target.height * 0.4;
+      const cx = next ? Math.max(sx, tx) + 40 : Math.min(sx, tx) - 40;
+      path.setAttribute('d', `M${sx} ${sy} Q${cx} ${(sy + ty) / 2} ${tx} ${ty}`);
     }
-    map.querySelector('[data-map-done]').replaceChildren(...segments);
   }
 
-  // 수업 지도: 섬마다 들어갈 주소(처음으로 안 끝낸 단계)와 상태 칩, 다 끝낸 섬은 완료 표시,
-  // 아직 다 끝내지 않은 첫 섬에 '지금 여기'와 다음 미션 카드를 붙입니다. 진도를 못 불러와도 지도는 그대로 씁니다.
+  // 섬 위 장치를 고르면 미션 칸의 설명(열린 회차)이나 연습 문제(복습 섬)가 그 장치 것으로 바뀝니다.
+  function pickDevice(device) {
+    const scene = device.closest('[data-scene]');
+    const index = device.dataset.device;
+    for (const node of scene.querySelectorAll('[data-device]')) node.setAttribute('aria-pressed', String(node === device));
+    for (const node of scene.querySelectorAll('[data-device-text], [data-quiz]')) node.hidden = (node.dataset.deviceText ?? node.dataset.quiz) !== index;
+    const feedback = scene.querySelector('[data-quiz-feedback]');
+    if (feedback) feedback.textContent = '';
+  }
+
+  // 복습 섬 연습 문제: 맞히면 그 블록에 ✓, 틀리면 다시 고릅니다. 이 화면 안에서만 세고 저장하지 않아요(새로고침하면 처음부터).
+  function answer(choice) {
+    const scene = choice.closest('[data-scene]');
+    const quiz = choice.closest('[data-quiz]');
+    const feedback = scene.querySelector('[data-quiz-feedback]');
+    if (!('answer' in choice.dataset)) {
+      choice.classList.add('is-wrong');
+      feedback.textContent = '이 기능에 필요한 정보를 다시 생각해 봐요.';
+      return;
+    }
+    choice.classList.add('is-right');
+    for (const node of quiz.querySelectorAll('[data-choice]')) node.disabled = true;
+    quiz.querySelector('.quiz-explain').hidden = false;
+    const device = scene.querySelector(`[data-device="${quiz.dataset.quiz}"]`);
+    device.classList.add('is-done');
+    device.querySelector('[data-device-state]').textContent = ' (확인)';
+    const devices = [...scene.querySelectorAll('[data-device]')];
+    const solved = devices.filter(node => node.classList.contains('is-done')).length;
+    scene.querySelector('[data-quiz-count]').textContent = `${solved} / ${devices.length} 확인`;
+    feedback.textContent = solved === devices.length ? '모두 맞혔어요! 수업 화면에서 다시 따라 해 봐도 좋아요.' : '맞아요! 다음 블록을 눌러 보세요.';
+  }
+
+  // 수업 지도: 스테이지 줄·갈림길로 가운데 섬을 바꾸고, 진도를 불러오면 섬마다 다음 미션·진도·상태 칩을 채웁니다.
+  // 지금 할 섬(진행 중인 회차 → 안 시작한 열린 회차 → 열린 회차를 다 끝냈으면 복습 섬)에 로봇이 서고, 처음 보여주는 섬이 됩니다.
+  // 진도를 못 불러오면 로봇·완료 표시 없이 지도만 씁니다.
   function initList(content) {
-    const map = content.querySelector('[data-map]');
-    const redraw = () => map && drawMap(map);
+    const world = content.querySelector('[data-map]');
+    if (!world) return;
+    const scenes = new Map([...world.querySelectorAll('[data-scene]')].map(node => [node.dataset.scene, node]));
+    const tabs = [...content.querySelectorAll('[data-tab]')];
+    let current = world.dataset.default;
+    let moved = false;
+    const show = (key, focus = false) => {
+      if (!scenes.has(key)) return;
+      current = key;
+      for (const [name, node] of scenes) node.hidden = name !== key;
+      for (const tab of tabs) tab.setAttribute('aria-pressed', String(tab.dataset.tab === key));
+      drawRoutes(scenes.get(key));
+      if (!focus) return;
+      const title = scenes.get(key).querySelector('.scene-title');
+      title.focus({ preventScroll: true });
+      const bar = content.querySelector('.stage-bar');
+      if (bar.getBoundingClientRect().top < 0) bar.scrollIntoView({ block: 'start' });
+    };
+    for (const tab of tabs) tab.addEventListener('click', () => { moved = true; show(tab.dataset.tab); });
+    world.addEventListener('click', event => {
+      const go = event.target.closest('[data-go]');
+      if (go) { moved = true; return show(go.dataset.go, true); }
+      const device = event.target.closest('[data-device]');
+      if (device) return pickDevice(device);
+      const choice = event.target.closest('[data-choice]');
+      if (choice && !choice.disabled) answer(choice);
+    });
+    const redraw = () => drawRoutes(scenes.get(current));
+    for (const img of world.querySelectorAll('img')) img.addEventListener('load', redraw);
+    if ('ResizeObserver' in window) new ResizeObserver(redraw).observe(world);
     redraw();
-    if (map && 'ResizeObserver' in window) new ResizeObserver(redraw).observe(map);
+
     loadProgress().then(done => {
-      let here = null;
+      let going = null;
+      let fresh = null;
       let cleared = 0;
-      for (const course of content.querySelectorAll('[data-course]')) {
+      for (const course of world.querySelectorAll('[data-course]')) {
         const finished = done.get(Number(course.dataset.course)) ?? new Set();
         const steps = JSON.parse(course.dataset.steps);
         const titles = JSON.parse(course.dataset.titles);
@@ -270,56 +322,68 @@
         const count = steps.filter(id => finished.has(id)).length;
         const clear = steps.length > 0 && next < 0;
         if (clear) cleared++;
-        else here ??= course;
+        else if (count) going ??= course;
+        else fresh ??= course;
         course.classList.toggle('is-clear', clear);
+        content.querySelector(`[data-tab="${course.dataset.scene}"]`)?.classList.toggle('is-clear', clear);
         const href = `${course.dataset.path}#step-${steps[next < 0 ? 0 : next]}`;
-        for (const link of course.querySelectorAll('[data-continue]')) link.href = href;
+        for (const link of course.querySelectorAll('[data-continue]')) {
+          link.href = href;
+          link.textContent = clear ? '처음부터 다시 보기' : count ? '미션 이어하기 →' : '미션 시작 →';
+        }
         const chip = course.querySelector('[data-stage-chip]');
         chip.textContent = clear ? '수업 완료' : count ? '진행 중' : '도전 가능';
         chip.className = `stage-chip chip-${clear ? 'clear' : 'open'}`;
-        course.querySelector('[data-mission-title]').textContent = titles[next < 0 ? 0 : next];
-        setProgress(course.querySelector('[data-mission] [data-progress]'), count, steps.length, `${count} / ${steps.length} 미션 완료`);
+        course.querySelector('[data-mission-kicker]').textContent = clear ? '모든 미션 완료' : '다음 미션';
+        course.querySelector('[data-mission-title]').textContent = titles[next < 0 ? steps.length - 1 : next];
+        setProgress(course.querySelector('[data-progress]'), count, steps.length, `${count} / ${steps.length} 미션 완료`);
+        // 장치와 같은 단계를 끝냈으면 장치 이름표에 ✓
+        for (const device of course.querySelectorAll('[data-device-step]')) {
+          const ok = finished.has(device.dataset.deviceStep);
+          device.classList.toggle('is-done', ok);
+          device.querySelector('[data-device-state]').textContent = ok ? ' (완료한 단계)' : '';
+        }
       }
-      for (const course of content.querySelectorAll('[data-course]')) {
-        const on = course === here;
-        course.classList.toggle('is-here', on);
-        course.querySelector('[data-here]').hidden = !on;
-        course.querySelector('[data-mission]').hidden = !on;
-        course.querySelector('[data-stage-chip]').hidden = on;
-        const avatar = course.querySelector('[data-avatar]');
-        if (avatar) avatar.hidden = !on;
-        if (on) course.setAttribute('aria-current', 'step');
-        else course.removeAttribute('aria-current');
+      const opened = world.querySelectorAll('[data-course]').length;
+      const here = going ?? fresh ?? (opened ? scenes.get('review') : null) ?? null;
+      for (const [key, node] of scenes) {
+        const on = node === here;
+        const robot = node.querySelector('[data-robot]');
+        if (robot) robot.hidden = !on;
+        content.querySelector(`[data-tab="${key}"]`)?.classList.toggle('is-here', on);
+        if (on) node.setAttribute('aria-current', 'step');
+        else node.removeAttribute('aria-current');
       }
+      if (here && !moved) show(here.dataset.scene);
       const total = content.querySelector('[data-clear-count]');
       if (total) total.textContent = `${cleared} / ${total.textContent.split('/')[1].trim()}`;
-      redraw();
       celebrate(content);
     }).catch(() => {});
   }
 
-  // 지난번 지도를 본 뒤 새로 끝낸 섬에서 별빛이 짧게(0.9초, 10개) 퍼집니다. 본 섬은 이 브라우저에 기억합니다.
+  // 지난번 지도를 본 뒤 새로 끝낸 회차는 스테이지 줄의 그 칸에서 별빛이 짧게(0.9초, 10개) 퍼집니다. 본 회차는 이 브라우저에 기억합니다.
   const CLEARED_KEY = 'learn-map-cleared';
   function celebrate(content) {
     let seen = [];
     try { seen = JSON.parse(localStorage.getItem(CLEARED_KEY) ?? '[]'); } catch { /* 저장소가 막혀 있으면 매번 새로 봐요. */ }
-    const cleared = [...content.querySelectorAll('.stage.is-clear[data-course]')];
+    const cleared = [...content.querySelectorAll('[data-course].is-clear')].map(node => node.dataset.course);
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    for (const stage of cleared) {
-      if (still || seen.includes(stage.dataset.course)) continue;
+    for (const course of cleared) {
+      const tab = content.querySelector(`[data-tab="${course}"]`);
+      if (still || !tab || seen.includes(course)) continue;
       const burst = el('span', 'stage-burst');
       burst.setAttribute('aria-hidden', 'true');
       for (let i = 0; i < 10; i++) {
         const spark = el('i', i % 2 ? 'burst-star' : 'burst-dot');
         const angle = (i / 10) * Math.PI * 2;
-        spark.style.setProperty('--x', `${Math.round(Math.cos(angle) * 120)}px`);
-        spark.style.setProperty('--y', `${Math.round(Math.sin(angle) * 80)}px`);
+        spark.style.setProperty('--x', `${Math.round(Math.cos(angle) * 70)}px`);
+        spark.style.setProperty('--y', `${Math.round(Math.sin(angle) * 40)}px`);
         burst.append(spark);
       }
-      stage.querySelector('.stage-spot').append(burst);
+      tab.append(burst);
       setTimeout(() => burst.remove(), 1000);
     }
-    try { localStorage.setItem(CLEARED_KEY, JSON.stringify(cleared.map(stage => stage.dataset.course))); } catch { /* 무시 */ }
+    try { localStorage.setItem(CLEARED_KEY, JSON.stringify(cleared)); } catch { /* 무시 */ }
   }
 
   // 슬라이드 보기: '이 과제만'은 지금 과제의 페이지만, '강의 전체'는 모든 슬라이드를 순서대로 넘깁니다.

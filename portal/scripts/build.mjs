@@ -10,6 +10,7 @@ import { studio, showcase, projects, collaboration } from '../content/program.mj
 import { ws1Practice } from '../content/practice-pages.mjs';
 import { ws2Practice } from '../content/practice-pages-ws2.mjs';
 import { recaps } from '../content/recap.mjs';
+import { learnMap } from '../content/learn-map.mjs';
 import { layout, learnLayout } from '../src/layout.mjs';
 import { isUsableUrl, inlineLinkUrls } from '../src/render.mjs';
 import { icsFile } from '../src/calendar.mjs';
@@ -30,7 +31,7 @@ const decks = existsSync(manifestFile) ? JSON.parse(readFileSync(manifestFile, '
 const transcripts = Object.fromEntries([...Object.values(ws1Practice), ...Object.values(ws2Practice)].map(p => [p.id, { title: p.title, text: p.text }]));
 
 // showDrafts: Recap 초안까지 보는 미리보기(PORTAL_DRAFTS=1). 배포 빌드에서는 꺼져 있습니다.
-export const defaultContent = { site, workshops, studio, showcase, projects, collaboration, decks, transcripts, recaps, showDrafts: process.env.PORTAL_DRAFTS === '1' };
+export const defaultContent = { site, workshops, studio, showcase, projects, collaboration, decks, transcripts, recaps, learnMap, showDrafts: process.env.PORTAL_DRAFTS === '1' };
 
 // 잘못된 링크가 버튼으로 공개되지 않도록 빌드 전에 콘텐츠를 검사합니다.
 export function validateContent(content) {

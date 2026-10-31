@@ -616,93 +616,143 @@ body.study { background: #f3f5f8; }
 .meter span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--c); transition: width .3s; }
 .progress-text { margin: 0; color: var(--muted); font-size: .88rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-/* 수업 지도: 연보라 바탕 위에 파스텔 섬을 한 방향 점선 길로 잇는 게임 지도.
-   넓은 화면에서는 섬이 왼쪽·오른쪽으로 번갈아 놓이고 마지막 FINAL은 가운데, 좁은 화면(719px 이하)에서는 한 줄로 쌓입니다.
-   섬 위에는 번호 알약·이름·상태 칩, 지금 할 섬에는 '지금 여기'와 옆에 다음 미션 카드.
-   섬 그림이 없으면(.isle) 파스텔색 둥근 섬을 CSS로 그립니다. 길(svg)은 learn.js가 섬 위치를 재서 그립니다. */
-body:has(.quest:not([hidden])) { background: radial-gradient(40% 18% at 100% 45%, rgba(255, 255, 255, .95), transparent 70%), radial-gradient(45% 20% at 0% 85%, rgba(255, 255, 255, .9), transparent 70%), #f4f1fd fixed; }
-.study-main:has(> .quest) { max-width: 1120px; }
+/* 수업 지도: 한 번에 섬 하나를 크게. 넓은 화면(1180px 이상)에서는 왼쪽 회차 이름 · 가운데 섬 · 오른쪽 미션 칸,
+   아래 양옆에 복습 섬·다음 섬 갈림길(점선은 learn.js가 그림). 중간 화면은 왼쪽 섬 · 오른쪽 이름과 미션 칸, 좁은 화면(759px 이하)에서는 이름 → 섬 → 미션 → 갈림길 순서로 쌓입니다.
+   섬 그림은 투명 배경이라 테두리·카드 없이 연보라 바탕 위에 바로 놓입니다. 로봇은 지금 할 섬에만 섭니다. */
+body:has(.quest:not([hidden])) { background: radial-gradient(45% 40% at 50% 55%, rgba(227, 243, 237, .75), transparent 70%), radial-gradient(40% 30% at 85% 100%, rgba(228, 223, 247, .8), transparent 70%), #f5f2fc fixed; }
+.study-main:has(> .quest) { max-width: 1320px; }
 .quest { position: relative; }
-.quest-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 12px; }
-.quest-title { margin: 0; font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 850; letter-spacing: -.04em; line-height: 1.1; }
-.quest-lead { margin: 8px 0 0; color: #3b4458; font-size: 1.1rem; }
-.quest-count { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 10px 18px; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(63, 31, 174, .08); font-weight: 700; }
-.quest-count strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.quest-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; margin-bottom: 14px; }
+.quest-title { margin: 0; font-size: clamp(1.5rem, 3.2vw, 2rem); font-weight: 850; letter-spacing: -.03em; line-height: 1.2; }
+.quest-count { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 8px 16px; border-radius: 14px; background: #fff; box-shadow: 0 8px 24px rgba(63, 31, 174, .08); font-weight: 700; }
+.quest-count strong { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
 .count-check, .badge-clear { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #1fa35a; }
 .count-check::after, .badge-clear::after { content: ""; width: 10px; height: 6px; margin-top: -3px; border: solid #fff; border-width: 0 0 3px 3px; rotate: -45deg; }
 
-.quest-map { position: relative; padding: 24px 0 56px; }
-.quest-path { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.quest-path path { fill: none; stroke-linecap: round; }
-.quest-path-base { stroke: #c4b5f7; stroke-width: 11; stroke-dasharray: .1 22; }
-.quest-path-done path { stroke: #7b5cf0 !important; stroke-width: 11; stroke-dasharray: .1 22; }
-.quest-stages { position: relative; display: grid; margin: 0; padding: 0; list-style: none; }
-.stage { position: relative; width: min(400px, 44%); justify-self: start; margin-left: 2%; }
-.stage:nth-child(even) { justify-self: end; margin: 0 2% 0 0; }
-.stage + .stage { margin-top: -60px; }
-.stage.is-here { width: min(470px, 50%); }
-.stage.is-goal { justify-self: center; margin: 0; }
-.stage-link { position: relative; display: grid; justify-items: center; color: inherit; text-decoration: none; }
+/* 스테이지 줄: 회차 번호·짧은 이름. 지금 보는 섬은 보라 칸, 끝낸 회차는 ✓, 열리지 않은 회차는 자물쇠, 지금 할 회차는 점 */
+.stage-bar { display: flex; gap: 4px; width: fit-content; max-width: 100%; margin: 0 auto; padding: 5px; overflow-x: auto; border: 1px solid #e8e2f3; border-radius: 16px; background: rgba(255, 255, 255, .8); scrollbar-width: none; }
+.stage-tab { position: relative; flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px; border: 0; border-radius: 11px; background: transparent; color: #6b6280; font: inherit; font-size: .92rem; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.stage-tab b { font-variant-numeric: tabular-nums; }
+.stage-tab:hover { background: #ece5fa; }
+.stage-tab[aria-pressed="true"] { background: var(--navy); color: #fff; box-shadow: 0 4px 12px rgba(63, 31, 174, .18); }
+.stage-tab:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.tab-mark { display: none; }
+.stage-tab.is-clear .tab-mark { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #1fa35a; }
+.stage-tab.is-clear .tab-mark::after { content: ""; width: 7px; height: 4px; margin-top: -2px; border: solid #fff; border-width: 0 0 2px 2px; rotate: -45deg; }
+.stage-tab.is-locked .tab-mark { position: relative; display: inline-block; width: 12px; height: 9px; margin-top: 5px; border-radius: 2px; background: currentColor; opacity: .7; }
+.stage-tab.is-locked .tab-mark::before { content: ""; position: absolute; left: 2px; bottom: 100%; width: 4px; height: 5px; border: 2px solid currentColor; border-bottom: 0; border-radius: 5px 5px 0 0; }
+.stage-tab.is-here::after { content: ""; position: absolute; right: 5px; top: 5px; width: 8px; height: 8px; border: 2px solid #fff; border-radius: 50%; background: var(--focus); }
 
-/* 섬 위의 글: 번호 알약 · 이름 · 상태 칩 */
-.stage-head { position: relative; z-index: 2; display: grid; justify-items: center; gap: 4px; margin-bottom: 12px; text-align: center; }
-.stage-here { display: inline-block; margin-bottom: 6px; padding: 5px 16px; border-radius: 999px; background: #5a22e0; color: #fff; font-size: .95rem; font-weight: 800; box-shadow: 0 6px 16px rgba(90, 34, 224, .3); animation: pin-bob 1.6s ease-in-out infinite; }
-@keyframes pin-bob { 50% { transform: translateY(-5px); } }
-.stage-no { padding: 3px 16px; border-radius: 999px; background: #fff; color: #3f1fae; font-size: 1.35rem; font-weight: 850; font-variant-numeric: tabular-nums; box-shadow: 0 4px 14px rgba(63, 31, 174, .1); }
-.stage.is-goal .stage-no { background: #5a22e0; color: #fff; font-size: 1.1rem; letter-spacing: .04em; }
-.stage-title { color: var(--ink); font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.3; }
-.stage-chip { padding: 2px 12px; border-radius: 999px; background: #eceaf3; color: #545c6e; font-size: .9rem; font-weight: 700; }
+/* 스테이지 한 장: 이름 · 섬 · 미션 칸 · 갈림길 */
+.scene { position: relative; display: grid; grid-template-columns: minmax(190px, 240px) minmax(0, 1fr) minmax(270px, 300px); grid-template-rows: auto 1fr; grid-template-areas: "id island panel" "review island next"; gap: 16px 24px; padding: 20px 0 8px; }
+.scene-routes { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.scene-routes path { fill: none; stroke: #c9bbe8; stroke-width: 3; stroke-dasharray: 3 10; stroke-linecap: round; }
+.scene-id { grid-area: id; position: relative; z-index: 2; align-self: start; padding-top: 16px; }
+.scene-kicker { margin: 0; color: var(--navy); font-size: .78rem; font-weight: 800; letter-spacing: .08em; }
+.scene-title { margin: 8px 0 10px; font-size: clamp(1.5rem, 2.4vw, 1.9rem); font-weight: 850; letter-spacing: -.04em; line-height: 1.3; word-break: keep-all; }
+.scene-title:focus { outline: none; }
+.scene-lead { margin: 0 0 12px; color: var(--muted); font-size: .95rem; line-height: 1.7; word-break: keep-all; }
+.stage-chip { display: inline-block; padding: 3px 12px; border-radius: 999px; background: #eceaf3; color: #545c6e; font-size: .88rem; font-weight: 700; }
 .stage-chip.chip-clear { background: #def5e6; color: #146c3b; }
 .stage-chip.chip-open { background: #ebe4ff; color: #4b23c4; }
-.stage.is-fog .stage-chip, .stage.is-locked .stage-chip { background: #f7e6ee; color: #8a3a5c; }
+.stage-chip.chip-lock { background: #f7e6ee; color: #8a3a5c; }
 
-/* 섬: 천천히 떠 있고, 올리면 떠오릅니다. */
-.stage-spot { position: relative; display: grid; place-items: center; width: 100%; }
-.stage-node { position: relative; z-index: 1; display: block; width: 100%; }
-/* 섬 그림(바다까지 그려진 장면)은 흰 테두리 둥근 창으로 */
-.stage-art { width: 100%; height: auto; border: 5px solid #fff; border-radius: 30px; box-shadow: 0 18px 40px rgba(63, 31, 174, .18); transition: translate .24s ease, box-shadow .24s ease; animation: island-float 7s ease-in-out infinite; }
-a.stage-link:hover .stage-art, a.stage-link:focus-visible .stage-art { box-shadow: 0 26px 50px rgba(63, 31, 174, .26); }
-.stage-node:has(.stage-art) .badge-clear { left: auto; right: 16px; top: 16px; translate: none; }
-.stage.is-here .stage-art { border-color: #8b6cf6; box-shadow: 0 0 0 6px rgba(139, 108, 246, .25), 0 22px 46px rgba(63, 31, 174, .24); }
-.stage:nth-child(even) .stage-art, .stage:nth-child(even) .isle { animation-delay: -3.5s; }
+/* 가운데 섬: 천천히 떠 있고, 장치 버튼·로봇은 그림 비율 자리에 붙습니다. */
+.scene-island { grid-area: island; position: relative; z-index: 1; align-self: center; justify-self: center; width: min(100%, 620px); aspect-ratio: var(--ratio); animation: island-float 7s ease-in-out infinite; }
+.scene-island.is-wide { width: min(100%, 760px); }
 @keyframes island-float { 50% { transform: translateY(-6px); } }
-a.stage-link:hover .stage-art, a.stage-link:hover .isle, a.stage-link:focus-visible .stage-art, a.stage-link:focus-visible .isle { translate: 0 -8px; }
-a.stage-link:focus-visible { outline: none; }
-a.stage-link:focus-visible .stage-no { outline: 3px solid var(--focus); outline-offset: 3px; }
-.stage-avatar { position: absolute; left: 50%; bottom: 42%; z-index: 2; width: 22%; height: auto; translate: -50% 0; filter: drop-shadow(0 8px 6px rgba(63, 31, 174, .2)); }
-/* 그림이 없을 때의 파스텔 섬: 윗면(풀밭)과 아래 흙 절벽 */
-.isle { position: relative; display: block; width: 100%; aspect-ratio: 2.4; margin: 14px 0 22px; animation: island-float 7s ease-in-out infinite; transition: translate .24s ease; }
-.isle::before { content: ""; position: absolute; left: 10%; right: 10%; top: 42%; bottom: -10%; border-radius: 0 0 50% 50% / 0 0 70% 70%; background: linear-gradient(180deg, var(--side) 0%, var(--side-deep) 100%); filter: drop-shadow(0 22px 18px rgba(63, 31, 174, .16)); }
-.isle-top { position: absolute; inset: 0 0 18%; border-radius: 48% 52% 50% 50% / 55% 55% 45% 45%; background: radial-gradient(120% 90% at 40% 25%, var(--top-hi) 0%, var(--top) 60%); box-shadow: inset 0 -10px 0 rgba(255, 255, 255, .35), 0 8px 0 var(--top-edge); }
-.isle-mint { --top: #bde8c6; --top-hi: #dcf6e2; --top-edge: #9fd6ad; --side: #e8c9b4; --side-deep: #c99f88; }
-.isle-lavender { --top: #d6c9ff; --top-hi: #eee8ff; --top-edge: #b8a6f4; --side: #e5cfe0; --side-deep: #c5a6bf; }
-.isle-pink { --top: #f8cbd8; --top-hi: #fde6ec; --top-edge: #ecaabd; --side: #ead2d6; --side-deep: #cba9b0; }
-.isle-sky { --top: #c8d6ff; --top-hi: #e5ecff; --top-edge: #a9bcf2; --side: #d9d3ec; --side-deep: #b2a9cf; }
-.isle-peach { --top: #ffd9bb; --top-hi: #fff0e2; --top-edge: #f4bb91; --side: #ebcfc0; --side-deep: #cfa996; }
-/* 섬 위 표시: 완료 체크, 자물쇠 */
-.stage-badge { position: absolute; left: 50%; top: 30%; z-index: 2; translate: -50% -50%; }
-.badge-clear { display: none; width: 52px; height: 52px; box-shadow: 0 6px 0 #147a42, 0 12px 20px rgba(20, 108, 59, .25); }
-.badge-clear::after { width: 18px; height: 10px; margin-top: -5px; border-width: 0 0 5px 5px; }
-.stage.is-clear .badge-clear { display: grid; }
-.badge-lock { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: #fff; box-shadow: 0 8px 18px rgba(63, 31, 174, .16); }
-.badge-lock::before { content: ""; position: absolute; left: 50%; top: 13px; width: 13px; height: 12px; border: 3px solid #3b3552; border-bottom: 0; border-radius: 8px 8px 0 0; translate: -50% 0; }
-.badge-lock::after { content: ""; width: 22px; height: 17px; margin-top: 12px; border-radius: 4px; background: #3b3552; }
-.stage.is-fog .isle, .stage.is-locked .isle, .stage.is-fog .stage-art, .stage.is-locked .stage-art { filter: saturate(.7); }
+.scene-art { display: block; width: 100%; height: auto; filter: drop-shadow(0 22px 20px rgba(84, 69, 108, .12)); }
+.scene.is-locked .scene-art, .scene.is-fog .scene-art { filter: saturate(.7) drop-shadow(0 22px 20px rgba(84, 69, 108, .1)); opacity: .92; }
+.scene-island .badge-clear { position: absolute; right: 6%; top: 6%; z-index: 2; display: none; width: 48px; height: 48px; box-shadow: 0 5px 0 #147a42, 0 10px 18px rgba(20, 108, 59, .25); }
+.scene-island .badge-clear::after { width: 16px; height: 9px; margin-top: -5px; border-width: 0 0 4px 4px; }
+.scene.is-clear .badge-clear { display: grid; }
+.scene-robot { position: absolute; z-index: 3; width: 12%; min-width: 56px; translate: -52% -85%; pointer-events: none; }
+.scene-robot img { display: block; width: 100%; height: auto; filter: drop-shadow(0 6px 4px rgba(64, 36, 91, .2)); }
+.robot-tag { position: absolute; left: 50%; top: 96%; translate: -50% 0; padding: 4px 11px; border-radius: 999px; background: #5a22e0; color: #fff; font-size: .8rem; font-weight: 800; white-space: nowrap; box-shadow: 0 6px 14px rgba(90, 34, 224, .3); animation: pin-bob 1.6s ease-in-out infinite; }
+@keyframes pin-bob { 50% { transform: translateY(-4px); } }
+.device { position: absolute; z-index: 4; width: 72px; height: 72px; padding: 0; border: 0; border-radius: 50%; background: transparent; translate: -50% -50%; cursor: pointer; }
+.device::before { content: ""; position: absolute; inset: 4px; border: 2px solid transparent; border-radius: 50%; transition: border-color .2s, box-shadow .2s; }
+.device:hover::before, .device[aria-pressed="true"]::before { border-color: rgba(110, 38, 244, .65); box-shadow: 0 0 0 6px rgba(110, 38, 244, .1); }
+.device:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.device-label { position: absolute; left: 50%; top: 86%; translate: -50% 0; padding: 4px 10px; border-radius: 9px; background: rgba(255, 255, 255, .96); box-shadow: 0 3px 8px rgba(48, 32, 66, .14); color: var(--navy); font-size: .82rem; font-weight: 800; white-space: nowrap; }
+.device[aria-pressed="true"] .device-label { background: var(--navy); color: #fff; }
+.device.is-done .device-label::before { content: "✓ "; }
+.device.is-done:not([aria-pressed="true"]) .device-label { background: #e6f6ee; color: #1f7a4d; }
 
-/* 다음 미션 카드: 지금 여기 섬 바로 아래 */
-.stage-mission { position: relative; z-index: 3; width: min(300px, 90%); margin: -10px auto 0; padding: 18px 20px; border-radius: 20px; background: #fff; box-shadow: 0 16px 40px rgba(63, 31, 174, .12); }
-.mission-kicker { margin: 0; color: #5a22e0; font-size: .9rem; font-weight: 700; }
-.mission-title { margin: 2px 0 10px; font-size: 1.2rem; font-weight: 800; line-height: 1.35; }
-.stage-mission .progress { flex-direction: column-reverse; align-items: stretch; gap: 6px; margin-bottom: 14px; }
-.stage-mission .progress-text { color: var(--ink); font-size: .95rem; }
-.stage-mission .meter span { background: #5a22e0; }
+/* 미션 칸: 다음 미션·진도·이어하기, 아래에 고른 장치 설명(복습 섬은 연습 문제) */
+.scene-panel { grid-area: panel; position: relative; z-index: 2; align-self: start; padding: 20px; border: 1px solid #e3d9f0; border-radius: 18px; background: rgba(255, 255, 255, .95); box-shadow: 0 12px 32px rgba(59, 34, 91, .07); }
+.mission-kicker { margin: 0; color: #5a22e0; font-size: .88rem; font-weight: 700; }
+.mission-title { margin: 4px 0 12px; font-size: 1.2rem; font-weight: 800; line-height: 1.4; word-break: keep-all; }
+.scene-panel .progress { flex-direction: column-reverse; align-items: stretch; gap: 6px; margin-bottom: 14px; }
+.scene-panel .progress-text { color: var(--ink); font-size: .92rem; }
+.scene-panel .meter span { background: #5a22e0; }
 .mission-go { width: 100%; }
+.device-note { margin-top: 16px; padding-top: 14px; border-top: 1px solid #eee8f6; }
+.device-intro { margin: 0 0 6px; color: #7d7090; font-size: .84rem; line-height: 1.5; }
+.device-text { margin: 0; color: #3b4458; font-size: .92rem; line-height: 1.6; word-break: keep-all; }
+.device-text strong { margin-right: 4px; color: var(--navy); }
+.quiz-count { margin: -4px 0 12px; color: var(--navy); font-size: .88rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.quiz-q { margin: 0 0 10px; font-size: .95rem; font-weight: 700; line-height: 1.5; word-break: keep-all; }
+.quiz-choices { display: grid; gap: 7px; }
+.quiz-choice { min-height: 44px; padding: 9px 12px; border: 1px solid #e3dcef; border-radius: 10px; background: #fff; color: #4a405a; font: inherit; font-size: .92rem; text-align: left; cursor: pointer; }
+.quiz-choice:hover:not(:disabled) { border-color: #b8a1e3; background: #f8f5fd; }
+.quiz-choice:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.quiz-choice.is-right { border-color: #83bfa1; background: #edf9f2; color: #1f6d47; font-weight: 700; }
+.quiz-choice.is-wrong { border-color: #dda584; background: #fff6ef; }
+.quiz-choice:disabled { cursor: default; }
+.quiz-explain { margin: 10px 0 0; color: #1f6d47; font-size: .88rem; line-height: 1.5; }
+.quiz-feedback { min-height: 1.5em; margin: 10px 0 12px; color: #705e88; font-size: .88rem; }
 
-/* 완료 순간: 별빛이 짧게 퍼집니다(learn.js가 새로 끝낸 섬에만 한 번). */
-.stage-burst { position: absolute; left: 50%; top: 40%; z-index: 3; pointer-events: none; }
-.stage-burst i { position: absolute; width: 14px; height: 14px; margin: -7px; border-radius: 50%; background: #ffc83a; animation: burst .9s ease-out forwards; }
-.stage-burst .burst-star { background: #8b6cf6; clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%); width: 22px; height: 22px; margin: -11px; border-radius: 0; }
+/* 갈림길: 작은 섬 그림 + 이름. 누르면 그 섬이 가운데로 옵니다. */
+.branch { position: relative; z-index: 2; align-self: end; display: grid; justify-items: center; gap: 4px; width: min(100%, 190px); padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: center; cursor: pointer; }
+.branch-review { grid-area: review; justify-self: start; }
+.branch-next { grid-area: next; justify-self: end; }
+.branch img { width: 100%; height: auto; filter: drop-shadow(0 9px 8px rgba(91, 69, 100, .12)); transition: translate .2s ease; }
+.branch-next img { opacity: .8; }
+.branch:hover img { translate: 0 -4px; }
+.branch:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 12px; }
+.branch-kicker { padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .9); color: var(--navy); font-size: .78rem; font-weight: 700; }
+.branch strong { font-size: .95rem; font-weight: 800; }
+
+/* 완료 순간: 스테이지 줄의 그 칸에서 별빛이 짧게 퍼집니다(learn.js가 새로 끝낸 회차에만 한 번). */
+.stage-burst { position: absolute; left: 50%; top: 50%; z-index: 3; pointer-events: none; }
+.stage-burst i { position: absolute; width: 10px; height: 10px; margin: -5px; border-radius: 50%; background: #ffc83a; animation: burst .9s ease-out forwards; }
+.stage-burst .burst-star { background: #8b6cf6; clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%); width: 16px; height: 16px; margin: -8px; border-radius: 0; }
 @keyframes burst { from { transform: translate(0, 0) scale(.4); opacity: 1; } to { transform: translate(var(--x), var(--y)) scale(1); opacity: 0; } }
+@media (max-width: 1179px) {
+  .scene { grid-template-columns: minmax(0, 1fr) minmax(260px, 300px); grid-template-rows: auto auto 1fr; grid-template-areas: "island id" "island panel" "review next"; gap: 16px 24px; }
+  .scene-island, .scene-island.is-wide { width: min(100%, 620px); }
+  .scene-routes { display: none; }
+  .scene-id { padding-top: 0; }
+  .branch { width: min(100%, 160px); }
+}
+@media (max-width: 759px) {
+  .scene { grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-template-areas: "id id" "island island" "panel panel" "review next"; gap: 16px; }
+  .scene-id, .scene-panel { justify-self: center; width: 100%; max-width: 560px; }
+  .scene-id { padding-top: 0; }
+  .scene-island, .scene-island.is-wide { width: min(100%, 560px); }
+  .scene-routes { display: none; }
+  .branch { justify-self: center; width: min(100%, 160px); }
+}
+@media (max-width: 719px) {
+  .stage-bar { width: auto; margin-inline: -4px; }
+  .stage-tab { gap: 6px; padding: 6px 10px; font-size: .86rem; }
+  .stage-tab:not([aria-pressed="true"]) .tab-name { display: none; }
+  .scene-id { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "kicker chip" "title title" "lead lead"; align-items: center; }
+  .scene-kicker { grid-area: kicker; }
+  .scene-id .stage-chip { grid-area: chip; }
+  .scene-title { grid-area: title; }
+  .scene-lead { grid-area: lead; margin: 0; }
+  .scene-island.is-wide { width: calc(100% + 24px); margin-inline: -12px; }
+  .scene { padding-top: 14px; }
+  .scene-title { margin: 6px 0; }
+  .scene-lead { font-size: .9rem; }
+  .device { width: 52px; height: 52px; }
+  .device-label { padding: 3px 7px; font-size: .74rem; }
+  .scene-robot { min-width: 44px; }
+  .robot-tag { padding: 3px 8px; font-size: .72rem; }
+  .scene-island .badge-clear { width: 38px; height: 38px; }
+}
 .course-steps { list-style: none; margin: 0; padding: 0; }
 .course-steps li + li { border-top: 1px solid var(--line); }
 .course-step { display: grid; grid-template-columns: 24px 2.2em minmax(0, 1fr); align-items: center; gap: 8px; min-height: 50px; padding: 8px 8px; border-radius: 10px; color: var(--ink); text-decoration: none; }
@@ -809,14 +859,6 @@ a.stage-link:focus-visible .stage-no { outline: 3px solid var(--focus); outline-
   .study-nav a { min-height: 44px; padding: 0 10px; }
   .study-main { padding: 18px 16px 40px; }
   .study-login { margin-top: 3vh; padding: 24px 20px; }
-  .quest-map { padding: 12px 0 40px; }
-  .quest-path { display: none; }
-  .stage, .stage.is-here, .stage.is-goal { width: 86%; margin: 0; }
-  .stage + .stage { margin-top: 8px; }
-  .stage-title { font-size: 1.15rem; }
-  .stage-no { font-size: 1.2rem; }
-  .badge-clear { width: 44px; height: 44px; }
-  .badge-lock { width: 46px; height: 46px; }
 }
 @media (max-width: 480px) {
   .learn-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

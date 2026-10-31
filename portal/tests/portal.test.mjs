@@ -646,40 +646,66 @@ test('learn pages use the study layout without the portal menu, other pages keep
   }
 });
 
-test('the course map is a one-way island route with number pills, a next-mission card and a Final goal', async t => {
-  const { read, outDir } = await build(t);
+test('the course map shows one island at a time with a stage bar, a mission panel and next/review branches', async t => {
+  const { read, outDir } = await build(t, defaultContent, WS2_OPENS);
   const html = await read('/learn/');
-  const ws1 = defaultContent.workshops[0];
+  const [ws1, ws2] = defaultContent.workshops;
   assert.match(html, /<h1 class="quest-title">수업 지도<\/h1>/);
   assert.match(html, new RegExp(`수업 완료 <strong data-clear-count>0 / ${defaultContent.workshops.length}</strong>`));
-  assert.match(html, /<svg class="quest-path" aria-hidden="true"[\s\S]*?data-map-path[\s\S]*?data-map-done/);
-  const stages = [...html.matchAll(/<li class="stage[^"]*"/g)].map(m => m[0]);
-  assert.equal(stages.length, defaultContent.workshops.length + 1, 'one stage per workshop plus the goal');
-  // 열린 회차: 번호·이름·섬이 링크 하나, 첫 단계로 들어가고(learn.js가 안 끝낸 단계로 바꿈), 다음 미션 카드는 지금 여기일 때만
-  const panel = html.match(/<li class="stage c-green" data-course="1"[\s\S]*?<\/li>/)[0];
-  assert.ok(panel.includes(`data-path="/learn/01/" data-steps="[${ws1.missions.map(m => `&quot;${m.id}&quot;`).join(',')}]"`));
-  assert.ok(panel.includes(`<a class="stage-link" href="/learn/01/#step-${ws1.missions[0].id}" data-continue>`));
-  assert.match(panel, /<span class="stage-no">01<\/span>\s*<span class="stage-title">화면에서 서비스로<\/span>/);
-  assert.match(panel, /<span class="stage-here" data-here hidden>지금 여기<\/span>/);
-  const mission = panel.match(/<div class="stage-mission" data-mission hidden>[\s\S]*?<\/div>\s*<\/li>/)[0];
-  for (const text of ['다음 미션', ws1.missions[0].title, `0 / ${ws1.missions.length} 미션 완료`, '미션 이어하기']) assert.ok(mission.includes(text), text);
-  // 잠긴 회차: 링크 없이 자물쇠와 '곧 열려요'
-  const locked = html.match(/<li class="stage is-locked">[\s\S]*?<\/li>/)[0];
-  assert.doesNotMatch(locked, /href=/);
-  assert.match(locked, /badge-lock/);
-  assert.match(locked, /곧 열려요/);
-  // 기획 중인 회차: 이름이 있으면 '다음 도전', 없으면 '다음 워크숍 · 준비 중'
-  const fog = [...html.matchAll(/<li class="stage is-fog">[\s\S]*?<\/li>/g)].map(m => m[0]);
-  assert.equal(fog.length, 2);
-  assert.match(fog[0], /<span class="stage-no">03<\/span>\s*<span class="stage-title">Midterm Showcase<\/span>\s*<span class="stage-chip"[^>]*>다음 도전/);
-  assert.match(fog[1], /<span class="stage-title">다음 워크숍<\/span>\s*<span class="stage-chip"[^>]*>준비 중/);
-  assert.match(html, /<li class="stage is-goal">\s*<a class="stage-link" href="\/showcase\/">[\s\S]*?<span class="stage-no">FINAL<\/span>\s*<span class="stage-title">Final Showcase<\/span>/);
-  // 시안에만 있던 복습·별은 아직 없어요(가짜 숫자를 보여주지 않음).
-  assert.doesNotMatch(html, /복습|별을 모아/);
-  // 섬 그림 다섯 장이 빌드 결과에 있어요.
+  // 스테이지 줄: 회차마다 한 칸 + FINAL. 열리지 않은 회차는 잠김 표시
+  const tabs = [...html.matchAll(/<button type="button" class="stage-tab([^"]*)" data-tab="([^"]+)"/g)].map(m => [m[2], m[1].trim()]);
+  assert.deepEqual(tabs, [['1', ''], ['2', ''], ['3', 'is-locked'], ['4', 'is-locked'], ['final', '']]);
+  // 스테이지는 회차마다 + FINAL + 복습 섬. 처음에는 마지막으로 열린 회차 하나만 보입니다.
+  const scenes = [...html.matchAll(/<section class="scene[^"]*" id="scene-([^"]+)" data-scene="[^"]+"[^>]*>/g)];
+  assert.deepEqual(scenes.map(m => m[1]), ['1', '2', '3', '4', 'final', 'review']);
+  assert.deepEqual(scenes.filter(m => !/ hidden>$/.test(m[0])).map(m => m[1]), ['2']);
+  assert.match(html, /data-map data-default="2"/);
+  // 열린 회차: 단계 목록·첫 단계로 가는 미션 버튼(learn.js가 안 끝낸 단계로 바꿈)·장치 설명, 로봇은 숨겨 두고 learn.js가 지금 여기에만 엶
+  const s2 = html.match(/<section class="scene" id="scene-2"[\s\S]*?<\/section>/)[0];
+  assert.ok(s2.includes(`data-path="/learn/02/" data-steps="[${ws2.missions.map(m => `&quot;${m.id}&quot;`).join(',')}]"`));
+  assert.ok(s2.includes(`href="/learn/02/#step-${ws2.missions[0].id}" data-continue>미션 시작 →</a>`));
+  for (const text of ['다음 미션', ws2.missions[0].title, `0 / ${ws2.missions.length} 미션 완료`]) assert.ok(s2.includes(text), text);
+  assert.match(s2, /<span class="scene-robot" data-robot[^>]*hidden>/);
+  const devices = [...s2.matchAll(/data-device="\d"(?: data-device-step="([^"]+)")?/g)].map(m => m[1]);
+  assert.equal(devices.length, 3);
+  for (const step of devices) assert.ok(ws2.missions.some(m => m.id === step), `${step} is a real step`);
+  assert.match(s2, /data-go="review"[\s\S]*?복습 섬 →/);
+  assert.match(s2, /data-go="3"[\s\S]*?03 · Midterm/);
+  // Workshop 01의 로그인·지도·날씨 블록은 실제 수업처럼 셋 중 하나를 고르는 것으로 설명합니다.
+  const s1 = html.match(/<section class="scene" id="scene-1"[\s\S]*?<\/section>/)[0];
+  assert.ok(s1.includes(`href="/learn/01/#step-${ws1.missions[0].id}"`));
+  for (const label of ['로그인', '지도', '날씨']) assert.match(s1, new RegExp(`<span class="device-label">${label}</span>`));
+  assert.match(s1, /셋 중 하나를 골라/);
+  // 열리지 않은 회차·FINAL: 수업 링크와 장치 없이 안내만
+  const s3 = html.match(/<section class="scene is-fog" id="scene-3"[\s\S]*?<\/section>/)[0];
+  assert.match(s3, /Midterm Showcase[\s\S]*?다음 도전/);
+  assert.doesNotMatch(s3, /data-device=|data-continue|\/learn\/03\//);
+  assert.match(html, /<section class="scene is-fog" id="scene-4"[\s\S]*?다음 워크숍[\s\S]*?준비 중/);
+  const final = html.match(/<section class="scene" id="scene-final"[\s\S]*?<\/section>/)[0];
+  assert.match(final, /Final Showcase[\s\S]*?href="\/showcase\/"/);
+  assert.doesNotMatch(final, /data-go="(?!review)/);
+  // 복습 섬: 연습 문제는 저장하지 않는다고 밝히고, 원래 수업으로 돌아갈 수 있어요. 별·경험치 같은 숫자는 없습니다.
+  const review = html.match(/<section class="scene" id="scene-review"[\s\S]*?<\/section>/)[0];
+  assert.match(review, /연습 · 기록되지 않아요/);
+  assert.equal((review.match(/data-quiz="\d"/g) ?? []).length, 3);
+  assert.equal((review.match(/data-answer/g) ?? []).length, 3);
+  assert.match(review, /href="\/learn\/01\/">Workshop 01 다시 보기/);
+  assert.match(review, /data-go="1"[\s\S]*?01 · API 연결/);
+  assert.doesNotMatch(html, /별을 모아|경험치|XP/);
+  // 섬 그림 여섯 장과 로봇이 빌드 결과에 있어요.
   const art = [...new Set([...html.matchAll(/\/images\/learn-map\/[\w-]+\.webp/g)].map(m => m[0]))];
-  assert.equal(art.length, 5);
+  assert.equal(art.length, 7);
   for (const file of art) assert.ok(await exists(path.join(outDir, file)), file);
+});
+
+test('before Workshop 02 opens, the map shows Workshop 01 and a locked Workshop 02 with its opening time', async t => {
+  const { read } = await build(t, defaultContent, WS2_OPENS - 60_000);
+  const html = await read('/learn/');
+  assert.match(html, /data-map data-default="1"/);
+  const s2 = html.match(/<section class="scene is-locked" id="scene-2"[\s\S]*?<\/section>/)[0];
+  assert.match(s2, /11\/2 \(월\) 18:00에 열려요/);
+  assert.doesNotMatch(s2, /data-device=|data-continue|data-course/);
+  assert.match(html, /class="stage-tab is-locked" data-tab="2"/);
 });
 
 test('the lesson page has a step tab bar, then the slides beside the current step, and a progress header', async t => {

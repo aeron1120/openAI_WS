@@ -35,101 +35,146 @@ const progress = (text, className = '') => h`<div class="progress${className ? `
 // 단계 줄의 표시(✔ 완료 · ▶ 지금 · ○ 아직)는 learn.js가 바꿉니다. 화면 읽기 프로그램용 상태는 data-step-state.
 const stepRow = (m, i) => h`<span class="step-mark" aria-hidden="true">○</span><span class="step-no">${pad(i + 1)}</span><span class="step-title">${m.title}</span><span class="sr-only" data-step-state></span>`;
 
-// 수업 지도의 칸 하나 = 회차 하나. 번호·이름·상태 칩 아래에 떠 있는 섬이 있고, 섬을 길로 잇습니다.
-// 열린 회차는 번호·이름·섬 전체가 링크 하나이고, 누르면 처음으로 안 끝낸 단계로 들어갑니다(learn.js가 주소를 바꿈).
-// 지금 할 섬에는 '지금 여기'와 옆에 '다음 미션' 카드(다음 단계 이름·진도·이어하기 버튼)가 붙습니다.
-// 섬 그림은 public/images/learn-map/의 ISLANDS 파일을 쓰고, 없으면 파스텔색 둥근 섬을 CSS로 그립니다.
-// 이름은 content의 mapTitle(없으면 shortTitle). 진도·상태는 실제 진도로만 표시합니다.
+// 수업 지도: 한 번에 섬 하나(스테이지)를 크게 보여줍니다. 왼쪽에 회차 이름, 가운데 섬, 오른쪽에 미션 칸,
+// 아래 양옆에 복습 섬·다음 섬 갈림길이 있고, 위 스테이지 줄이나 갈림길을 누르면 가운데 섬과 미션 칸이 함께 바뀝니다.
+// 섬 그림·장치 자리는 content/learn-map.mjs. 진도·지금 여기(로봇)·장치 ✓·스테이지 바꾸기는 learn.js가 맡습니다.
+// 그림을 살펴보는 것과 수업이 열렸는지는 따로입니다: 열리지 않은 회차는 섬만 보이고 수업 링크·장치가 없습니다.
 const MAP = '/images/learn-map';
-// 섬 그림: 바다·로봇까지 그려진 3:2 장면(snu-game-islands-v3, 2026-10-31)을 웹용 WebP로 줄인 것. 둥근 창 모양으로 보여줍니다.
-const ISLANDS = { 1: 'island-01.webp', 2: 'island-02.webp', 3: 'island-03.webp', 4: 'island-04.webp', goal: 'island-final.webp' };
-const AVATAR = null; // 따로 받은 캐릭터 그림이 있으면 'avatar.webp'처럼 — 지금 여기 섬 위에 섭니다(지금 섬 그림에는 로봇이 이미 있음)
-const TONES = ['mint', 'lavender', 'pink', 'sky'];
-const tone = n => TONES[(n - 1) % TONES.length];
+const pct = n => `${Math.round(n * 1000) / 10}%`;
+const stageNo = key => (key === 'final' ? 'FINAL' : key === 'review' ? 'REPLAY' : pad(key));
 
-function island(key, toneName, badge = '') {
-  const art = ISLANDS[key]
-    ? h`<img class="stage-art" src="${MAP}/${ISLANDS[key]}" alt="" width="1200" height="800" loading="lazy" decoding="async">`
-    : h`<span class="isle isle-${toneName}"><span class="isle-top"></span></span>`;
-  return h`<span class="stage-spot" aria-hidden="true">
-    <span class="stage-node">${art}${badge}${AVATAR ? h`<img class="stage-avatar" src="${MAP}/${AVATAR}" alt="" width="200" height="240" data-avatar hidden>` : ''}</span>
-  </span>`;
+// 가운데 섬: 그림 + 완료 표시 + 로봇(지금 여기일 때 learn.js가 엶) + 장치 버튼(눌러서 설명·연습 문제를 봄)
+function islandOf(spot, robot, devices, eager) {
+  const { art } = spot;
+  return h`<div class="scene-island${art.width > art.height * 1.2 ? ' is-wide' : ''}" style="--ratio: ${art.width} / ${art.height}">
+    <img class="scene-art" src="${MAP}/${art.file}" alt="${art.alt}" width="${art.width}" height="${art.height}" decoding="async"${eager ? '' : raw(' loading="lazy"')}>
+    <i class="badge-clear" aria-hidden="true"></i>
+    ${robot ? h`<span class="scene-robot" data-robot style="left: ${pct(spot.robot[0])}; top: ${pct(spot.robot[1])}" hidden>
+      <img src="${MAP}/${robot.file}" alt="" width="${robot.width}" height="${robot.height}" loading="lazy">
+      <span class="robot-tag">지금 여기</span>
+    </span>` : ''}
+    ${devices.map((d, i) => h`<button type="button" class="device" style="left: ${pct(d.x)}; top: ${pct(d.y)}" data-device="${i}"${d.step ? h` data-device-step="${d.step}"` : ''} aria-pressed="${String(i === 0)}"><span class="device-label">${d.label}</span><span class="sr-only" data-device-state></span></button>`)}
+  </div>`;
 }
-const head = (no, title, chip, chipTone = '') => h`<span class="stage-head">
-    <span class="stage-no">${no}</span>
-    <span class="stage-title">${title}</span>
-    ${chip == null ? '' : h`<span class="stage-chip${chipTone ? ` chip-${chipTone}` : ''}" data-stage-chip>${chip}</span>`}
-  </span>`;
-const mapTitle = item => item.mapTitle ?? item.shortTitle;
 
-function openStage(w) {
+const sceneHead = ({ key, kicker, title, lead, chip, chipTone }) => h`<div class="scene-id">
+    <p class="scene-kicker">${kicker}</p>
+    <h2 class="scene-title" id="scene-title-${key}" tabindex="-1">${title}</h2>
+    ${lead ? h`<p class="scene-lead">${lead}</p>` : ''}
+    ${chip ? h`<span class="stage-chip${chipTone ? ` chip-${chipTone}` : ''}" data-stage-chip>${chip}</span>` : ''}
+  </div>`;
+
+// 갈림길: 다음 섬(오른쪽 아래)과 복습 섬(왼쪽 아래)의 작은 그림. 누르면 그 섬이 가운데로 옵니다.
+const branch = (side, key, spot, kicker, label) => h`<button type="button" class="branch branch-${side}" data-go="${key}" aria-controls="scene-${key}">
+    <img src="${MAP}/${spot.art.file}" alt="" width="${spot.art.width}" height="${spot.art.height}" loading="lazy" decoding="async">
+    <span class="branch-kicker">${kicker}</span>
+    <strong>${label}</strong>
+  </button>`;
+
+// 열린 회차의 미션 칸: 다음 미션(처음으로 안 끝낸 단계)·진도·이어하기 + 장치 설명
+function openPanel(w, devices, intro) {
   const path = lessonPath(w);
-  const total = w.missions.length;
-  return h`<li class="stage c-${w.color}" data-course="${w.number}" data-path="${path}" data-steps="${JSON.stringify(w.missions.map(m => m.id))}" data-titles="${JSON.stringify(w.missions.map(m => m.title))}">
-  <a class="stage-link" href="${path}#step-${w.missions[0].id}" data-continue>
-    <span class="stage-here" data-here hidden>지금 여기</span>
-    ${head(pad(w.number), mapTitle(w), '도전 가능', 'open')}
-    ${island(w.number, tone(w.number), h`<i class="stage-badge badge-clear"></i>`)}
-  </a>
-  <div class="stage-mission" data-mission hidden>
-    <p class="mission-kicker">다음 미션</p>
+  return h`<div class="scene-panel">
+    <p class="mission-kicker" data-mission-kicker>다음 미션</p>
     <p class="mission-title" data-mission-title>${w.missions[0].title}</p>
-    ${progress(`0 / ${total} 미션 완료`)}
-    <a class="btn btn-fill mission-go" data-continue href="${path}#step-${w.missions[0].id}">미션 이어하기 →</a>
-  </div>
-</li>`;
+    ${progress(`0 / ${w.missions.length} 미션 완료`)}
+    <a class="btn btn-fill mission-go" href="${path}#step-${w.missions[0].id}" data-continue>미션 시작 →</a>
+    ${devices.length ? h`<div class="device-note" aria-live="polite">
+      <p class="device-intro">${intro ?? '섬의 장치를 눌러 보세요.'}</p>
+      ${devices.map((d, i) => h`<p class="device-text" data-device-text="${i}"${i ? raw(' hidden') : ''}><strong>${d.label}</strong> ${d.note}</p>`)}
+    </div>` : ''}
+  </div>`;
 }
 
-// 자료가 아직 열리지 않은 회차: 섬은 흐리고 자물쇠. 링크 없음.
-const lockedStage = w => h`<li class="stage is-locked">
-  <div class="stage-link">
-    ${head(pad(w.number), mapTitle(w), '곧 열려요')}
-    <span class="sr-only">잠김 · ${w.opensLabel}에 열려요</span>
-    ${island(w.number, tone(w.number), h`<i class="stage-badge badge-lock"></i>`)}
-  </div>
-</li>`;
+// 복습 섬의 미션 칸: 블록마다 짧은 연습 문제. 저장하지 않고, 수업 완료와 상관없습니다.
+const reviewPanel = (devices, w) => h`<div class="scene-panel" data-quiz-panel>
+    <p class="mission-kicker">연습 · 기록되지 않아요</p>
+    <p class="mission-title">블록을 눌러 기능을 맞혀 보세요</p>
+    <p class="quiz-count" data-quiz-count>0 / ${devices.length} 확인</p>
+    ${devices.map((d, i) => h`<div class="quiz" data-quiz="${i}"${i ? raw(' hidden') : ''}>
+      <p class="quiz-q"><strong>${d.label}</strong> · ${d.quiz.question}</p>
+      <div class="quiz-choices">${d.quiz.choices.map((c, j) => h`<button type="button" class="quiz-choice" data-choice${j === d.quiz.answer ? raw(' data-answer') : ''}>${c}</button>`)}</div>
+      <p class="quiz-explain" hidden>${d.quiz.explain}</p>
+    </div>`)}
+    <p class="quiz-feedback" data-quiz-feedback role="status"></p>
+    <a class="btn btn-ghost mission-go" href="${lessonPath(w)}">Workshop ${pad(w.number)} 다시 보기</a>
+  </div>`;
 
-// 주제를 정하는 중인 회차: 이름이 정해졌으면(mapTitle) '다음 도전', 아니면 '다음 워크숍 · 준비 중'. 링크 없음.
-const planningStage = w => h`<li class="stage is-fog">
-  <div class="stage-link">
-    ${head(pad(w.number), w.mapTitle ?? '다음 워크숍', w.mapTitle ? '다음 도전' : '준비 중')}
-    ${island(w.number, tone(w.number), h`<i class="stage-badge badge-lock"></i>`)}
-  </div>
-</li>`;
+// 열리지 않은 회차·마지막 Showcase의 칸: 언제 열리는지와 안내 페이지 링크만
+const infoPanel = (kicker, title, href, label) => h`<div class="scene-panel">
+    <p class="mission-kicker">${kicker}</p>
+    <p class="mission-title">${title}</p>
+    <a class="btn btn-ghost mission-go" href="${href}">${label}</a>
+  </div>`;
 
-// 마지막 섬: 학기 마무리 Showcase 안내로 갑니다.
-const goalStage = showcase => h`<li class="stage is-goal">
-  <a class="stage-link" href="/showcase/">
-    ${head('FINAL', showcase.mapTitle ?? showcase.title, null)}
-    ${island('goal', 'peach')}
-  </a>
-</li>`;
-
-const stageOf = open => w =>
-  open.includes(w) ? openStage(w) : w.materials === 'locked' ? lockedStage(w) : planningStage(w);
-
-// 수업 지도: 위에 제목과 수업 완료 수, 아래에 회차 섬을 한 방향 길로 잇고 마지막에 Showcase가 있습니다.
-// 길(data-map-path)은 learn.js가 섬 위치에 맞춰 그립니다.
-export function learnPage(content) {
+// 스테이지 목록: 회차들 → FINAL, 복습할 회차가 열려 있으면 복습 섬. 그림이 없는 칸은 건너뜁니다.
+function stagesOf(content) {
+  const map = content.learnMap ?? {};
   const open = lessonWorkshops(content);
+  const list = content.workshops.filter(w => map[w.number]?.art).map(w => ({ key: String(w.number), w, spot: map[w.number], open: open.includes(w) }));
+  if (map.final?.art) list.push({ key: 'final', spot: map.final });
+  const from = open.find(w => w.number === map.review?.from);
+  const review = map.review?.art && from ? { key: 'review', spot: map.review, w: from } : null;
+  return { list, review, robot: map.robot };
+}
+
+function scene(stage, i, { list, review, robot }, content, shown) {
+  const { key, w, spot } = stage;
+  const next = key === 'review' ? list.find(s => s.w === review.w) : list[i + 1];
+  const devices = (stage.open || key === 'review') ? spot.devices ?? [] : [];
+  let head;
+  let panel;
+  let state = '';
+  if (key === 'review') {
+    head = { kicker: `REPLAY · Workshop ${pad(w.number)}`, title: spot.title, lead: spot.lead, chip: '복습' };
+    panel = reviewPanel(devices, w);
+  } else if (key === 'final') {
+    const showcase = content.showcase;
+    head = { kicker: 'FINAL STAGE', title: showcase.mapTitle ?? showcase.title, lead: showcase.description };
+    panel = infoPanel('학기 마무리', showcase.korean, '/showcase/', 'Showcase 안내 보기');
+  } else if (stage.open) {
+    head = { kicker: `STAGE ${pad(w.number)}`, title: w.mapTitle ?? w.shortTitle, lead: w.summary, chip: '도전 가능', chipTone: 'open' };
+    panel = openPanel(w, devices, spot.deviceIntro);
+  } else if (w.materials === 'locked') {
+    state = ' is-locked';
+    head = { kicker: `STAGE ${pad(w.number)}`, title: w.mapTitle ?? w.shortTitle, lead: w.summary, chip: '곧 열려요', chipTone: 'lock' };
+    panel = infoPanel('곧 열려요', `${w.opensLabel}에 열려요`, `/workshops/${w.slug}/`, '수업 안내 보기');
+  } else {
+    state = ' is-fog';
+    head = { kicker: `STAGE ${pad(w.number)}`, title: w.mapTitle ?? '다음 워크숍', lead: w.summary, chip: w.mapTitle ? '다음 도전' : '준비 중', chipTone: 'lock' };
+    panel = infoPanel('준비 중', w.mapTitle ? '날짜는 추후 안내해요' : '주제를 정하고 있어요', `/workshops/${w.slug}/`, '수업 안내 보기');
+  }
+  const course = stage.open
+    ? h` data-course="${w.number}" data-path="${lessonPath(w)}" data-steps="${JSON.stringify(w.missions.map(m => m.id))}" data-titles="${JSON.stringify(w.missions.map(m => m.title))}"`
+    : '';
+  return h`<section class="scene${state}" id="scene-${key}" data-scene="${key}"${course} aria-labelledby="scene-title-${key}"${key === shown ? '' : raw(' hidden')}>
+  <svg class="scene-routes" aria-hidden="true" focusable="false"><path data-route="review"/><path data-route="next"/></svg>
+  ${sceneHead({ key, ...head })}
+  ${islandOf(spot, robot, devices, key === shown)}
+  ${panel}
+  ${review && key !== 'review' ? branch('review', 'review', review.spot, '배운 기능 다시 연결', '복습 섬 →') : ''}
+  ${next ? branch('next', next.key, next.spot, key === 'review' ? '돌아가기' : '다음 스테이지', `${stageNo(next.key)} · ${next.spot.tab}`) : ''}
+</section>`;
+}
+
+// 수업 지도: 제목·수업 완료 수 → 스테이지 줄 → 가운데 섬 하나. 처음에는 마지막으로 열린 회차를 보여주고,
+// 진도를 불러오면 learn.js가 지금 할 섬(진행 중 → 안 시작한 열린 회차 → 다 끝냈으면 복습 섬)으로 옮깁니다.
+export function learnPage(content) {
+  const stages = stagesOf(content);
+  const open = stages.list.filter(s => s.open);
+  const shown = (open.at(-1) ?? stages.list[0])?.key;
+  const all = [...stages.list, ...(stages.review ? [stages.review] : [])];
   return h`${loginCard({ title: '수업 듣기', lead: '서울대 계정으로 로그인하면 슬라이드를 보며 단계별로 따라 하고, 막힌 부분을 바로 질문할 수 있어요.' })}
 <div class="quest" data-learn-content hidden>
   <header class="quest-head">
-    <div>
-      <h1 class="quest-title">수업 지도</h1>
-      <p class="quest-lead">섬을 하나씩 클리어하며 나아가요.</p>
-    </div>
+    <h1 class="quest-title">수업 지도</h1>
     <p class="quest-count"><span class="count-check" aria-hidden="true"></span>수업 완료 <strong data-clear-count>0 / ${content.workshops.length}</strong></p>
   </header>
-  <div class="quest-map" data-map>
-    <svg class="quest-path" aria-hidden="true" focusable="false">
-      <path class="quest-path-base" data-map-path/>
-      <g class="quest-path-done" data-map-done></g>
-    </svg>
-    <ol class="quest-stages">
-      ${content.workshops.map(stageOf(open))}
-      ${goalStage(content.showcase)}
-    </ol>
+  <nav class="stage-bar" aria-label="스테이지">
+    ${stages.list.map(s => h`<button type="button" class="stage-tab${s.w && !s.open ? ' is-locked' : ''}" data-tab="${s.key}" aria-controls="scene-${s.key}" aria-pressed="${String(s.key === shown)}"><b>${stageNo(s.key)}</b><span class="tab-name">${s.spot.tab}</span><i class="tab-mark" aria-hidden="true"></i>${s.w && !s.open ? h`<span class="sr-only"> (잠김)</span>` : ''}</button>`)}
+  </nav>
+  <div class="quest-world" data-map data-default="${shown}">
+    ${all.map((s, i) => scene(s, i, stages, content, shown))}
   </div>
 </div>`;
 }
