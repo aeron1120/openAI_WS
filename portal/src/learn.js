@@ -259,7 +259,7 @@
     const feedback = scene.querySelector('[data-quiz-feedback]');
     if (!('answer' in choice.dataset)) {
       choice.classList.add('is-wrong');
-      feedback.textContent = '이 기능에 필요한 정보를 다시 생각해 봐요.';
+      feedback.textContent = '아쉬워요. 수업 자료를 떠올려 다시 골라 보세요.';
       return;
     }
     choice.classList.add('is-right');

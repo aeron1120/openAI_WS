@@ -54,15 +54,30 @@ export const learnMap = {
     devices: [
       {
         label: '로그인', x: 0.27, y: 0.4,
-        quiz: { question: '로그인 기능이 알려주는 정보는?', choices: ['누가 로그인했는지', '장소의 위치', '오늘의 기온'], answer: 0, explain: '로그인 결과로 사용자에 맞는 화면을 보여줘요.' }
+        quiz: {
+          question: '기초 틀을 http://localhost:5173/starter/ 에서 열었어요. Google 클라이언트 ID의 ‘승인된 JavaScript 원본’에 넣을 값은?',
+          choices: ['http://localhost:5173/starter/', 'http://localhost:5173', 'localhost:5173/starter', 'https://accounts.google.com'],
+          answer: 1,
+          explain: '접속한 주소의 앞부분만, 경로(/starter/)와 마지막 / 없이 넣어요.'
+        }
       },
       {
         label: '지도', x: 0.63, y: 0.3,
-        quiz: { question: '지도에 장소를 표시하려면 필요한 정보는?', choices: ['로그인 여부', '위치나 장소 정보', '현재 기온'], answer: 1, explain: '위치 정보로 지도 위 표시 자리를 정해요.' }
+        quiz: {
+          question: '실습에서 쓴 지도 데모 키에 대한 설명으로 맞는 것은?',
+          choices: ['결제 정보를 등록해야 받을 수 있다', '학교에서 받은 Google Workspace 계정으로도 받을 수 있다', '하루 한도를 넘으면 다음 날까지 멈추고, 요금은 나오지 않는다', '브라우저에서 쓰는 키라서 GitHub에 올려도 괜찮다'],
+          answer: 2,
+          explain: '데모 키는 개인 Gmail로 결제 없이 받아요. 키는 공개 파일이 아니라 비공개 설정 파일에 넣어요.'
+        }
       },
       {
         label: '날씨', x: 0.64, y: 0.55,
-        quiz: { question: '날씨 기능이 받아 오는 정보는?', choices: ['사용자 이름', '지도 확대 수준', '기온과 날씨 상태'], answer: 2, explain: '받아 온 기온과 날씨를 화면에 보여줘요.' }
+        quiz: {
+          question: '공공데이터포털에서 날씨 인증키를 받을 때 골라야 하는 서비스는?',
+          choices: ['기상청_단기예보 조회서비스', '기상청_단기예보 조회서비스(기상청API허브 연계)', '기상청 API허브에서 따로 발급한 키', '기상청 서비스라면 어느 것이든 같은 키'],
+          answer: 0,
+          explain: 'API허브 연계 서비스는 다른 키예요. 받은 일반 인증키는 서버 설정(KMA_SERVICE_KEY)에 직접 넣어요.'
+        }
       }
     ]
   },
