@@ -249,7 +249,36 @@
     for (const node of scene.querySelectorAll('[data-device]')) node.setAttribute('aria-pressed', String(node === device));
     for (const node of scene.querySelectorAll('[data-device-text], [data-quiz]')) node.hidden = (node.dataset.deviceText ?? node.dataset.quiz) !== index;
     const feedback = scene.querySelector('[data-quiz-feedback]');
-    if (feedback) feedback.textContent = '';
+    if (feedback) updateQuizControls(scene);
+  }
+
+  // 현재 문제를 맞히면 다음 퀴즈, 모든 문제를 맞히면 원래 수업으로 가는 버튼을 보여줍니다.
+  function updateQuizControls(scene) {
+    const devices = [...scene.querySelectorAll('[data-device]')];
+    const solved = devices.filter(node => node.classList.contains('is-done')).length;
+    const complete = devices.length > 0 && solved === devices.length;
+    const quiz = [...scene.querySelectorAll('[data-quiz]')].find(node => !node.hidden);
+    const current = devices.find(node => node.dataset.device === quiz?.dataset.quiz);
+    const answered = current?.classList.contains('is-done');
+    scene.querySelector('[data-quiz-count]').textContent = `${solved} / ${devices.length} 확인`;
+    scene.querySelector('[data-quiz-next]').hidden = complete || !answered;
+    scene.querySelector('[data-quiz-finish]').hidden = !complete;
+    scene.querySelector('[data-quiz-feedback]').textContent = complete
+      ? '모두 맞혔어요! 수업 화면에서 다시 따라 해 봐도 좋아요.'
+      : answered ? '맞아요! 다음 퀴즈로 넘어가 보세요.' : '';
+  }
+
+  function nextQuiz(button) {
+    const scene = button.closest('[data-scene]');
+    const quiz = [...scene.querySelectorAll('[data-quiz]')].find(node => !node.hidden);
+    const devices = [...scene.querySelectorAll('[data-device]')];
+    const index = devices.findIndex(node => node.dataset.device === quiz?.dataset.quiz);
+    // 마지막 블록부터 풀었어도 앞으로 돌아가 아직 안 푼 문제를 찾습니다.
+    const next = [...devices.slice(index + 1), ...devices.slice(0, index + 1)]
+      .find(node => !node.classList.contains('is-done'));
+    if (!next) return;
+    pickDevice(next);
+    scene.querySelector(`[data-quiz="${next.dataset.device}"]`).querySelector('[data-choice]').focus();
   }
 
   // 복습 섬 연습 문제: 맞히면 그 블록에 ✓, 틀리면 다시 고릅니다. 이 화면 안에서만 세고 저장하지 않아요(새로고침하면 처음부터).
@@ -268,10 +297,7 @@
     const device = scene.querySelector(`[data-device="${quiz.dataset.quiz}"]`);
     device.classList.add('is-done');
     device.querySelector('[data-device-state]').textContent = ' (확인)';
-    const devices = [...scene.querySelectorAll('[data-device]')];
-    const solved = devices.filter(node => node.classList.contains('is-done')).length;
-    scene.querySelector('[data-quiz-count]').textContent = `${solved} / ${devices.length} 확인`;
-    feedback.textContent = solved === devices.length ? '모두 맞혔어요! 수업 화면에서 다시 따라 해 봐도 좋아요.' : '맞아요! 다음 블록을 눌러 보세요.';
+    updateQuizControls(scene);
   }
 
   // 수업 지도: 스테이지 줄·갈림길로 가운데 섬을 바꾸고, 진도를 불러오면 섬마다 다음 미션·진도·상태 칩을 채웁니다.
@@ -302,6 +328,8 @@
       if (go) { moved = true; return show(go.dataset.go, true); }
       const device = event.target.closest('[data-device]');
       if (device) return pickDevice(device);
+      const next = event.target.closest('[data-quiz-next]');
+      if (next && !next.hidden) return nextQuiz(next);
       const choice = event.target.closest('[data-choice]');
       if (choice && !choice.disabled) answer(choice);
     });

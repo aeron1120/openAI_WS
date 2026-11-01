@@ -97,7 +97,8 @@ const reviewPanel = (devices, w) => h`<div class="scene-panel" data-quiz-panel>
       <p class="quiz-explain" hidden>${d.quiz.explain}</p>
     </div>`)}
     <p class="quiz-feedback" data-quiz-feedback role="status"></p>
-    <a class="btn btn-ghost mission-go" href="${lessonPath(w)}">Workshop ${pad(w.number)} 다시 보기</a>
+    <button type="button" class="btn btn-fill mission-go" data-quiz-next hidden>다음 퀴즈 →</button>
+    <a class="btn btn-ghost mission-go" href="${lessonPath(w)}" data-quiz-finish hidden>Workshop ${pad(w.number)} 다시 보기</a>
   </div>`;
 
 // 열리지 않은 회차·마지막 Showcase의 칸: 언제 열리는지와 안내 페이지 링크만

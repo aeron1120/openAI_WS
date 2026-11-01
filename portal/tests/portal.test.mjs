@@ -689,7 +689,8 @@ test('the course map shows one island at a time with a stage bar, a mission pane
   assert.match(review, /연습 · 기록되지 않아요/);
   assert.equal((review.match(/data-quiz="\d"/g) ?? []).length, 3);
   assert.equal((review.match(/data-answer/g) ?? []).length, 3);
-  assert.match(review, /href="\/learn\/01\/">Workshop 01 다시 보기/);
+  assert.match(review, /<button[^>]*data-quiz-next[^>]*hidden[^>]*>다음 퀴즈[^<]*<\/button>/);
+  assert.match(review, /<a[^>]*href="\/learn\/01\/"[^>]*data-quiz-finish[^>]*hidden[^>]*>Workshop 01 다시 보기<\/a>/);
   assert.match(review, /data-go="1"[\s\S]*?01 · API 연결/);
   assert.doesNotMatch(html, /별을 모아|경험치|XP/);
   // 섬 그림 여섯 장과 로봇이 빌드 결과에 있어요.
