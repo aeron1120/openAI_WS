@@ -86,15 +86,18 @@ function openPanel(w, devices, intro) {
   </div>`;
 }
 
-// 복습 섬의 미션 칸: 블록마다 짧은 연습 문제. 저장하지 않고, 수업 완료와 상관없습니다.
+// 복습 섬의 미션 칸: 상황 판단 → 선택별 이유 → 내 앱에서 확인할 일. 수업 진도와 별개인 연습입니다.
 const reviewPanel = (devices, w) => h`<div class="scene-panel" data-quiz-panel>
     <p class="mission-kicker">연습 · 기록되지 않아요</p>
-    <p class="mission-title">블록을 눌러 수업 내용을 떠올려 보세요</p>
+    <p class="mission-title">이 상황, 어떻게 해결할까요?</p>
     <p class="quiz-count" data-quiz-count>0 / ${devices.length} 확인</p>
     ${devices.map((d, i) => h`<div class="quiz" data-quiz="${i}"${i ? raw(' hidden') : ''}>
       <p class="quiz-q"><strong>${d.label}</strong> · ${d.quiz.question}</p>
-      <div class="quiz-choices">${d.quiz.choices.map((c, j) => h`<button type="button" class="quiz-choice" data-choice${j === d.quiz.answer ? raw(' data-answer') : ''}>${c}</button>`)}</div>
-      <p class="quiz-explain" hidden>${d.quiz.explain}</p>
+      <div class="quiz-choices">${d.quiz.choices.map((c, j) => h`<button type="button" class="quiz-choice" data-choice${j === d.quiz.answer ? raw(' data-answer') : ''}${c.feedback ? h` data-choice-feedback="${c.feedback}"` : ''}>${c.text}</button>`)}</div>
+      <div class="quiz-explain" hidden>
+        <p>${d.quiz.explain}</p>
+        <p><strong>내 앱에서 확인하기</strong><br>${d.quiz.check}</p>
+      </div>
     </div>`)}
     <p class="quiz-feedback" data-quiz-feedback role="status"></p>
     <button type="button" class="btn btn-fill mission-go" data-quiz-next hidden>다음 퀴즈 →</button>

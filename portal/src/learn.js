@@ -286,9 +286,10 @@
     const scene = choice.closest('[data-scene]');
     const quiz = choice.closest('[data-quiz]');
     const feedback = scene.querySelector('[data-quiz-feedback]');
+    for (const node of quiz.querySelectorAll('[data-choice]')) node.classList.toggle('is-wrong', false);
     if (!('answer' in choice.dataset)) {
       choice.classList.add('is-wrong');
-      feedback.textContent = '아쉬워요. 수업 자료를 떠올려 다시 골라 보세요.';
+      feedback.textContent = choice.dataset.choiceFeedback;
       return;
     }
     choice.classList.add('is-right');

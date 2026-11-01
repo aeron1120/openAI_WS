@@ -51,7 +51,9 @@ async function setup() {
     explanation.classList.add('quiz-explain');
     explanation.hidden = true;
     const quiz = new Element('div', { quiz: String(i) }, [
-      new Element('button', { choice: '' }), new Element('button', { choice: '', answer: '' }), explanation
+      new Element('button', { choice: '', choiceFeedback: '로그인은 사용자를 확인해요. 저장한 장소를 다시 불러오는 기능은 별도로 필요해요.' }),
+      new Element('button', { choice: '', answer: '' }),
+      new Element('button', { choice: '', choiceFeedback: '이름만 저장하면 다른 기기에서 같은 사용자의 목록을 불러올 수 없어요.' }), explanation
     ]);
     quiz.hidden = i !== 0;
     return quiz;
@@ -60,6 +62,7 @@ async function setup() {
   const finish = new Element('a', { quizFinish: '' });
   next.hidden = finish.hidden = true;
   const count = new Element('p', { quizCount: '' });
+  count.textContent = '0 / 3 확인';
   const feedback = new Element('p', { quizFeedback: '' });
   const panel = new Element('div', { quizPanel: '' }, [...quizzes, count, feedback, next, finish]);
   const scene = new Element('section', { scene: 'review' }, [...devices, panel]);
@@ -121,4 +124,24 @@ test('Next quiz wraps to unanswered blocks and manual selection keeps the button
   ui.click(ui.devices[0]);
   assert.equal(ui.finish.hidden, false, 'completed state survives revisiting another block');
   assert.equal(ui.next.hidden, true);
+});
+
+test('wrong choices explain the selected misconception and allow a corrected answer', async () => {
+  const ui = await setup();
+  const [first, correct, second] = ui.quizzes[0].querySelectorAll('[data-choice]');
+  ui.click(first);
+  assert.equal(ui.feedback.textContent, first.dataset.choiceFeedback);
+  assert.equal(first.classList.contains('is-wrong'), true);
+  assert.equal(correct.disabled, false);
+  assert.equal(ui.count.textContent, '0 / 3 확인');
+  ui.click(second);
+  assert.equal(ui.feedback.textContent, second.dataset.choiceFeedback);
+  assert.equal(second.classList.contains('is-wrong'), true);
+  assert.equal(first.classList.contains('is-wrong'), false, 'only the current wrong choice is highlighted');
+  ui.click(correct);
+  assert.equal(second.classList.contains('is-wrong'), false);
+  assert.equal(ui.quizzes[0].querySelector('.quiz-explain').hidden, false);
+  assert.equal(ui.count.textContent, '1 / 3 확인');
+  ui.click(ui.next);
+  assert.equal(ui.feedback.textContent, '', 'the next question does not retain the previous explanation');
 });

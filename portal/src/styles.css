@@ -701,6 +701,8 @@ body:has(.quest:not([hidden])) { background: radial-gradient(45% 40% at 50% 55%,
 .quiz-choice.is-wrong { border-color: #dda584; background: #fff6ef; }
 .quiz-choice:disabled { cursor: default; }
 .quiz-explain { margin: 10px 0 0; color: #1f6d47; font-size: .88rem; line-height: 1.5; }
+.quiz-explain p { margin: 0; }
+.quiz-explain p + p { margin-top: 10px; padding-top: 10px; border-top: 1px solid #d9eade; }
 .quiz-feedback { min-height: 1.5em; margin: 10px 0 12px; color: #705e88; font-size: .88rem; }
 
 /* 갈림길: 작은 섬 그림 + 이름. 누르면 그 섬이 가운데로 옵니다. */
