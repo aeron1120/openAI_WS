@@ -19,6 +19,13 @@
 // 위치 정보(EXIF)를 지운 뒤 올리세요. alt(무엇이 보이는지)는 꼭 적습니다. 영어 페이지용 번역은 content/en.mjs에 더합니다.
 export const recaps = [
   {
+    slug: 'studio-1102', status: 'published', title: 'Studio Session', eventDate: '2026-11-02',
+    summary: '원본과 배포 파일을 함께 살펴본 시간',
+    intro: 'Workshop 2를 마친 뒤, 노트북을 펼치고 원본과 배포 파일을 살펴본 11월 2일 Studio Session 현장입니다.',
+    cover: 0,
+    photos: [{ src: '/images/recap/studio-1102/01.jpg', alt: '원본과 배포 파일 슬라이드를 보며 노트북으로 실습하는 Studio Session 참가자들', caption: 'Workshop 2 이후 함께하는 실습 · 2026.11.02' }]
+  },
+  {
     slug: 'ws2-1102', status: 'published', title: 'Workshop 2', eventDate: '2026-11-02',
     summary: '웹사이트를 공개하고, 다음 버전을 만드는 시간',
     intro: '내 컴퓨터의 사이트를 공개 URL로 배포하고, GitHub에 변경을 기록했습니다. Preview에서 확인한 뒤 정식 사이트에 반영하고 복구하는 흐름을 함께 살펴봤습니다.',

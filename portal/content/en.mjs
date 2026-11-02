@@ -255,6 +255,10 @@ const showcase = {
 
 // Recap 화면의 틀. 각 행사 기록(content/recap.mjs)의 제목·글·사진 설명은 기록을 더할 때 여기에 함께 더해 주세요.
 const recap = {
+  '원본과 배포 파일을 함께 살펴본 시간': 'Exploring source and deployment files together',
+  'Workshop 2를 마친 뒤, 노트북을 펼치고 원본과 배포 파일을 살펴본 11월 2일 Studio Session 현장입니다.': 'At the November 2 Studio Session after Workshop 2, participants opened their laptops and explored source and deployment files together.',
+  '원본과 배포 파일 슬라이드를 보며 노트북으로 실습하는 Studio Session 참가자들': 'Studio Session participants practicing on their laptops while viewing slides about source and deployment files',
+  'Workshop 2 이후 함께하는 실습 · 2026.11.02': 'Practicing together after Workshop 2 · 2026.11.02',
   '활동 기록': 'Activity log',
   '행사 사진과 그날 한 일을 모아 둬요.': 'Photos from our events and what we did that day.',
   '행사 사진과 그날 한 일을 모아 둔 활동 기록.': 'An activity log of photos from our events and what we did that day.',
