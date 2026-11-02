@@ -20,7 +20,7 @@ export async function materialResponse(request, env, url) {
     // 운영진 화면은 설정 서버 오류가 있어도 열려야 재시도와 오류 안내를 볼 수 있습니다.
     if (url.pathname !== '/admin/' && url.pathname !== '/admin/index.html') {
       const settings = await fetch(new URL('/api/materials', env.LEARN_API_ORIGIN), {
-        headers: { 'x-proxy-secret': env.PROXY_SECRET }, signal: AbortSignal.timeout(10000), redirect: 'error'
+        headers: { 'x-proxy-secret': env.PROXY_SECRET }, signal: AbortSignal.timeout(10000), redirect: 'manual'
       });
       if (!settings.ok) throw new Error('settings unavailable');
       ({ materials } = await settings.json());

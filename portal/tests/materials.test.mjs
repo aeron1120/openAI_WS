@@ -14,10 +14,15 @@ test('saved release controls pages, lesson, slides and examples together without
   t.mock.timers.enable({ apis: ['Date'], now });
   let mode = 'closed';
   let failing = false;
+  let redirecting = false;
   t.mock.method(globalThis, 'fetch', async (input, init) => {
+    // Workers는 Node의 Fetch와 달리 redirect: 'error'를 지원하지 않습니다.
+    if (init.redirect === 'error') throw new TypeError('Unsupported redirect mode');
+    assert.equal(init.redirect, 'manual', 'shared secret must not follow redirects');
     assert.equal(new URL(input).pathname, '/api/materials');
     assert.equal(new Headers(init.headers).get('x-proxy-secret'), 'test-secret');
     if (failing) throw new Error('offline');
+    if (redirecting) return new Response(null, { status: 302, headers: { location: 'https://unexpected.test/' } });
     return Response.json({ materials: [
       { workshop: 1, mode: 'open', opensAt: null, open: true },
       { workshop: 2, mode, opensAt: mode === 'scheduled' ? '2026-11-02T10:30:00Z' : null, open: mode === 'open' }
@@ -51,6 +56,9 @@ test('saved release controls pages, lesson, slides and examples together without
   assert.equal((await get('/learn/02/')).status, 404);
   mode = 'closed';
   for (const route of privateRoutes) assert.equal((await get(route, 'HEAD')).status, 404, route);
+  redirecting = true;
+  assert.equal((await get('/workshops/02/')).status, 503, 'an upstream redirect is refused');
+  redirecting = false;
   failing = true;
   assert.equal((await get('/learn/02/')).status, 503);
   assert.equal((await get(slide)).status, 503);
