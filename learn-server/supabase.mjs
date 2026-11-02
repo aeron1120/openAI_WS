@@ -15,6 +15,14 @@ export function supabaseClient({ url, key, fetchImpl = fetch }) {
     return text ? JSON.parse(text) : null;
   }
   return {
+    listMaterialSettings() {
+      return request('material_settings?select=workshop,mode,opens_at,updated_at,updated_by&order=workshop.asc');
+    },
+    async saveMaterialSetting(setting) {
+      await request('material_settings?on_conflict=workshop', {
+        method: 'POST', headers: { prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(setting)
+      });
+    },
     async upsertStudent({ googleSub, email, name, now }) {
       const rows = await request('students?on_conflict=google_sub&select=id,email,name', {
         method: 'POST',

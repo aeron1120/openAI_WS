@@ -1,6 +1,19 @@
 -- SNU 수업·질문 시스템. Supabase 대시보드 → SQL Editor에 붙여 넣고 Run.
 -- 모든 테이블은 RLS를 켜고 정책을 만들지 않습니다: 서비스 키를 쓰는 Render 서버만 읽고 씁니다.
 
+-- 기존 프로젝트에서는 이 블록만 추가 실행해도 됩니다. 기존 데이터는 바꾸지 않습니다.
+create table if not exists public.material_settings (
+  workshop smallint primary key check (workshop between 1 and 99),
+  mode text not null check (mode in ('scheduled', 'open', 'closed')),
+  opens_at timestamptz,
+  updated_at timestamptz not null default now(),
+  updated_by text not null,
+  check ((mode = 'scheduled' and opens_at is not null) or (mode <> 'scheduled' and opens_at is null))
+);
+alter table public.material_settings enable row level security;
+revoke all on public.material_settings from anon, authenticated;
+grant select, insert, update on public.material_settings to service_role;
+
 create table if not exists public.students (
   id uuid primary key default gen_random_uuid(),
   google_sub text not null unique,

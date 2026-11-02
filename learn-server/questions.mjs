@@ -80,7 +80,7 @@ export async function handleQuestions({ request, url, session, config, db, stora
     sameOrigin(request, config.publicOrigin);
     const data = await readJson(request);
     const workshop = Number(data.workshop);
-    if (!Number.isInteger(workshop) || !isOpen(config, workshop, nowMs)) throw new HttpError(403, 'WORKSHOP_CLOSED', '아직 열리지 않은 회차예요.');
+    if (!Number.isInteger(workshop) || !await isOpen(config, workshop, nowMs, db)) throw new HttpError(403, 'WORKSHOP_CLOSED', '아직 열리지 않은 회차예요.');
     if (typeof data.step !== 'string' || !STEP.test(data.step)) throw bad('단계를 확인해 주세요.');
     if (data.mode != null && !['example', 'own'].includes(data.mode)) throw bad('진행 방식을 확인해 주세요.');
     const input = messageInput(data);

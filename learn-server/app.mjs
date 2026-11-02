@@ -13,6 +13,7 @@ import { createAi } from './ai.mjs';
 import { createLimiter } from './limits.mjs';
 import { handleQuestions } from './questions.mjs';
 import { handleAdmin } from './admin.mjs';
+import { materialSettings, publicMaterials } from './materials.mjs';
 import { cleanupAttachments, handleUpload } from './uploads.mjs';
 
 const SESSION_COOKIE = '__Host-learn_session';
@@ -87,14 +88,18 @@ export function createApp({ env, fetchImpl = fetch, now = Date.now, random = () 
     const seconds = Math.floor(now() / 1000);
     try {
       if (url.pathname === '/api/health') {
-        // 열린 회차 번호도 알려줘서, 로그인 없이 WORKSHOP_OPEN_AT 반영 여부를 확인할 수 있게 합니다.
-        const openWorkshops = [...config.workshopOpenAt].filter(([, at]) => now() >= at).map(([number]) => number).sort((a, b) => a - b);
+        // 운영진 설정까지 반영한 열린 회차 번호를 로그인 없이 확인할 수 있습니다.
+        const openWorkshops = config.ok ? (await materialSettings(config, db, now())).filter(w => w.open).map(w => w.workshop) : [];
         // Render가 넣어 주는 배포 커밋 앞 7자리. 새 버전이 올라갔는지 밖에서 확인할 때 씁니다.
         const commit = typeof env.RENDER_GIT_COMMIT === 'string' ? env.RENDER_GIT_COMMIT.slice(0, 7) : null;
         return json({ ok: true, configured: config.ok, mail: Boolean(notifier.configured), openWorkshops, commit });
       }
       if (!config.ok) throw new HttpError(503, 'LEARN_NOT_CONFIGURED', '수업 서버를 준비하고 있어요.');
       if (!safeEqual(request.headers.get('x-proxy-secret') ?? '', config.proxySecret)) throw new HttpError(403, 'DIRECT_ACCESS', '포털 주소로 접속해 주세요.');
+      if (url.pathname === '/api/materials') {
+        if (request.method !== 'GET') throw new HttpError(405, 'METHOD_NOT_ALLOWED', '지원하지 않는 요청입니다.');
+        return json({ materials: publicMaterials(await materialSettings(config, db, now())) });
+      }
       if (url.pathname === '/api/progress' || url.pathname.startsWith('/api/progress/')) {
         return await handleProgress({ request, url, session: requireSession(request, seconds), config, db, nowMs: now() });
       }

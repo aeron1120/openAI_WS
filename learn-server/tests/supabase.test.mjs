@@ -58,6 +58,16 @@ test('progress requests use the right PostgREST filters and headers', async () =
 
 import { storageClient } from '../storage.mjs';
 
+test('release settings persist with a per-workshop upsert and can be read by a new client', async () => {
+  const state = {};
+  const options = { url: ENV.SUPABASE_URL, key: 'sb_secret_test', fetchImpl: fakeFetch(state) };
+  const setting = { workshop: 2, mode: 'scheduled', opens_at: '2026-11-02T10:30:00.000Z', updated_at: '2026-11-01T09:00:00.000Z', updated_by: 'op@snu.ac.kr' };
+  await supabaseClient(options).saveMaterialSetting(setting);
+  assert.deepEqual(await supabaseClient(options).listMaterialSettings(), [setting]);
+  await supabaseClient(options).saveMaterialSetting({ ...setting, mode: 'closed', opens_at: null });
+  assert.deepEqual(await supabaseClient(options).listMaterialSettings(), [{ ...setting, mode: 'closed', opens_at: null }]);
+});
+
 function recorder(responses = {}) {
   const calls = [];
   const fetchImpl = async (url, init = {}) => {

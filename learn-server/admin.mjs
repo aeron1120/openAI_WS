@@ -1,6 +1,7 @@
 // 운영진 API: 질문 목록·상세·답변·상태 변경, 단계별 완료 학생 수. OPERATOR_EMAILS에 있는 계정만 씁니다.
 import { HttpError, json, readJson, sameOrigin } from './http.mjs';
 import { UUID, messageInput, postMessage, questionView, summary, usableAttachments } from './questions.mjs';
+import { handleMaterials } from './materials.mjs';
 
 const STATUSES = ['ai_answered', 'escalated', 'answered', 'resolved'];
 const OPERATOR_SETS = ['escalated', 'answered', 'resolved'];
@@ -11,6 +12,10 @@ const iso = ms => new Date(ms).toISOString();
 
 export async function handleAdmin({ request, url, session, config, db, storage, notifier, nowMs }) {
   if (!config.operators.has(session.email)) throw new HttpError(403, 'OPERATOR_ONLY', '운영진만 쓸 수 있어요.');
+
+  if (url.pathname === '/api/admin/materials' || url.pathname.startsWith('/api/admin/materials/')) {
+    return handleMaterials({ request, url, session, config, db, nowMs });
+  }
 
   // 알림 메일 시험: 보낸 결과나 실패 이유를 그대로 돌려줍니다.
   if (url.pathname === '/api/admin/notify-test') {

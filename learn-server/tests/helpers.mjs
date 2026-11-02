@@ -38,6 +38,16 @@ export function fakeFetch(state = {}) {
   state.tokenRequests ??= [];
   return async (input, init = {}) => {
     const url = String(input);
+    if (url.startsWith(`${ENV.SUPABASE_URL}/rest/v1/material_settings`)) {
+      if (state.dbStatus) return new Response('{}', { status: state.dbStatus });
+      state.materialSettings ??= [];
+      if (init.method === 'POST') {
+        const row = JSON.parse(init.body);
+        state.materialSettings = [...state.materialSettings.filter(w => w.workshop !== row.workshop), row];
+        return new Response(null, { status: 201 });
+      }
+      return Response.json(state.materialSettings);
+    }
     if (url === 'https://oauth2.googleapis.com/token') {
       state.tokenRequests.push(new URLSearchParams(String(init.body)));
       return Response.json(state.tokenStatus ? { error: 'invalid_grant' } : { id_token: state.idToken }, { status: state.tokenStatus ?? 200 });
@@ -101,7 +111,7 @@ export async function login({ app, state }, { next = '/learn/', override = {}, c
 
 // 메모리 DB: supabase.mjs와 같은 함수 모양. 질문·첨부·운영진 경로 테스트용.
 export function memoryDb() {
-  const t = { students: [], progress: [], questions: [], messages: [], attachments: [] };
+  const t = { students: [], progress: [], questions: [], messages: [], attachments: [], materials: [] };
   let seq = 0;
   const uuid = () => `00000000-0000-4000-8000-${String(++seq).padStart(12, '0')}`;
   const detail = q => q && {
@@ -114,6 +124,8 @@ export function memoryDb() {
   };
   return {
     tables: t,
+    async listMaterialSettings() { return t.materials; },
+    async saveMaterialSetting(row) { t.materials = [...t.materials.filter(w => w.workshop !== row.workshop), row]; },
     async upsertStudent({ googleSub, email, name, now }) {
       let s = t.students.find(x => x.google_sub === googleSub);
       if (!s) { s = { id: uuid(), google_sub: googleSub, created_at: now }; t.students.push(s); }
