@@ -450,7 +450,8 @@ test('studio reads like a workshop page: next topic, schedule, place, audience, 
   assert.match(head, /<h1>VS Code 세팅 · GitHub·Cloudflare 실습 Q&amp;A<\/h1>/);
   assert.match(head, /<dt>일정<\/dt><dd>2026년 11월 2일 \(월\) 19:00–20:00<\/dd>/);
   assert.match(head, /<dt>장소<\/dt><dd>추후 안내<\/dd>/);
-  assert.match(head, /<dt>대상<\/dt><dd>누구나 · 필수 아님<\/dd>/);
+  assert.doesNotMatch(head, /<dt>대상<\/dt>/);
+  assert.match(head, />오픈채팅방</);
   assert.doesNotMatch(page, /필수 참여|꼭 참여|처음이라면 추천|못 와도|주마다 달라질|class="sessions"/);
   assert.match(page, /<h2>가져올 것<\/h2>[\s\S]*?<h2>질문 정리 틀<\/h2>/);
   const homeStrip = (await before.read('/')).match(/<a class="strip[\s\S]*?<\/a>/)[0];
@@ -466,6 +467,16 @@ test('studio reads like a workshop page: next topic, schedule, place, audience, 
   assert.match(third, /<dt>일정<\/dt><dd>2026년 11월 9일 \(월\) 19:00–20:00<\/dd>/);
   assert.match(third, /href="https:\/\/luma\.com\/yj2yy948"[^>]*>참가 신청/);
   assert.ok(!third.includes(deck));
+  // 연사 특강은 작업 시간이 아니라서 가져올 것·질문 틀이 없어요.
+  assert.doesNotMatch(await after.read('/studio/'), /가져올 것|질문 정리 틀/);
+  // 다음 워크숍보다 먼저 열리는 Studio Session은 홈에서 크게 보여주고, 주 버튼이 Luma 신청이 됩니다.
+  const home = await after.read('/');
+  const next = home.match(/<section class="next-ws[\s\S]*?<\/section>/)[0];
+  assert.match(next, /다음 일정 · Studio Session[\s\S]*?AI 시대의 Identity/);
+  assert.match(next, /<td data-date="2026-11-09" class="is-event">/);
+  assert.match(next, /href="https:\/\/luma\.com\/yj2yy948"[^>]*>참가 신청/);
+  assert.match(home, /class="hero[\s\S]*?href="https:\/\/luma\.com\/yj2yy948"[^>]*>Studio Session 신청하기/);
+  assert.doesNotMatch(home, /<a class="strip/);
   const last = await build(t, defaultContent, Date.parse('2026-11-09T20:00:00+09:00'));
   const done = await last.read('/studio/');
   assert.match(done, /badge-scheduled">매주 월요일/);
@@ -810,8 +821,8 @@ test('home shows the next workshop with a calendar, a map and calendar links ins
   for (const line of ics.split('\r\n')) assert.ok(new TextEncoder().encode(line).length <= 75, `ics line too long: ${line}`);
 });
 
-test('after the last dated workshop ends, home says the next one is being prepared', async t => {
-  const { read } = await build(t, defaultContent, WS2_ENDS);
+test('after the last dated workshop and studio session end, home says the next one is being prepared', async t => {
+  const { read } = await build(t, defaultContent, Date.parse('2026-11-09T20:00:00+09:00'));
   const home = await read('/');
   assert.match(home, /다음 워크숍 일정을 준비하고 있어요/);
   assert.doesNotMatch(home, /<iframe|class="cal"/);

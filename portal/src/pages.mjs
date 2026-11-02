@@ -13,6 +13,11 @@ export const icsPath = w => `${workshopPath(w)}event.ics`;
 export const eventDetails = (site, w) => `${w.summary}\n\n자세히 보기: ${site.url}${workshopPath(w)}`;
 // 홈에 보여줄 다음 워크숍: 진행 중이거나 날짜가 정해진 다가오는 회차
 export const upcomingWorkshop = workshops => workshops.find(w => ['live', 'scheduled'].includes(w.event.status) && w.event.start);
+// 홈에서 크게 보여줄 Studio Session: 날짜가 정해진 다음 워크숍보다 먼저 열리면(워크숍이 없어도) 다음 회차를 고릅니다.
+export const featuredStudio = (studio, workshops) => {
+  const w = upcomingWorkshop(workshops);
+  return studio.next && (!w || Date.parse(studio.next.start) < Date.parse(w.event.start)) ? studio.next : null;
+};
 const checks = items => items?.length ? h`<ul class="checks">${items.map(item => h`<li>${item}</li>`)}</ul>` : '';
 export const slidesOf = w => w.resources.find(r => r.kind === 'slides' && isUsableUrl(r.url));
 // 수업 화면에서 이 단계(또는 선택지)의 '이 과제만' 보기에 넣을 슬라이드 페이지 ID: 과제 페이지, 없으면 시작 슬라이드 한 장
@@ -38,12 +43,14 @@ function cardStatus(w) {
 }
 const lockNote = w => h`<p class="opens"><span aria-hidden="true">🔒</span> 실습·슬라이드는 ${w.opensLabel}에 열려요</p>`;
 
-// 홈의 주 행동: 신청 링크가 열린 회차 → 진행 중인 회차 실습 → 최근 회차 다시 해보기 순서.
-export function primaryAction(workshops) {
+// 홈의 주 행동: 신청 링크가 열린 회차 → 진행 중인 회차 실습 → 먼저 열리는 Studio Session 신청 → 최근 회차 다시 해보기 순서.
+export function primaryAction(workshops, studio) {
   const recruiting = workshops.find(isRecruiting);
   if (recruiting) return { label: `Workshop ${recruiting.number} 신청하기`, url: recruiting.recruitment.url };
   const live = workshops.find(w => w.event.status === 'live' && w.materials === 'open');
   if (live) return { label: `Workshop ${live.number} 실습 시작하기`, url: workshopPath(live) };
+  const session = studio && featuredStudio(studio, workshops);
+  if (isUsableUrl(session?.apply)) return { label: 'Studio Session 신청하기', url: session.apply, external: true };
   const done = workshops.filter(w => w.event.status === 'done' && w.materials === 'open').at(-1);
   if (done) return { label: `Workshop ${done.number} 다시 해보기`, url: workshopPath(done) };
   return { label: '학기 로드맵 보기', url: '/roadmap/' };
@@ -130,6 +137,39 @@ function mapBlock(w, map) {
       <p class="map-meta"><span>© NAVER Corp.</span><span class="map-more">${link(map.kakao, '카카오맵')}${link(map.google, 'Google 지도')}</span></p>`;
 }
 
+// 홈의 다음 Studio Session: 다음 워크숍보다 먼저 열릴 때 '다음 워크숍' 칸 대신 크게 보여줍니다.
+function nextStudio(content, s) {
+  const { site, studio } = content;
+  const title = `${studio.title} · ${s.topic ?? studio.korean}`;
+  return h`<section class="next-ws c-navy reveal" aria-labelledby="next-ws-title">
+  <div class="next-ws-head">
+    <p class="track-kicker">다음 일정 · ${studio.title} ${eventBadge(studio)}<span class="dday" data-dday="${s.start}" hidden></span></p>
+    <h2 id="next-ws-title"><a href="/studio/">${s.topic ?? studio.korean}</a></h2>
+    ${s.detail ? h`<p class="track-desc">${s.detail}</p>` : ''}
+  </div>
+  <div class="next-ws-grid">
+    <div class="next-card cal-card">
+      <p class="next-card-main">${formatSchedule(s, site.timeZone)}</p>
+      ${monthCalendar(s, site.timeZone, title)}
+      <div class="next-card-actions">
+        ${link(googleCalendarUrl({ title, event: s, details: `${s.detail ?? studio.message}
+
+자세히 보기: ${site.url}/studio/` }), 'Google 캘린더', 'btn btn-ghost btn-sm')}
+      </div>
+    </div>
+    <div class="next-card map-card">
+      <p class="next-card-main">${s.place ?? '장소 추후 안내'}</p>
+      ${s.speaker ? h`<dl class="next-facts"><div><dt>연사</dt><dd>${s.speaker}</dd></div></dl>` : ''}
+      ${s.call ? h`<p class="hint">${s.call}</p>` : ''}
+    </div>
+  </div>
+  <div class="actions">
+    ${isUsableUrl(s.apply) ? link(s.apply, '참가 신청', 'btn btn-fill') : ''}
+    <a class="btn btn-ghost" href="/studio/">자세히 보기${arrow()}</a>
+  </div>
+</section>`;
+}
+
 // 홈의 다음 워크숍: 날짜는 달력, 장소는 지도로 보여줍니다. 남은 날(D-day)은 main.js가 그날 기준으로 채웁니다.
 function nextWorkshop(content) {
   const { site, workshops } = content;
@@ -174,7 +214,8 @@ function nextWorkshop(content) {
 
 export function homePage(content) {
   const { site, workshops, projects } = content;
-  const primary = primaryAction(workshops);
+  const primary = primaryAction(workshops, content.studio);
+  const session = featuredStudio(content.studio, workshops);
   // 홈 오른쪽에는 공개된 학생 프로젝트만 보여줍니다. 운영진 예제는 Showcase·회차 페이지에서 봐요.
   const featured = projects.find(p => p.kind === 'student' && p.published);
   // 배너 그림의 지구 자리에 돌아가는 지구(home.js)를 겹칩니다. 스크립트가 없으면 그림만 보여요.
@@ -189,13 +230,13 @@ export function homePage(content) {
   <h1>아이디어를 직접 구현하고,<br><em>사람들에게 공유해요.</em></h1>
   <p class="hero-lead">ChatGPT·Codex로 한 학기 동안 내 서비스를 만들어요.</p>
   <div class="actions">
-    ${link(primary.url, h`${primary.label}${arrow()}`, 'btn btn-primary')}
+    ${link(primary.url, primary.external ? primary.label : h`${primary.label}${arrow()}`, 'btn btn-primary')}
     <a class="btn btn-ghost" href="/roadmap/">학기 과정 한눈에 보기</a>
   </div>
   </div>
 </section>
-${nextWorkshop(content)}
-${studioStrip(content.studio)}`;
+${session ? nextStudio(content, session) : h`${nextWorkshop(content)}
+${studioStrip(content.studio)}`}`;
 }
 
 export function workshopsPage(content) {
@@ -400,8 +441,9 @@ ${references.length ? h`<section class="block reveal" id="references">
 ${pager}</div>`;
 }
 
-// Studio Session: 회차 페이지처럼 제목(다음 세션 주제)·한 줄 설명·버튼·일정/장소/대상만 두고, 아래에 가져올 것과 질문 틀.
+// Studio Session: 회차 페이지처럼 제목(다음 세션 주제)·한 줄 설명·버튼·일정/장소만 두고, 아래에 가져올 것과 질문 틀.
 // 다음 세션이 없으면 가장 최근 세션의 슬라이드를 계속 보여줍니다. 신청 링크(apply)가 있으면 '참가 신청'이 주 버튼입니다.
+// 연사 특강(talk: true) 회차는 작업 시간이 아니므로 가져올 것·질문 틀을 그리지 않습니다.
 export function studioPage(content) {
   const { site, studio } = content;
   const { next, sessions } = studio;
@@ -414,18 +456,17 @@ export function studioPage(content) {
   ${apply || slides || isUsableUrl(site.links.openChat) ? h`<div class="actions">
     ${apply ? link(apply, '참가 신청', 'btn btn-fill') : ''}
     ${slides ? link(slides, '세션 슬라이드', `btn ${apply ? 'btn-ghost' : 'btn-fill'}`) : ''}
-    ${isUsableUrl(site.links.openChat) ? link(site.links.openChat, '오픈채팅', `btn ${apply || slides ? 'btn-ghost' : 'btn-fill'}`) : ''}
+    ${isUsableUrl(site.links.openChat) ? link(site.links.openChat, '오픈채팅방', `btn ${apply || slides ? 'btn-ghost' : 'btn-fill'}`) : ''}
   </div>` : ''}
   <dl class="info">
     <div><dt>일정</dt><dd>${next ? formatSchedule(next, site.timeZone) : studio.cadence}</dd></div>
     <div><dt>장소</dt><dd>${next?.place ?? '추후 안내'}</dd></div>
-    <div><dt>대상</dt><dd>${studio.audience}</dd></div>
   </dl>
 </header>
-<section class="block reveal two">
+${next?.talk ? '' : h`<section class="block reveal two">
   <div class="box"><h2>가져올 것</h2>${checks(studio.bring)}</div>
   <div class="box"><h2>질문 정리 틀</h2>${copyBlock(studio.question, studio.caution)}</div>
-</section>`;
+</section>`}`;
 }
 
 export function projectCard(p) {

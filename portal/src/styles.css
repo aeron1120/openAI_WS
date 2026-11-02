@@ -238,6 +238,9 @@ small { color: var(--muted); }
 @media (hover: hover) { .next-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(17, 26, 46, .08); } }
 .next-card-label { margin: 0; color: var(--c-btn); font-size: .78rem; font-weight: 800; letter-spacing: .02em; }
 .next-card-main { margin: 0 0 14px; font-size: 1.14rem; font-weight: 800; line-height: 1.45; }
+.next-facts { margin: 0 0 12px; }
+.next-facts dt { color: var(--muted); font-size: .85rem; font-weight: 700; }
+.next-facts dd { margin: 2px 0 0; font-weight: 700; }
 .next-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .cal { width: 100%; border-collapse: separate; border-spacing: 0 2px; table-layout: fixed; text-align: center; font-size: .86rem; font-variant-numeric: tabular-nums; }
 .cal caption { margin-bottom: 6px; text-align: left; color: var(--muted); font-size: .92rem; font-weight: 700; }
