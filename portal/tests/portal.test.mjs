@@ -220,7 +220,12 @@ test('a past sign-up form is never offered and recruiting ends with the event', 
   for (const page of pages) {
     const html = await read(page);
     assert.doesNotMatch(html, /forms\.gle\/dRtqQzjj7tvUmaQs9/);
-    assert.doesNotMatch(html, /모집 중|신청하기/);
+    assert.doesNotMatch(html, /모집 중/);
+    // The lesson quotes “신청하기” as the button-label editing exercise.
+    // An ended event must not expose an actual enrollment action.
+    for (const workshop of defaultContent.workshops.filter(w => w.event?.end && Date.parse(w.event.end) <= WS2_ENDS)) {
+      if (workshop.recruitment?.url) assert.ok(!html.includes(`href="${workshop.recruitment.url}"`), `${page}: ended event enrollment link`);
+    }
   }
   assert.match(await read('/'), /Workshop 2 다시 해보기/);
 });

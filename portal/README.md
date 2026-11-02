@@ -262,10 +262,10 @@ npx --yes wrangler@4.152.0 pages secret put PROXY_SECRET --project-name snu-stud
 
 Workshop 1은 기존 강의 페이지 사이에 과제 페이지 17장을 넣었습니다(기존 페이지 ID는 그대로). 1번 2장, 2번 3장, 3번 2장, 4번 공통 1장과 기능별 3장이며, 각 과제의 `taskSlides`에 연결되어 있습니다. 날씨·로그인·지도 중 하나를 펼치면 그 기능의 3장만 보입니다.
 
-Workshop 2도 기존 48장과 페이지 ID를 유지하고 과제 19장을 추가했습니다. 첫 배포 4장 → GitHub 원본 보관 3장 → Cloudflare Git 연동 3장 → Preview 시험 4장 → 정식 반영·복구 5장입니다. 각 과제의 `taskSlides`와 `hintSlides`로 연결합니다. 초기 공개 시각은 2026년 11월 2일 18:00이며, 이후 변경은 운영진의 **자료 공개** 설정을 따릅니다.
+Workshop 2는 2026-11-02 최신 학생용 슬라이드 74장(설명 55장 + 과제 19장)을 반영했습니다. 첫 배포 4장 → GitHub 원본 보관 3장 → Cloudflare Git 연동 3장 → Preview 시험 4장 → 정식 반영·복구 5장입니다. 각 과제의 `taskSlides`와 `hintSlides`로 연결합니다. 초기 공개 시각은 2026년 11월 2일 18:00이며, 이후 변경은 운영진의 **자료 공개** 설정을 따릅니다.
 
 - **글로 읽기**: 과제 페이지를 띄우면 슬라이드 아래에 '이 페이지 글로 읽기'가 생깁니다. 내용은 `content/practice-pages.mjs`에 있습니다(페이지 ID별 제목·본문).
-- Workshop 2의 글은 `content/practice-pages-ws2.mjs`에 있습니다. 이미지 67장은 같은 원본의 PDF에서 WebP로 내보내 `slides/`에 저장했습니다. 이후에는 아래 snapshot 명령으로 SVG·PNG로 다시 받아도 같은 뷰어에서 표시됩니다.
+- Workshop 2의 글은 `content/practice-pages-ws2.mjs`에 있습니다. 이미지 74장은 최신 학생용 원본에서 WebP로 내보내 `slides/`에 저장했습니다. 이후에는 아래 snapshot 명령으로 SVG·PNG로 다시 받아도 같은 뷰어에서 표시됩니다.
 - 기본 예제 ZIP은 `public/downloads/workshop2-site.zip`입니다. `workshop2/starter/`의 HTML·CSS·JS 세 파일만 담았으며, `/downloads/*`는 공개 정적 파일입니다.
 - **힌트에서 슬라이드로**: 미션·선택지의 `hintSlides: ['페이지 ID', …]`는 힌트 1·2·3 순서대로 '관련 실습 페이지 보기' 버튼이 열 페이지입니다. 같은 과제의 `taskSlides` 안에서만 고를 수 있고, 버튼이 필요 없는 힌트는 뒤에서 빼면 됩니다. 이 버튼은 수업 화면에만 나옵니다.
 - 사이트의 슬라이드와 글은 **받아 둔 시점의 자료**입니다. Google Slides를 고쳐도 자동으로 바뀌지 않습니다.

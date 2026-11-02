@@ -15,13 +15,13 @@ test('each Workshop 1 assignment has its own pages with a readable transcript, i
   for (const id of allIds) assert.ok(defaultContent.transcripts[id]?.text.length > 50, `${id} has a transcript`);
 });
 
-test('Workshop 2 keeps 48 lecture pages and bounds five assignments to their own 19 practice pages', async () => {
+test('Workshop 2 keeps the current 74 slides and bounds five assignments to their own 19 practice pages', async () => {
   const w = defaultContent.workshops[1];
   const deckId = '1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE';
   const deck = defaultContent.decks[deckId];
   const ids = w.missions.flatMap(m => m.taskSlides);
-  assert.equal(deck.pages.length, 67);
-  assert.equal(deck.pages.filter(p => !p.id.startsWith('ws2_task_')).length, 48);
+  assert.equal(deck.pages.length, 74);
+  assert.equal(deck.pages.filter(p => !p.id.startsWith('ws2_task_')).length, 55);
   assert.deepEqual(w.missions.map(m => m.taskSlides.length), [4, 3, 3, 4, 5]);
   assert.equal(new Set(ids).size, 19);
   for (const m of w.missions) {

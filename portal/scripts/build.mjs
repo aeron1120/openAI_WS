@@ -210,11 +210,13 @@ async function copyMaterials(dir, content) {
     const deck = learnPages.deckId(pages.slidesOf(w)?.url);
     if (deck && content.decks?.[deck]) await cp(path.join(slidesDir, deck), path.join(dir, 'slides', deck), { recursive: true });
     for (const source of w.exampleDirs ?? []) {
-      for (const name of ['index.html', 'app.js', 'styles.css']) {
+      for (const name of ['index.html', 'app.js', 'styles.css', ...(w.number === 2 ? ['collective.html'] : [])]) {
         const target = path.join(dir, 'examples', source, name);
         await mkdir(path.dirname(target), { recursive: true });
         await copyFile(path.join(repoRoot, source, name), target);
       }
+      const assets = path.join(repoRoot, source, 'assets');
+      if (existsSync(assets)) await cp(assets, path.join(dir, 'examples', source, 'assets'), { recursive: true });
     }
   }
 }

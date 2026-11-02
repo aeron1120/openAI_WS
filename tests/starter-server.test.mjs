@@ -26,7 +26,7 @@ test('starter is reachable with its assets while private files stay inaccessible
   });
 
   await t.test('starter and both existing workshop 2 routes render', async () => {
-    for (const route of ['/starter/', '/workshop2/starter/', '/workshop2/complete/']) {
+    for (const route of ['/starter/', '/workshop2/starter/', '/workshop2/complete/', '/workshop2/starter/collective.html', '/workshop2/complete/collective.html']) {
       const response = await fetch(origin + route);
       assert.equal(response.status, 200, route);
       assert.match(response.headers.get('content-type'), /text\/html/);
@@ -34,7 +34,7 @@ test('starter is reachable with its assets while private files stay inaccessible
   });
 
   await t.test('starter scripts and styles have browser-usable MIME types', async () => {
-    for (const [route, type] of [['/starter/app.js', 'javascript'], ['/starter/styles.css', 'text/css']]) {
+    for (const [route, type] of [['/starter/app.js', 'javascript'], ['/starter/styles.css', 'text/css'], ['/workshop2/starter/assets/workshop2.jpg', 'image/jpeg'], ['/workshop2/complete/assets/workshop2.jpg', 'image/jpeg']]) {
       const response = await fetch(origin + route);
       assert.equal(response.status, 200, route);
       assert.ok(response.headers.get('content-type').includes(type));

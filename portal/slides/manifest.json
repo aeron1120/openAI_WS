@@ -207,11 +207,23 @@
   },
   "1N_guFeYU5IbLcgVMR8LI8MYdEZup9dK0gm32qI8W4kE": {
     "workshop": 2,
-    "fetched": "2026-10-29T02:47:53.100614+00:00",
+    "fetched": "2026-11-03T00:00:00+09:00",
     "pages": [
       {
         "id": "ws2_activity_20261019_01",
         "file": "ws2_activity_20261019_01.webp"
+      },
+      {
+        "id": "ws2_sync_20261102_tools",
+        "file": "ws2_sync_20261102_tools.webp"
+      },
+      {
+        "id": "ws2_sync_20261102_sites",
+        "file": "ws2_sync_20261102_sites.webp"
+      },
+      {
+        "id": "ws2_sync_20261102_contents",
+        "file": "ws2_sync_20261102_contents.webp"
       },
       {
         "id": "ws2_selflearn_20261028_02",
@@ -236,6 +248,18 @@
       {
         "id": "ws2_selflearn_20261028_07",
         "file": "ws2_selflearn_20261028_07.webp"
+      },
+      {
+        "id": "ws2_sync_20261102_source",
+        "file": "ws2_sync_20261102_source.webp"
+      },
+      {
+        "id": "ws2_sync_20261102_build",
+        "file": "ws2_sync_20261102_build.webp"
+      },
+      {
+        "id": "ws2_sync_20261102_dist",
+        "file": "ws2_sync_20261102_dist.webp"
       },
       {
         "id": "ws2_selflearn_20261028_08",
@@ -386,20 +410,20 @@
         "file": "ws2_selflearn_20261028_34.webp"
       },
       {
-        "id": "ws2_selflearn_20261028_35",
-        "file": "ws2_selflearn_20261028_35.webp"
+        "id": "ws2_activity_20261019_07",
+        "file": "ws2_activity_20261019_07.webp"
       },
       {
         "id": "ws2_selflearn_20261028_36",
         "file": "ws2_selflearn_20261028_36.webp"
       },
       {
-        "id": "ws2_activity_20261019_07",
-        "file": "ws2_activity_20261019_07.webp"
-      },
-      {
         "id": "ws2_selflearn_20261028_37",
         "file": "ws2_selflearn_20261028_37.webp"
+      },
+      {
+        "id": "ws2_selflearn_20261028_35",
+        "file": "ws2_selflearn_20261028_35.webp"
       },
       {
         "id": "ws2_task_20261029_preview_1",
@@ -468,6 +492,10 @@
       {
         "id": "ws2_selflearn_20261028_44",
         "file": "ws2_selflearn_20261028_44.webp"
+      },
+      {
+        "id": "ws2_sync_20261102_share",
+        "file": "ws2_sync_20261102_share.webp"
       },
       {
         "id": "ws2_selflearn_20261028_46",

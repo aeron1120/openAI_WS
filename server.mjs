@@ -10,7 +10,8 @@ const server = createServer(async (req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
   const target = pathname.endsWith('/') ? pathname + 'index.html' : pathname;
   const starterAsset = isStarterAsset(target.slice(1));
-  const allowed = target === '/index.html' || starterAsset || /^\/workshop2\/(starter|complete|recovery-practice)\/(index\.html|app\.js|styles\.css)$/.test(target);
+  const allowed = target === '/index.html' || starterAsset || /^\/workshop2\/(starter|complete|recovery-practice)\/(index\.html|app\.js|styles\.css)$/.test(target)
+    || /^\/workshop2\/(starter|complete)\/(collective\.html|assets\/workshop2\.jpg)$/.test(target);
   if (!allowed) { res.writeHead(404); res.end('Not found'); return; }
   try {
     const file = await realpath(path.join(root, target.slice(1)));

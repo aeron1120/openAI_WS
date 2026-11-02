@@ -292,8 +292,45 @@ const about = {
   '오픈채팅에서 일정 받기': 'Get updates in the open chat'
 };
 
+const workshop2Update = {
+  '공개 주소와 버튼 동작을 확인하는 배포 후 점검 슬라이드를 설명하는 모습': 'Explaining how to check the public URL and button behavior after deployment',
+  '배포 후 실제 사용자 동작 확인': 'Checking real user actions after deployment',
+  'Cloudflare Pages 직접 업로드 화면을 강의실에서 시연하는 모습': 'Demonstrating the Cloudflare Pages direct upload screen in class',
+  '사이트 파일을 올려 공개 주소 만들기': 'Uploading site files to create a public URL',
+  '내 사이트를 만든 대화나 저장소에서 원본 ZIP을 내려받고 압축을 풉니다.': 'Download and extract the source ZIP from the conversation or repository where you built your site.',
+  '운영진 저장소 전체를 배포하지 않습니다. 기본 예제에는 index.html·collective.html·CSS·JS·assets와 안내 파일이 들어 있어요.': 'Deploy the example, not the organizers’ entire repository. The ZIP includes index.html, collective.html, CSS, JS, assets and instructions.',
+  'SNU·Student Collective 두 화면 · 빌드 없이 실행': 'SNU and Student Collective pages · no build required',
+  '변경 후 비교용 ZIP': 'Updated example ZIP',
+  '참여하기 문구 + 학교 카드의 수업 자료 버튼': 'Updated sign-up label and lesson link on the school card',
+  '수업 슬라이드와 같은 SNU·Student Collective 사본으로 실습해요.': 'Practice with SNU and Student Collective examples matching the slides.',
+  '최신 학생용 74장 · 과제 19장 포함': 'Latest 74 student slides, including 19 task slides',
+  '배포와 변경 연습에 사용할 SNU Workshop 2 신청 버튼과 수업 자료가 있는 실습 예제 화면.': 'SNU practice site with a Workshop 2 sign-up button and lesson materials.',
+  'SNU · Student Collective — 변경 후 비교본': 'SNU · Student Collective — updated example',
+  '정식 사이트를 유지하면서 다음 버전을 시험하기': 'Test the next version while keeping the live site running',
+  'Workshop 2 · 신청 버튼 문구 변경과 학교 카드의 수업 자료 링크': 'Workshop 2 · update a button label and add a lesson link to a school card',
+  'SNU Workshop 2 참여하기 버튼과 수업 자료 링크가 있는 예제 화면.': 'Example with the updated SNU Workshop 2 button and lesson link.',
+  '웹사이트를 공개하고, 다음 버전을 만드는 시간': 'Publishing websites and building the next version',
+  '크라이치즈버거 AX 해커톤': 'Cry Cheeseburger AX Hackathon',
+  '서울대·연세대·고려대가 함께한 AX 해커톤': 'An AX hackathon with SNU, Yonsei and Korea University',
+  '노트북을 펼치고 함께 만든 첫 웹앱': 'Laptops open, building our first web apps together',
+  '내 컴퓨터의 사이트를 공개 URL로 배포하고, GitHub에 변경을 기록했습니다. Preview에서 확인한 뒤 정식 사이트에 반영하고 복구하는 흐름을 함께 살펴봤습니다.': 'We deployed local websites to public URLs and recorded changes on GitHub. We explored previewing, publishing and recovering a live site.',
+  '웹사이트 배포와 버전 관리 · 2026.11.02': 'Website deployment and version control · 2026.11.02',
+  '공개 배포부터 Preview와 복구까지': 'From publishing to previews and recovery',
+  'Workshop 02 화면 앞에서 웹사이트 배포 수업을 진행하는 모습': 'Teaching website deployment in front of the Workshop 02 slides',
+  '서울대학교 강의실에서 Workshop 2를 진행하는 모습': 'Workshop 2 in a Seoul National University classroom',
+  '크라이치즈버거 AX 해커톤 · Recap · OpenAI Student Collective | SNU': 'Cry Cheeseburger AX Hackathon · Recap · OpenAI Student Collective | SNU',
+  '› 크라이치즈버거 AX 해커톤': '› Cry Cheeseburger AX Hackathon',
+  'OpenAI Student Collective가 주최하고 서울대학교 DWNC, 연세대학교 YBIGTA, 고려대학교 ITS가 함께한 크라이치즈버거 AX 해커톤의 현장입니다.': 'Scenes from the Cry Cheeseburger AX Hackathon, hosted by OpenAI Student Collective with SNU DWNC, Yonsei YBIGTA and Korea University ITS.',
+  '함께한 참가자들과 · 2026.10.31': 'With the participants · 2026.10.31',
+  '크라이치즈버거 AX 해커톤 현수막을 들고 함께 찍은 참가자 단체 사진': 'Participants holding the Cry Cheeseburger AX Hackathon banner for a group photo',
+  '크라이치즈버거 AX 해커톤 · Recap': 'Cry Cheeseburger AX Hackathon · Recap',
+  '참가자들이 각자의 노트북으로 웹앱 만들기를 따라 해 본 Workshop 1의 현장입니다.': 'Participants following along on their laptops to build web apps at Workshop 1.',
+  '첫 웹앱 만들기 실습 · 2026.10.26': 'Building our first web apps · 2026.10.26',
+  '강의실에서 노트북을 펼치고 Workshop 1 실습에 참여하는 학생들': 'Students working on their laptops during Workshop 1'
+};
+
 export const english = {
-  text: { ...workshopTitles, ...layout, ...home, ...roadmap, ...workshopsList, ...workshopPage, ...studio, ...showcase, ...recap, ...about },
+  text: { ...workshopTitles, ...layout, ...home, ...roadmap, ...workshopsList, ...workshopPage, ...studio, ...showcase, ...recap, ...about, ...workshop2Update },
   // 문장 안에 날짜·회차 번호가 들어가는 글. 날짜는 먼저 영어로 바뀐 뒤 이 규칙을 거칩니다.
   rules: [
     [/^(\d{4})년 (\d)학기$/, (_, y, t) => `${t === '1' ? 'Spring' : 'Fall'} ${y}`],
