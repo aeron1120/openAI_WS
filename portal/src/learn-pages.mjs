@@ -146,7 +146,8 @@ function scene(stage, i, { list, review, robot }, content, shown) {
   } else {
     state = ' is-fog';
     head = { kicker: `STAGE ${pad(w.number)}`, title: w.mapTitle ?? '다음 워크숍', lead: w.summary, chip: w.mapTitle ? '다음 도전' : '준비 중', chipTone: 'lock' };
-    panel = infoPanel('준비 중', w.mapTitle ? '날짜는 추후 안내해요' : '주제를 정하고 있어요', `/workshops/${w.slug}/`, '수업 안내 보기');
+    const [, month, day] = (w.event.date ?? '').split('-').map(Number);
+    panel = infoPanel('준비 중', w.mapTitle ? (w.event.date ? `${month}월 ${day}일에 열려요` : '날짜는 추후 안내해요') : '주제를 정하고 있어요', `/workshops/${w.slug}/`, '수업 안내 보기');
   }
   const course = stage.open
     ? h` data-course="${w.number}" data-path="${lessonPath(w)}" data-steps="${JSON.stringify(w.missions.map(m => m.id))}" data-titles="${JSON.stringify(w.missions.map(m => m.title))}"`

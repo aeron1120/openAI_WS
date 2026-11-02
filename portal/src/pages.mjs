@@ -19,7 +19,14 @@ export const slidesOf = w => w.resources.find(r => r.kind === 'slides' && isUsab
 export const taskSlidesOf = item => (item.taskSlides?.length ? item.taskSlides : [item.slideId]).filter(Boolean).join(' ');
 
 function scheduleText(item, timeZone) {
-  return formatSchedule(item.event, timeZone) ?? '일정 준비 중';
+  return formatSchedule(item.event, timeZone) ?? dateOnly(item.event, timeZone) ?? '일정 준비 중';
+}
+// 날짜만 정해진 행사(event.date: 'YYYY-MM-DD'): '2026년 11월 27일 (금) · 시간 추후 안내'
+function dateOnly(event, timeZone) {
+  if (!event?.date) return null;
+  const day = new Date(`${event.date}T12:00:00+09:00`);
+  const format = options => new Intl.DateTimeFormat('ko-KR', { timeZone, ...options }).format(day);
+  return `${format({ year: 'numeric', month: 'long', day: 'numeric' })} (${format({ weekday: 'short' })}) · 시간 추후 안내`;
 }
 const placeText = item => item.event?.place ?? (item.event?.start ? '장소 추후 안내' : '장소 준비 중');
 
@@ -394,18 +401,20 @@ ${pager}</div>`;
 }
 
 // Studio Session: 회차 페이지처럼 제목(다음 세션 주제)·한 줄 설명·버튼·일정/장소/대상만 두고, 아래에 가져올 것과 질문 틀.
-// 다음 세션이 없으면 가장 최근 세션의 슬라이드를 계속 보여줍니다.
+// 다음 세션이 없으면 가장 최근 세션의 슬라이드를 계속 보여줍니다. 신청 링크(apply)가 있으면 '참가 신청'이 주 버튼입니다.
 export function studioPage(content) {
   const { site, studio } = content;
   const { next, sessions } = studio;
-  const slides = next?.slides ?? [...sessions].reverse().find(s => s.slides)?.slides;
+  const slides = next ? next.slides : [...sessions].reverse().find(s => s.slides)?.slides;
+  const apply = isUsableUrl(next?.apply) ? next.apply : null;
   return h`<header class="detail-head c-navy">
   <p class="track-kicker">${studio.title} ${eventBadge(studio)}</p>
   <h1>${next?.topic ?? studio.korean}</h1>
   <p class="lead">${next?.detail ?? studio.message}</p>
-  ${slides || isUsableUrl(site.links.openChat) ? h`<div class="actions">
-    ${slides ? link(slides, '세션 슬라이드', 'btn btn-fill') : ''}
-    ${isUsableUrl(site.links.openChat) ? link(site.links.openChat, '오픈채팅', `btn ${slides ? 'btn-ghost' : 'btn-fill'}`) : ''}
+  ${apply || slides || isUsableUrl(site.links.openChat) ? h`<div class="actions">
+    ${apply ? link(apply, '참가 신청', 'btn btn-fill') : ''}
+    ${slides ? link(slides, '세션 슬라이드', `btn ${apply ? 'btn-ghost' : 'btn-fill'}`) : ''}
+    ${isUsableUrl(site.links.openChat) ? link(site.links.openChat, '오픈채팅', `btn ${apply || slides ? 'btn-ghost' : 'btn-fill'}`) : ''}
   </div>` : ''}
   <dl class="info">
     <div><dt>일정</dt><dd>${next ? formatSchedule(next, site.timeZone) : studio.cadence}</dd></div>

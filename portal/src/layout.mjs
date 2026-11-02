@@ -1,5 +1,14 @@
 import { h, raw, link, isUsableUrl } from './render.mjs';
 
+// 날짜만 정해진 회차(event.date: 'YYYY-MM-DD')의 '11/27 (금)'
+function dayLabel(date, timeZone) {
+  if (!date) return null;
+  const day = new Date(`${date}T12:00:00+09:00`);
+  const md = new Intl.DateTimeFormat('ko-KR', { timeZone, month: 'numeric', day: 'numeric' }).formatToParts(day);
+  const pick = type => md.find(p => p.type === type).value;
+  return `${pick('month')}/${pick('day')} (${new Intl.DateTimeFormat('ko-KR', { timeZone, weekday: 'short' }).format(day)})`;
+}
+
 // 사이드바 메뉴: 홈 · 학기 과정(회차별) · 활동 기록(Recap) · 안내. 메뉴 아래 작은 줄에는 날짜나 '준비 중'만 적습니다.
 function navGroups(content) {
   const { workshops, studio, showcase } = content;
@@ -11,7 +20,7 @@ function navGroups(content) {
         ...workshops.map(w => ({
           path: `/workshops/${w.slug}/`,
           label: `Workshop ${w.number}`,
-          sub: w.materials === 'planning' ? '준비 중' : w.event.badge,
+          sub: w.materials === 'planning' ? (dayLabel(w.event.date, content.site.timeZone) ?? '준비 중') : w.event.badge,
           color: w.materials === 'planning' ? 'muted' : w.color
         })),
         { path: '/studio/', label: studio.title, sub: studio.next?.badge ?? studio.cadence, color: 'navy' },
@@ -62,7 +71,7 @@ ${alt ? h`<link rel="alternate" hreflang="ko" href="${site.url + alt.ko}">
 <meta property="og:title" content="${title ?? site.name}">
 <meta property="og:description" content="${description}">
 <meta property="og:url" content="${url}">
-<meta property="og:image" content="${site.url}/og.png">
+<meta property="og:image" content="${site.url}/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="${site.name} — ${site.promise}">

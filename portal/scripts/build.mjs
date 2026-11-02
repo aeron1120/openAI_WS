@@ -142,6 +142,7 @@ export function validateContent(content) {
     }
     // 세션 슬라이드는 학생용 Google 슬라이드 주소만 받습니다.
     if (s.slides != null && !/^https:\/\/docs\.google\.com\/presentation\/d\/[A-Za-z0-9_-]{20,}\//.test(s.slides)) problems.push(`studio.sessions[${i}].slides: docs.google.com/presentation/d/<ID>/… 주소를 적어 주세요.`);
+    checkUrl(s.apply, `studio.sessions[${i}].apply`);
   });
   content.projects.forEach((p, i) => p.links?.forEach((l, j) => checkUrl(l.url, `projects[${i}].links[${j}]`)));
   // Recap: 공개(published) 기록은 실제 날짜·글·사진(public/에 있는 파일, alt 필수)이 모두 있어야 합니다. 초안은 주소만 확인합니다.

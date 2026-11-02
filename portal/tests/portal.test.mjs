@@ -134,7 +134,7 @@ test('internal links resolve, no placeholder links, and share metadata uses the 
       assert.doesNotMatch(html, /href="(#|)"/, `${page} has an empty link`);
       assert.doesNotMatch(html, /href="http:/, `${page} has an insecure link`);
       assert.match(html, new RegExp(`<link rel="canonical" href="${defaultContent.site.url}${page}">`));
-      assert.match(html, new RegExp(`<meta property="og:image" content="${defaultContent.site.url}/og.png">`));
+      assert.match(html, new RegExp(`<meta property="og:image" content="${defaultContent.site.url}/og\\.png\\?v=2">`));
       for (const [, href] of html.matchAll(/(?:href|src)="(\/[^"]*)"/g)) {
         const clean = href.split(/[?#]/)[0];
         // 공용 파일(css·js·이미지)은 루트에, 페이지와 예제는 같은 묶음 안에 있어야 합니다.
@@ -159,7 +159,6 @@ test('before Workshop 2 starts, its missions, slides and examples are not publis
   assert.match(ws2Card, /11\/2 \(월\) 18:00/);
   assert.doesNotMatch(ws2Card, /실습 시작하기|슬라이드<|docs\.google/);
   assert.equal(await exists(path.join(outDir, 'examples/workshop2/complete/index.html')), false);
-  assert.doesNotMatch(await read('/showcase/'), /즐겨찾기 추가/);
 });
 
 test('at the start time Workshop 2 opens, and after it ends it is marked done', async t => {
@@ -169,7 +168,6 @@ test('at the start time Workshop 2 opens, and after it ends it is marked done', 
   assert.match(page, /docs\.google\.com\/presentation/);
   assert.match(page, /진행 중/);
   assert.ok(await exists(path.join(opened.outDir, 'examples/workshop2/complete/index.html')));
-  assert.match(await opened.read('/showcase/'), /즐겨찾기 추가/);
   const ended = await build(t, defaultContent, WS2_ENDS);
   assert.match((await ended.read('/workshops/')).match(/<article class="track c-violet[\s\S]*?<\/article>/)[0], /진행 완료/);
 });
@@ -240,7 +238,9 @@ test('planning workshops show only topic and status, no missions or downloads', 
   const { read } = await build(t);
   const html = await read('/workshops/03/');
   assert.match(html, /이 회차는 준비하고 있어요/);
-  assert.match(html, /일정 준비 중/);
+  // 날짜만 정해진 회차는 날짜와 '시간 추후 안내'를, 아무것도 없는 회차는 '일정 준비 중'을 보여줘요.
+  assert.match(html, /<dd>2026년 11월 27일 \(금\) · 시간 추후 안내<\/dd>/);
+  assert.match(await read('/workshops/04/'), /일정 준비 중/);
   assert.doesNotMatch(html, /class="mission"|copy-block|<video/);
 });
 
@@ -454,8 +454,15 @@ test('studio reads like a workshop page: next topic, schedule, place, audience, 
   // 세션 슬라이드: 세션이 끝나도 가장 최근 슬라이드를 계속 열 수 있어요.
   const deck = 'https://docs.google.com/presentation/d/1TwJDjzG1Oo24YirHCgSs3BGoOPhncrmkVkVTDjmOpCQ/edit?usp=sharing';
   assert.ok(head.includes(`href="${deck}"`) && head.includes('세션 슬라이드'));
+  // 다음 회차로 넘어가면 그 회차의 주제와 참가 신청이 나오고, 지난 회차 슬라이드는 내려갑니다.
   const after = await build(t, defaultContent, Date.parse('2026-11-02T20:00:00+09:00'));
-  const done = await after.read('/studio/');
+  const third = (await after.read('/studio/')).match(/<header class="detail-head c-navy">[\s\S]*?<\/header>/)[0];
+  assert.match(third, /<h1>AI 시대의 Identity<\/h1>/);
+  assert.match(third, /<dt>일정<\/dt><dd>2026년 11월 9일 \(월\) 19:00–20:00<\/dd>/);
+  assert.match(third, /href="https:\/\/luma\.com\/yj2yy948"[^>]*>참가 신청/);
+  assert.ok(!third.includes(deck));
+  const last = await build(t, defaultContent, Date.parse('2026-11-09T20:00:00+09:00'));
+  const done = await last.read('/studio/');
   assert.match(done, /badge-scheduled">매주 월요일/);
   assert.match(done, /<h1>함께 만드는 시간<\/h1>/);
   assert.ok(done.includes(`href="${deck}"`));
@@ -670,7 +677,7 @@ test('the course map shows one island at a time with a stage bar, a mission pane
   assert.equal(devices.length, 3);
   for (const step of devices) assert.ok(ws2.missions.some(m => m.id === step), `${step} is a real step`);
   assert.match(s2, /data-go="review"[\s\S]*?복습 섬 →/);
-  assert.match(s2, /data-go="3"[\s\S]*?03 · Midterm/);
+  assert.match(s2, /data-go="3"[\s\S]*?03 · 게임 배틀/);
   // Workshop 01의 로그인·지도·날씨 블록은 실제 수업처럼 셋 중 하나를 고르는 것으로 설명합니다.
   const s1 = html.match(/<section class="scene" id="scene-1"[\s\S]*?<\/section>/)[0];
   assert.ok(s1.includes(`href="/learn/01/#step-${ws1.missions[0].id}"`));
@@ -678,7 +685,7 @@ test('the course map shows one island at a time with a stage bar, a mission pane
   assert.match(s1, /셋 중 하나를 골라/);
   // 열리지 않은 회차·FINAL: 수업 링크와 장치 없이 안내만
   const s3 = html.match(/<section class="scene is-fog" id="scene-3"[\s\S]*?<\/section>/)[0];
-  assert.match(s3, /Midterm Showcase[\s\S]*?다음 도전/);
+  assert.match(s3, /Game Build Battle[\s\S]*?다음 도전[\s\S]*?11월 27일에 열려요/);
   assert.doesNotMatch(s3, /data-device=|data-continue|\/learn\/03\//);
   assert.match(html, /<section class="scene is-fog" id="scene-4"[\s\S]*?다음 워크숍[\s\S]*?준비 중/);
   const final = html.match(/<section class="scene" id="scene-final"[\s\S]*?<\/section>/)[0];

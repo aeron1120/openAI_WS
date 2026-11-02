@@ -31,7 +31,7 @@ export const learnMap = {
     ]
   },
   3: {
-    tab: 'Midterm',
+    tab: '게임 배틀',
     art: { file: 'island-03.webp', width: 1200, height: 938, alt: '돌벽을 돌려 길을 바꾸는 섬' },
     robot: [0.2, 0.62]
   },

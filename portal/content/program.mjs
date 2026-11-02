@@ -21,6 +21,14 @@ export const studio = {
       detail: 'VS Code를 함께 세팅하고, Workshop 2의 GitHub·Cloudflare 실습 예제를 따라가며 생긴 문제를 질문하고 해결해요.',
       tag: '처음이라면 추천',
       call: '코딩이 처음이라면 와서 함께 세팅해 보세요. 실습하다 막힌 화면을 그대로 가져오면 돼요.'
+    },
+    {
+      // 끝 시각은 공지에 없어 다른 회차처럼 1시간으로 둡니다. 확정되면 고치세요.
+      start: '2026-11-09T19:00:00+09:00', end: '2026-11-09T20:00:00+09:00', place: null, note: '스페셜 게스트 토크',
+      topic: 'AI 시대의 Identity',
+      detail: '에이전트가 나를 대신해 행동할 때, 서비스는 ‘나’와 ‘에이전트’를 어떻게 구분할까요? Vercel · Better Auth 메인테이너 김태수 님과 Agent Identity, 오픈소스, 여러분의 프로젝트에 대해 이야기 나눠요.',
+      tag: '스페셜 게스트',
+      apply: 'https://luma.com/yj2yy948' // 있으면 '참가 신청' 버튼이 생깁니다.
     }
   ],
   bring: [
@@ -50,27 +58,26 @@ export const showcase = {
 // 제작자 이름은 공개 동의를 받은 경우에만 maker에 적습니다.
 export const projects = [
   {
-    title: '틈 — 캠퍼스 모임 플래너',
+    title: 'SNU ECE 공지방',
     kind: 'operator',
     published: true,
-    problem: '비어 있는 시간에 근처에서 함께할 모임을 찾기 어려운 문제',
-    stage: 'Workshop 1 발표용 예제 · 날씨 → 로그인 → 지도 순서로 기능 추가',
-    image: '/images/examples/ws1-teum-home.png',
-    alt: '‘비어 있는 시간에, 함께하는 틈.’이라는 제목과 달리기 사진이 있는 모임 앱 첫 화면.',
+    problem: '학부 소식이 여러 곳에 흩어져 있어 한곳에서 확인하기 어려운 문제',
+    stage: '서울대 전기·정보공학부 공지를 모아 보는 학생 운영 비공식 서비스 · Google 로그인 후 이용',
+    image: '/images/examples/snu-ece-announcement.png',
+    alt: '‘우리 학부 소식, 한곳에서 만나요.’라는 제목과 Google로 계속하기 버튼이 있는 SNU ECE 공지방 로그인 화면.',
     maker: null,
-    links: [{ label: '단계별 화면 보기', url: 'https://openai-ws-workshop1.a01085519047.workers.dev/versions/' }]
+    links: [{ label: '사이트 열기', url: 'https://snu-ece-announcement.pages.dev/login?next=%2F' }]
   },
   {
-    title: '틈 — 즐겨찾기 추가',
+    title: 'Golden Time Router — 골든타임 라우터',
     kind: 'operator',
-    workshop: 2, // 이 회차 자료가 열릴 때 함께 공개
     published: true,
-    problem: '관심 있는 모임을 다시 찾기 어려운 문제',
-    stage: 'Workshop 2 비교용 완성본 · 새로고침하면 초기화',
-    image: '/images/examples/ws2-complete.png',
-    alt: '모임 카드 세 개에 즐겨찾기 버튼이 있는 화면.',
+    problem: '응급 상황에서 환자 상태와 현재 위치를 빠르게 정리하기 어려운 문제',
+    stage: '환자 상태를 음성으로 말하고 현재 위치를 확인하는 웹앱 · 마이크·위치 권한 필요',
+    image: '/images/examples/golden-time-router.png',
+    alt: 'Golden Time Router 로고 아래에 현재 위치 칸과 ‘환자 상태를 말해주세요!’ 녹음 시작 버튼이 있는 화면.',
     maker: null,
-    links: [{ label: '완성본 열기', url: '/examples/workshop2/complete/' }]
+    links: [{ label: '사이트 열기', url: 'https://irb2026.pages.dev/' }]
   }
 ];
 
