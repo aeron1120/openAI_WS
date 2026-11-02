@@ -1,6 +1,7 @@
-// Cloudflare Pages 함수: 요청 시각에 맞는 페이지 묶음(dist/_v/<n>/)을 보여줍니다.
-// 워크숍 자료는 materialsOpenAt 시각이 되면 다시 배포하지 않아도 자동으로 열립니다.
+// Cloudflare Pages 함수: 수업 서버가 연결되면 DB의 공개 설정으로 페이지를 그립니다.
+// 서버 없는 정적 모드에서는 요청 시각에 맞는 페이지 묶음(dist/_v/<n>/)을 보여줍니다.
 // /_v/ 경로는 직접 열 수 없으므로, 아직 열리지 않은 자료의 페이지는 공개되지 않습니다.
+import { materialResponse } from '../src/materials-runtime.mjs';
 
 // /api/*는 수업 서버(Render)로 그대로 전달합니다. 같은 주소라 로그인 쿠키가 제3자 쿠키로 막히지 않습니다.
 // PROXY_SECRET 헤더는 포털을 거친 요청만 Render가 받도록 하는 공유 비밀값입니다(브라우저가 보낸 값은 덮어씀).
@@ -36,6 +37,15 @@ export async function onRequest({ request, env, next }) {
   if (url.pathname === '/_v' || url.pathname.startsWith('/_v/')) return new Response('Not found', { status: 404 });
   if (url.pathname === '/api' || url.pathname.startsWith('/api/')) return proxyApi(request, env, url);
   if (request.method !== 'GET' && request.method !== 'HEAD') return next();
+
+  if (env.LEARN_API_ORIGIN || env.PROXY_SECRET) {
+    const last = url.pathname.split('/').pop();
+    if (last && !last.includes('.')) {
+      url.pathname += '/';
+      return Response.redirect(url.toString(), 308);
+    }
+    return materialResponse(request, env, url);
+  }
 
   let times;
   try {

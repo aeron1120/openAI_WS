@@ -46,6 +46,10 @@
   function previewApi(path) {
     const ok = data => ({ response: { ok: true, status: 200 }, data });
     if (path === '/api/me') return ok({ user: { name: '김서울 / 학생 / 미리보기', email: 'preview@snu.ac.kr', operator: true } });
+    if (path === '/api/admin/materials') return ok({ preview: true, materials: [
+      { workshop: 1, mode: 'open', opensAt: null, open: true },
+      { workshop: 2, mode: 'scheduled', opensAt: '2026-11-02T18:00:00+09:00', open: false }
+    ] });
     if (path === '/api/progress') {
       const progress = [];
       const add = (workshop, ids) => ids.slice(0, Math.ceil(ids.length / 2)).forEach(step => progress.push({ workshop, step }));

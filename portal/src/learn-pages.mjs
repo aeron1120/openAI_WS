@@ -201,7 +201,7 @@ ${loginCard()}
 export function adminPage(content) {
   return h`<header class="study-head">
   <h1>운영진</h1>
-  <p class="lead">학생 질문에 답하고 수업 진행 상황을 확인해요. 운영진 계정만 쓸 수 있어요.</p>
+  <p class="lead">자료 공개를 관리하고, 학생 질문과 수업 진행 상황을 확인해요. 운영진 계정만 쓸 수 있어요.</p>
 </header>
 ${loginCard()}
 <div class="admin" data-learn-content data-admin hidden data-steps="${stepsOf(content)}"></div>`;
