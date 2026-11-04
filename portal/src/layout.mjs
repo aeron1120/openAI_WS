@@ -116,7 +116,6 @@ ${raw(body)}
     </main>
     <footer class="site-footer">
       <p><strong>${site.name}</strong> · 운영 ${site.operators.role} ${site.operators.names.join('·')}</p>
-      <p>${site.supportNotice}</p>
       <p class="footer-links">${isUsableUrl(openChat) ? link(openChat, '오픈채팅방') : ''}${link(site.links.repository, 'GitHub')}<a href="/about/">운영·협력 안내</a></p>
     </footer>
   </div>

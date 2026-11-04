@@ -39,7 +39,6 @@ const layout = {
   '전체 워크숍': 'All workshops',
   '운영·협력': 'Team & partners',
   '· 운영 SNU Campus Leads 김태현·박서린': '· Run by SNU Campus Leads Taehyun Kim and Seolynn Park',
-  '운영자는 OpenAI Student Collective 프로그램을 통해 활동비 등 지원을 받습니다.': 'The organizers receive support, such as activity funds, through the OpenAI Student Collective program.',
   '운영·협력 안내': 'Team & partners',
   '(새 창)': '(new window)',
   '현재 위치': 'Breadcrumb',

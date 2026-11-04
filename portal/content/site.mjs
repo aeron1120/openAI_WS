@@ -12,7 +12,6 @@ export const site = {
     role: 'SNU Campus Leads',
     names: ['김태현', '박서린']
   },
-  supportNotice: '운영자는 OpenAI Student Collective 프로그램을 통해 활동비 등 지원을 받습니다.',
   links: {
     openChat: 'https://open.kakao.com/o/pqDgx8Pi', // 오픈채팅 주소 ('https://open.kakao.com/...' 형식)
     contact: 'https://forms.gle/kY3fXMRaXhv7NWwv6', // 협력 문의 폼

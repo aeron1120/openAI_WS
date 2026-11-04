@@ -517,7 +517,6 @@ export function aboutPage(content) {
   <div class="box">
     <h2>운영</h2>
     <p>${site.operators.role} ${site.operators.names.join('·')}</p>
-    <p class="hint">${site.supportNotice}</p>
   </div>
   <div class="box">
     <h2>진행 기록</h2>
